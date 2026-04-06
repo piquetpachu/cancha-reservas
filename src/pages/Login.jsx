@@ -1,15 +1,31 @@
-import { useState } from 'react'
-import { login, register } from '../services/authService'
+import { useState, useEffect } from 'react'
+import { login, register, getUser } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLogin, setIsLogin] = useState(true)
+  const [loading, setLoading] = useState(false)
+
   const navigate = useNavigate()
-    
+
+  // 🔐 Evitar entrar al login si ya está logueado
+  useEffect(() => {
+    async function checkSession() {
+      const user = await getUser()
+      if (user) {
+        navigate('/')
+      }
+    }
+
+    checkSession()
+  }, [])
+
+  // 🧠 Manejo del submit
   async function handleSubmit(e) {
     e.preventDefault()
+    setLoading(true)
 
     let res
 
@@ -24,30 +40,45 @@ export default function Login() {
     } else {
       navigate('/')
     }
+
+    setLoading(false)
   }
 
   return (
-    <div>
-        aassas
+    <div style={{ padding: '20px' }}>
       <h2>{isLogin ? 'Login' : 'Registro'}</h2>
 
       <form onSubmit={handleSubmit}>
         <input
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
+
+        <br /><br />
 
         <input
           type="password"
           placeholder="Contraseña"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
-        <button type="submit">
-          {isLogin ? 'Ingresar' : 'Registrarse'}
+        <br /><br />
+
+        <button type="submit" disabled={loading}>
+          {loading
+            ? 'Cargando...'
+            : isLogin
+              ? 'Ingresar'
+              : 'Registrarse'}
         </button>
       </form>
+
+      <br />
 
       <button onClick={() => setIsLogin(!isLogin)}>
         {isLogin ? 'Crear cuenta' : 'Ya tengo cuenta'}
