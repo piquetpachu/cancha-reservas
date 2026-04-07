@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [nombre, setNombre] = useState('')
+  const [telefono, setTelefono] = useState('')
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
 
@@ -32,7 +34,7 @@ export default function Login() {
     if (isLogin) {
       res = await login(email, password)
     } else {
-      res = await register(email, password)
+      res = await register(email, password, nombre, telefono)
     }
 
     if (res.error) {
@@ -68,6 +70,31 @@ export default function Login() {
         />
 
         <br /><br />
+
+        {/* 👇 SOLO EN REGISTRO */}
+        {!isLogin && (
+          <>
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+            />
+
+            <br /><br />
+
+            <input
+              type="text"
+              placeholder="Teléfono"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              required
+            />
+
+            <br /><br />
+          </>
+        )}
 
         <button type="submit" disabled={loading}>
           {loading
