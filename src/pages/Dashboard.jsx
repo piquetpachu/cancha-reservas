@@ -1,3 +1,4 @@
+import Navbar from '../components/Navbar'
 import { useEffect, useState } from 'react'
 import { getUser, logout } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
@@ -27,15 +28,14 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: '20px' }}>
+      <Navbar />
       <h1>🏟️ Dashboard</h1>
 
       {user ? (
         <>
           <p>Bienvenido: <strong>{user.email}</strong></p>
 
-          <button onClick={handleLogout}>
-            Cerrar sesión
-          </button>
+        
         </>
       ) : (
         <p>Cargando...</p>

@@ -7,28 +7,32 @@ export async function register(email, password, nombre, telefono) {
     password
   })
 
-  if (error) return { data, error }
+  if (error) return { error }
 
-  // Crear perfil con datos
-  if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([
-        {
-          id: data.user.id,
-          nombre,
-          telefono,
-          rol: 'cliente' // 🔐 siempre cliente al registrarse
-        }
-      ])
+  const user = data.user
 
-    if (profileError) {
-      console.error('Error creando perfil:', profileError.message)
-    }
+  if (!user) {
+    return { error: { message: 'No se pudo crear el usuario' } }
   }
 
-  return { data, error: null }
+  // 🔥 Crear perfil en profiles
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .insert({
+      id: user.id,
+      nombre,
+      telefono,
+      rol: 'cliente' // 🔐 siempre cliente al registrarse
+    })
+
+  if (profileError) {
+    console.error('Error creando perfil:', profileError.message)
+    return { error: profileError }
+  }
+
+  return { data }
 }
+
 // 🔐 LOGIN
 export async function login(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
