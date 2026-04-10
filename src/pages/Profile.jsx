@@ -1,4 +1,3 @@
-
 import Navbar from '../components/Navbar'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -8,15 +7,16 @@ import { useNavigate } from 'react-router-dom'
 export default function Profile() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [solicitud, setSolicitud] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    async function loadProfile() {
+useEffect(() => {
+  async function loadProfile() {
+    try {
       const u = await getUser()
 
-      // 🔐 Si no está logueado → lo mando al login
       if (!u) {
         navigate('/login')
         return
@@ -24,15 +24,17 @@ export default function Profile() {
 
       setUser(u)
 
-      let { data, error } = await supabase
+      // 👤 PROFILE
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', u.id)
         .single()
 
-      // 🔥 SI NO EXISTE PERFIL → LO CREA
-      if (!data) {
-        const { data: newProfile, error: insertError } = await supabase
+      let finalProfile = profileData
+
+      if (!profileData) {
+        const { data: newProfile } = await supabase
           .from('profiles')
           .insert({
             id: u.id,
@@ -43,20 +45,36 @@ export default function Profile() {
           .select()
           .single()
 
-        if (insertError) {
-          console.error(insertError)
-        }
-
-        data = newProfile
+        finalProfile = newProfile
       }
 
-      setProfile(data)
+      setProfile(finalProfile)
+
+      // 🏟️ SOLICITUD
+      let solicitudData = null
+
+      const { data } = await supabase
+        .from('solicitudes_dueno')
+        .select('*')
+        .eq('user_id', u.id)
+
+      if (data && data.length > 0) {
+        solicitudData = data[0]
+      }
+
+      setSolicitud(solicitudData)
+
+      setLoading(false)
+    } catch (err) {
+      console.error(err)
       setLoading(false)
     }
+  }
 
-    loadProfile()
-  }, [])
+  loadProfile()
+}, [])
 
+  // 📸 Subir imagen
   async function handleUpload(e) {
     const file = e.target.files[0]
 
@@ -69,7 +87,7 @@ export default function Profile() {
       .upload(filePath, file)
 
     if (error) {
-      alert('Error subiendo imagen')
+      alert(error.message)
       return
     }
 
@@ -82,33 +100,81 @@ export default function Profile() {
       .update({ avatar_url: data.publicUrl })
       .eq('id', user.id)
 
-    // 🔄 refrescar perfil
-    setProfile(prev => ({ ...prev, avatar_url: data.publicUrl }))
+    setProfile(prev => ({
+      ...prev,
+      avatar_url: data.publicUrl
+    }))
   }
 
-  // ⏳ Estado de carga
+  // 🏟️ Solicitar ser dueño
+  async function handleSolicitud() {
+    const { error } = await supabase
+      .from('solicitudes_dueno')
+      .insert({
+        user_id: user.id
+      })
+
+    if (error) {
+      alert('Error al enviar solicitud')
+    } else {
+      alert('Solicitud enviada')
+      setSolicitud({ estado: 'pendiente' })
+    }
+  }
+
+  // ⏳ Loading
   if (loading) return <p>Cargando perfil...</p>
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Navbar/>
-      <h1>Perfil</h1>
+    <>
+      <Navbar />
 
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Nombre:</strong> {profile.nombre || 'Sin nombre'}</p>
-      <p><strong>Teléfono:</strong> {profile.telefono || 'Sin teléfono'}</p>
+      <div style={{ padding: '20px' }}>
+        <h1>Perfil</h1>
 
-      {profile.avatar_url && (
-        <img
-          src={profile.avatar_url}
-          alt="avatar"
-          width="150"
-        />
-      )}
+        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>Nombre:</strong> {profile.nombre || 'Sin nombre'}</p>
+        <p><strong>Teléfono:</strong> {profile.telefono || 'Sin teléfono'}</p>
+        <p><strong>Rol:</strong> {profile.rol}</p>
 
-      <br /><br />
+        {profile.avatar_url && (
+          <img
+            src={profile.avatar_url}
+            alt="avatar"
+            width="150"
+          />
+        )}
 
-      <input type="file" onChange={handleUpload} />
-    </div>
+        <br /><br />
+
+        <input type="file" onChange={handleUpload} />
+
+        <br /><br />
+
+        {/* 🏟️ Lógica de solicitud */}
+
+        {/* 👉 Cliente sin solicitud */}
+        {profile.rol === 'cliente' && !solicitud && (
+          <button onClick={handleSolicitud}>
+            Solicitar ser dueño
+          </button>
+        )}
+
+        {/* 👉 Pendiente */}
+        {solicitud && solicitud.estado === 'pendiente' && (
+          <p>Solicitud pendiente ⏳</p>
+        )}
+
+        {/* 👉 Rechazado */}
+        {solicitud && solicitud.estado === 'rechazado' && (
+          <p>Solicitud rechazada ❌</p>
+        )}
+
+        {/* 👉 Ya es dueño */}
+        {profile.rol === 'dueno' && (
+          <p>Ya sos dueño 🏟️</p>
+        )}
+      </div>
+    </>
   )
 }
