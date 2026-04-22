@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Profile from './pages/Profile'
+import Profile from "./pages/Profile";
+import CrearClub from "./pages/CrearClub";
 import './App.css'
 
 function App() {
