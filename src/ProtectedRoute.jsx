@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getUser, getProfile } from '../services/authService'
+import CrearClub from "./pages/CrearClub";
 
 export default function ProtectedRoute({ children, requiredRole }) {
   const [loading, setLoading] = useState(true)

@@ -11,6 +11,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/crear-club" element={<CrearClub />} />
       </Routes>
     </BrowserRouter>
   );
