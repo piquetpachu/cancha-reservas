@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import Navbar from "../components/Navbar";
 
 function CrearClub() {
 
@@ -39,44 +40,43 @@ function CrearClub() {
     }
     };
 
-    return(
-        <div>
-            <h1> Crear Club </h1>
-            <form onSubmit={crearClub}>
-                 {/* NOMBRE */}
-                 <input
-                    type="text"
-                    placeholder="Nombre del club"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    required
-                />
-                <br />
+    return (
+        <>
+            {/* 🔥 SOLO ESTO SE AGREGA */}
+            <Navbar />
 
-                {/* DIRECCION */}
-                <input
-                    type="text"
-                    placeholder="Direccion"
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                    pattern="[A-Za-z0-9\s]+"
-                    title="Solo letras y números"
-                    required
-                />
+            <div>
+                <h1>Crear Club</h1>
 
-                <button type="submit">Crear club</button>
+                <form onSubmit={crearClub}>
+                    {/* NOMBRE */}
+                    <input
+                        type="text"
+                        placeholder="Nombre del club"
+                        value={nombre}
+                        onChange={(e) => setNombre(e.target.value)}
+                        required
+                    />
+                    <br />
 
+                    {/* DIRECCION */}
+                    <input
+                        type="text"
+                        placeholder="Direccion"
+                        value={direccion}
+                        onChange={(e) => setDireccion(e.target.value)}
+                        pattern="[A-Za-z0-9\s]+"
+                        title="Solo letras y números"
+                        required
+                    />
 
-            </form>
+                    <button type="submit">Crear club</button>
+                </form>
 
-            <p>{mensaje}</p>
-            
-        </div>
+                <p>{mensaje}</p>
+            </div>
+        </>
     );
-
-
-
-    }
-
+}
 
 export default CrearClub;
