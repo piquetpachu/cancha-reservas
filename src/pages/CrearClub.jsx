@@ -42,7 +42,7 @@ function CrearClub() {
 
     return (
         <>
-            {/* 🔥 SOLO ESTO SE AGREGA */}
+           
             <Navbar />
 
             <div>
