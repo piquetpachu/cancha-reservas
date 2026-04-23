@@ -15,7 +15,7 @@ function CrearClub() {
 
    
 
-    //insertar en la tabla
+    // tabla
 
     const { error } = await supabase
         .from("clubs")
@@ -23,7 +23,7 @@ function CrearClub() {
             {
                 nombre: nombre,
                 direccion: direccion,
-                // owner_id: user.id, 
+                
 
             },
         ]);
@@ -42,7 +42,7 @@ function CrearClub() {
 
     return (
         <>
-            {/* 🔥 SOLO ESTO SE AGREGA */}
+           
             <Navbar />
 
             <div>
