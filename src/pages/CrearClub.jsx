@@ -58,6 +58,8 @@ function CrearClub() {
                     />
                     <br />
 
+
+
                     <input
                         type="text"
                         placeholder="Direccion"
@@ -65,7 +67,7 @@ function CrearClub() {
                         onChange={(e) => setDireccion(e.target.value)}
                         required
                     />
-
+                    <br />
                     <button type="submit">Crear club</button>
                 </form>
 
