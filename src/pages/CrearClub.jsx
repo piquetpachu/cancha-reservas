@@ -4,8 +4,6 @@ import Navbar from "../components/Navbar";
 
 function CrearClub() {
 
-    //formulario
-
     const [nombre, setNombre] = useState("");
     const [direccion, setDireccion] = useState("");
     const [mensaje, setMensaje] = useState("");
@@ -13,43 +11,44 @@ function CrearClub() {
     const crearClub = async (e) => {
         e.preventDefault();
 
-   
+        // 🔹 obtener usuario logueado
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData.user;
 
-    // tabla
+        if (!user) {
+            setMensaje("Usuario no autenticado");
+            return;
+        }
 
-    const { error } = await supabase
-        .from("clubs")
-        .insert([
-            {
-                nombre: nombre,
-                direccion: direccion,
-                
+        // 🔹 insertar correctamente
+        const { error } = await supabase
+            .from("clubs")
+            .insert([
+                {
+                    nombre: nombre,
+                    direccion: direccion,
+                    owner_id: user.id
+                },
+            ]);
 
-            },
-        ]);
-
-    //mensaje
-
-    if (error) {
-        setMensaje("Error: " + error.message);
-    } else {
-
-        setMensaje("clib creado correctamente");
-        setNombre("");
-        setDireccion("");
-    }
+        if (error) {
+            setMensaje("Error: " + error.message);
+        } else {
+            setMensaje("Club creado correctamente");
+            setNombre("");
+            setDireccion("");
+        }
     };
 
     return (
         <>
-           
             <Navbar />
 
             <div>
                 <h1>Crear Club</h1>
 
                 <form onSubmit={crearClub}>
-                    {/* NOMBRE */}
+
                     <input
                         type="text"
                         placeholder="Nombre del club"
@@ -59,14 +58,11 @@ function CrearClub() {
                     />
                     <br />
 
-                    {/* DIRECCION */}
                     <input
                         type="text"
                         placeholder="Direccion"
                         value={direccion}
                         onChange={(e) => setDireccion(e.target.value)}
-                        pattern="[A-Za-z0-9\s]+"
-                        title="Solo letras y números"
                         required
                     />
 
