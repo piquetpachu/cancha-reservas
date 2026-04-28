@@ -11,7 +11,7 @@ function CrearClub() {
     const crearClub = async (e) => {
         e.preventDefault();
 
-        // 🔹 obtener usuario logueado
+        // obtener usuario logueado
         const { data: userData } = await supabase.auth.getUser();
         const user = userData.user;
 
@@ -20,7 +20,7 @@ function CrearClub() {
             return;
         }
 
-        // 🔹 insertar correctamente
+        //  insertar correctamente
         const { error } = await supabase
             .from("clubs")
             .insert([

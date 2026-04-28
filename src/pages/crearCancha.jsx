@@ -13,7 +13,7 @@ function CrearCancha() {
     const crearCancha = async (e) => {
         e.preventDefault();
 
-        // 🔹 1. USUARIO LOGUEADO
+        // USUARIO 
         const { data: userData } = await supabase.auth.getUser();
         const user = userData.user;
 
@@ -24,7 +24,7 @@ function CrearCancha() {
             return;
         }
 
-        // 🔹 2. BUSCAR SU CLUB (CORRECTO)
+        // BUSCAR SU CLUB
         const { data: clubs, error: errorClub } = await supabase
             .from("clubs")
             .select("*")
@@ -44,11 +44,15 @@ function CrearCancha() {
 
         const club_id = clubs[0].id;
 
-        // 🔹 3. SUBIR IMAGEN
+        // SUBIR IMAGEN
         let urlImagen = null;
 
         if (imagen) {
-            const nombreArchivo = `${Date.now()}-${imagen.name}`;
+            //const nombreArchivo = `${Date.now()}-${imagen.name}`;
+            const extension = imagen.name.split('.').pop();
+            const nombreArchivo = `${Date.now()}.${extension}`;
+
+          
 
             const { error: errorUpload } = await supabase.storage
                 .from("canchas")
@@ -66,7 +70,7 @@ function CrearCancha() {
             urlImagen = data.publicUrl;
         }
 
-        // 🔹 4. GUARDAR CANCHA
+        //GUARDAR 
         const { error } = await supabase
             .from("canchas")
             .insert([
