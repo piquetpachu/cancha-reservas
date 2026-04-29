@@ -27,6 +27,14 @@ export default function Navbar() {
         </button>
       </div>
 
+      <button onClick={() => navigate('/crear-club')}>
+        Crear Club
+      </button>
+
+      <button onClick={() => navigate('/crear-cancha')}>
+        Crear Cancha
+      </button>
+
       <button onClick={handleLogout}>
         Cerrar sesión
       </button>

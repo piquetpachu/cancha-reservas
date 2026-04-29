@@ -12,72 +12,68 @@ export default function Profile() {
 
   const navigate = useNavigate()
 
-useEffect(() => {
-  async function loadProfile() {
-    try {
-      const u = await getUser()
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const u = await getUser()
 
-      if (!u) {
-        navigate('/login')
-        return
-      }
+        if (!u) {
+          navigate('/login')
+          return
+        }
 
-      setUser(u)
+        setUser(u)
 
-      // 👤 PROFILE
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', u.id)
-        .single()
-
-      let finalProfile = profileData
-
-      if (!profileData) {
-        const { data: newProfile } = await supabase
+        // 👤 OBTENER PERFIL
+        const { data: profileData } = await supabase
           .from('profiles')
-          .insert({
-            id: u.id,
-            nombre: '',
-            telefono: '',
-            rol: 'cliente'
-          })
-          .select()
+          .select('*')
+          .eq('id', u.id)
           .single()
 
-        finalProfile = newProfile
+        let finalProfile = profileData
+
+        // si no existe, lo crea
+        if (!profileData) {
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert({
+              id: u.id,
+              nombre: '',
+              telefono: '',
+              rol: 'cliente'
+            })
+            .select()
+            .single()
+
+          finalProfile = newProfile
+        }
+
+        setProfile(finalProfile)
+
+        // 🏟️ OBTENER SOLICITUD DE DUEÑO
+        const { data: solicitudData } = await supabase
+          .from('solicitudes_dueno')
+          .select('*')
+          .eq('user_id', u.id)
+
+        if (solicitudData && solicitudData.length > 0) {
+          setSolicitud(solicitudData[0])
+        }
+
+        setLoading(false)
+      } catch (err) {
+        console.error(err)
+        setLoading(false)
       }
-
-      setProfile(finalProfile)
-
-      // 🏟️ SOLICITUD
-      let solicitudData = null
-
-      const { data } = await supabase
-        .from('solicitudes_dueno')
-        .select('*')
-        .eq('user_id', u.id)
-
-      if (data && data.length > 0) {
-        solicitudData = data[0]
-      }
-
-      setSolicitud(solicitudData)
-
-      setLoading(false)
-    } catch (err) {
-      console.error(err)
-      setLoading(false)
     }
-  }
 
-  loadProfile()
-}, [])
+    loadProfile()
+  }, [])
 
-  // 📸 Subir imagen
+  // 📸 SUBIR AVATAR
   async function handleUpload(e) {
     const file = e.target.files[0]
-
     if (!file) return
 
     const filePath = `${user.id}-${Date.now()}`
@@ -106,12 +102,13 @@ useEffect(() => {
     }))
   }
 
-  // 🏟️ Solicitar ser dueño
+  // 🏟️ SOLICITAR SER DUEÑO
   async function handleSolicitud() {
     const { error } = await supabase
       .from('solicitudes_dueno')
       .insert({
-        user_id: user.id
+        user_id: user.id,
+        estado: 'pendiente'
       })
 
     if (error) {
@@ -122,7 +119,6 @@ useEffect(() => {
     }
   }
 
-  // ⏳ Loading
   if (loading) return <p>Cargando perfil...</p>
 
   return (
@@ -133,11 +129,11 @@ useEffect(() => {
         <h1>Perfil</h1>
 
         <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Nombre:</strong> {profile.nombre || 'Sin nombre'}</p>
-        <p><strong>Teléfono:</strong> {profile.telefono || 'Sin teléfono'}</p>
-        <p><strong>Rol:</strong> {profile.rol}</p>
+        <p><strong>Nombre:</strong> {profile?.nombre || 'Sin nombre'}</p>
+        <p><strong>Teléfono:</strong> {profile?.telefono || 'Sin teléfono'}</p>
+        <p><strong>Rol:</strong> {profile?.rol}</p>
 
-        {profile.avatar_url && (
+        {profile?.avatar_url && (
           <img
             src={profile.avatar_url}
             alt="avatar"
@@ -151,27 +147,22 @@ useEffect(() => {
 
         <br /><br />
 
-        {/* 🏟️ Lógica de solicitud */}
-
-        {/* 👉 Cliente sin solicitud */}
-        {profile.rol === 'cliente' && !solicitud && (
+        {/* 🏟️ BOTÓN SOLICITUD */}
+        {profile?.rol === 'cliente' && !solicitud && (
           <button onClick={handleSolicitud}>
             Solicitar ser dueño
           </button>
         )}
 
-        {/* 👉 Pendiente */}
-        {solicitud && solicitud.estado === 'pendiente' && (
+        {solicitud?.estado === 'pendiente' && (
           <p>Solicitud pendiente ⏳</p>
         )}
 
-        {/* 👉 Rechazado */}
-        {solicitud && solicitud.estado === 'rechazado' && (
+        {solicitud?.estado === 'rechazado' && (
           <p>Solicitud rechazada ❌</p>
         )}
 
-        {/* 👉 Ya es dueño */}
-        {profile.rol === 'dueno' && (
+        {profile?.rol === 'dueno' && (
           <p>Ya sos dueño 🏟️</p>
         )}
       </div>
