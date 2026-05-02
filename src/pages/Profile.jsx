@@ -24,7 +24,7 @@ export default function Profile() {
 
         setUser(u)
 
-        // 👤 OBTENER PERFIL
+        // 👤 PERFIL
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
@@ -33,7 +33,6 @@ export default function Profile() {
 
         let finalProfile = profileData
 
-        // si no existe, lo crea
         if (!profileData) {
           const { data: newProfile } = await supabase
             .from('profiles')
@@ -51,7 +50,7 @@ export default function Profile() {
 
         setProfile(finalProfile)
 
-        // 🏟️ OBTENER SOLICITUD DE DUEÑO
+        // 🏟️ SOLICITUD
         const { data: solicitudData } = await supabase
           .from('solicitudes_dueno')
           .select('*')
@@ -61,9 +60,9 @@ export default function Profile() {
           setSolicitud(solicitudData[0])
         }
 
-        setLoading(false)
       } catch (err) {
         console.error(err)
+      } finally {
         setLoading(false)
       }
     }
@@ -104,6 +103,32 @@ export default function Profile() {
 
   // 🏟️ SOLICITAR SER DUEÑO
   async function handleSolicitud() {
+    const { data: existente } = await supabase
+      .from('solicitudes_dueno')
+      .select('*')
+      .eq('user_id', user.id)
+
+    const solicitud = existente?.[0]
+
+    // 🚫 bloquear si ya hay pendiente
+    if (solicitud && solicitud.estado === 'pendiente') {
+      alert('Ya tenés una solicitud pendiente')
+      return
+    }
+
+    // 🔁 reenviar si fue rechazada
+    if (solicitud && solicitud.estado === 'rechazado') {
+      await supabase
+        .from('solicitudes_dueno')
+        .update({ estado: 'pendiente' })
+        .eq('id', solicitud.id)
+
+      alert('Solicitud reenviada')
+      setSolicitud({ ...solicitud, estado: 'pendiente' })
+      return
+    }
+
+    // 🆕 crear nueva
     const { error } = await supabase
       .from('solicitudes_dueno')
       .insert({
@@ -147,19 +172,32 @@ export default function Profile() {
 
         <br /><br />
 
-        {/* 🏟️ BOTÓN SOLICITUD */}
-        {profile?.rol === 'cliente' && !solicitud && (
-          <button onClick={handleSolicitud}>
-            Solicitar ser dueño
-          </button>
-        )}
+        {/* 🏟️ SOLICITUD */}
 
-        {solicitud?.estado === 'pendiente' && (
-          <p>Solicitud pendiente ⏳</p>
-        )}
+        {profile?.rol === 'cliente' && (
+          <>
+            {/* BOTÓN DINÁMICO */}
+            {(!solicitud || solicitud.estado === 'rechazado') && (
+              <button onClick={handleSolicitud}>
+                {solicitud?.estado === 'rechazado'
+                  ? 'Volver a solicitar'
+                  : 'Solicitar ser dueño'}
+              </button>
+            )}
 
-        {solicitud?.estado === 'rechazado' && (
-          <p>Solicitud rechazada ❌</p>
+            {solicitud?.estado === 'pendiente' && (
+              <>
+                <button disabled>
+                  Solicitud enviada
+                </button>
+                <p>Solicitud pendiente ⏳</p>
+              </>
+            )}
+
+            {solicitud?.estado === 'rechazado' && (
+              <p>Solicitud rechazada ❌</p>
+            )}
+          </>
         )}
 
         {profile?.rol === 'dueno' && (

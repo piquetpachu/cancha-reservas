@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from './components/ProtectedRoute'
+import AdminSolicitudes from './pages/AdminSolicitudes'
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -16,6 +17,14 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/crear-club" element={<CrearClub />} />
         <Route path="/crear-cancha" element={<CrearCancha />} />
+        <Route
+  path="/admin/solicitudes"
+  element={
+    <ProtectedRoute requiredRole="admin">
+      <AdminSolicitudes />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </BrowserRouter>
   );

@@ -35,6 +35,10 @@ export default function Navbar() {
         Crear Cancha
       </button>
 
+      <button onClick={() => navigate('/admin/solicitudes')}>
+        panel Admin
+      </button>
+
       <button onClick={handleLogout}>
         Cerrar sesión
       </button>
