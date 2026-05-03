@@ -37,7 +37,7 @@ export default function Dashboard() {
         <>
           <p>Bienvenido: <strong>{user.email}</strong></p>
 
-          <ClubList />   {/* 👈 ACA aparecen los clubs */}
+          <ClubList />   
 
         </>
       ) : (
