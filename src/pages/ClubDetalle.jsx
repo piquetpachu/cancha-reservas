@@ -31,7 +31,7 @@ export default function ClubDetalle() {
     return (
         <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
 
-            {/* 🔙 BOTÓN VOLVER */}
+            {/*  BOTÓN VOLVER */}
             <button
                 onClick={() => navigate(-1)}
                 style={{
@@ -48,7 +48,7 @@ export default function ClubDetalle() {
 
             <h2 style={{ marginBottom: "15px" }}>Canchas del club</h2>
 
-            {/* 🔘 BOTONES DE DEPORTE */}
+            {/*BOTONES DE DEPORTE */}
             <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
                 <button
                     onClick={() => setDeporteSeleccionado("futbol")}
@@ -91,7 +91,7 @@ export default function ClubDetalle() {
                 </button>
             </div>
 
-            {/* 🔽 LISTADO */}
+            {/*  LISTADO */}
             {canchasFiltradas.length === 0 ? (
                 <p>No hay canchas</p>
             ) : (
