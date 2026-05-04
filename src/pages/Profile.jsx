@@ -204,6 +204,76 @@ export default function Profile() {
           <p>Ya sos dueño 🏟️</p>
         )}
       </div>
+      <hr />
+
+<h2>Mis reservas</h2>
+
+<div style={{ marginTop: 20 }}>
+
+  {/* 🔹 EJEMPLOS MOCK */}
+  {[
+    {
+      id: 1,
+      cancha: 'Cancha 5 - Sintético',
+      fecha: '2026-05-10',
+      hora: '18:00',
+      precio: '$5000',
+      estado: 'confirmada'
+    },
+    {
+      id: 2,
+      cancha: 'Cancha 2 - Fútbol 7',
+      fecha: '2026-05-12',
+      hora: '20:00',
+      precio: '$7000',
+      estado: 'pendiente'
+    },
+    {
+      id: 3,
+      cancha: 'Cancha 1 - Techada',
+      fecha: '2026-05-01',
+      hora: '16:00',
+      precio: '$6000',
+      estado: 'cancelada'
+    }
+  ].map(reserva => (
+    <div
+      key={reserva.id}
+      style={{
+        border: '1px solid #ccc',
+        borderRadius: '10px',
+        padding: '15px',
+        marginBottom: '15px'
+      }}
+    >
+      <h3>{reserva.cancha}</h3>
+
+      <p><strong>Fecha:</strong> {reserva.fecha}</p>
+      <p><strong>Hora:</strong> {reserva.hora}</p>
+      <p><strong>Precio:</strong> {reserva.precio}</p>
+
+      <p>
+        <strong>Estado:</strong>{' '}
+        <span style={{
+          color:
+            reserva.estado === 'confirmada'
+              ? 'green'
+              : reserva.estado === 'pendiente'
+              ? 'orange'
+              : 'red'
+        }}>
+          {reserva.estado}
+        </span>
+      </p>
+
+      {/* 🧠 acciones futuras */}
+      {reserva.estado === 'pendiente' && (
+        <button>Cancelar reserva</button>
+      )}
+    </div>
+  ))}
+
+</div>
     </>
   )
 }
