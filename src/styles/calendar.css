@@ -1,0 +1,67 @@
+/* contenedor general */
+.calendario {
+    max-width: 320px;
+    width: 100%;
+    margin: 20px auto;
+    background: #1e1e1e;
+    /* fondo oscuro */
+    color: white;
+    border-radius: 12px;
+    padding: 10px;
+    border: none;
+}
+
+/* navegación (mes/año) */
+.react-calendar__navigation button {
+    color: white;
+    background: none;
+    font-weight: bold;
+}
+
+/* días de la semana (L M M J V S D) */
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* días normales */
+.react-calendar__tile {
+    color: rgb(255, 255, 255);
+    border-radius: 50%;
+}
+
+/* ❌ sacar rojo de fines de semana */
+.react-calendar__month-view__weekend {
+    color: white !important;
+}
+
+/* hover */
+.react-calendar__tile:hover {
+    background: #444;
+}
+
+/* día seleccionado */
+.react-calendar__tile--active {
+    background: #007bff;
+    color: rgb(51, 24, 203);
+}
+
+/* 🔴 días reservados */
+.ocupado {
+    background: red !important;
+    color: white !important;
+    border-radius: 50%;
+}
+
+/* días fuera del mes */
+.react-calendar__month-view__days__day--neighboringMonth {
+    color: #666;
+}
+
+/* día actual */
+.react-calendar__tile--now {
+    background: #333 !important;
+    color: white !important;
+    border-radius: 50%;
+}

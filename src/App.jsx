@@ -6,6 +6,7 @@ import CrearClub from "./pages/CrearClub";
 import CrearCancha from "./pages/CrearCancha";
 import ClubList from "./pages/Clublist";
 import ClubDetalle from "./pages/ClubDetalle";
+import Reserva from "./pages/Reserva";
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/crear-cancha" element={<CrearCancha />} />
         <Route path="/home" element={<ClubList />} />
         <Route path="/club/:id" element={<ClubDetalle />} />
+        <Route path="/reserva/:id" element={<Reserva />} />
       </Routes>
     </BrowserRouter>
   );

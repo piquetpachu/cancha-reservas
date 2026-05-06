@@ -31,7 +31,6 @@ export default function ClubDetalle() {
     return (
         <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
 
-            {/*  BOTÓN VOLVER */}
             <button
                 onClick={() => navigate(-1)}
                 style={{
@@ -48,7 +47,6 @@ export default function ClubDetalle() {
 
             <h2 style={{ marginBottom: "15px" }}>Canchas del club</h2>
 
-            {/*BOTONES DE DEPORTE */}
             <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
                 <button
                     onClick={() => setDeporteSeleccionado("futbol")}
@@ -91,7 +89,6 @@ export default function ClubDetalle() {
                 </button>
             </div>
 
-            {/*  LISTADO */}
             {canchasFiltradas.length === 0 ? (
                 <p>No hay canchas</p>
             ) : (
@@ -105,7 +102,6 @@ export default function ClubDetalle() {
                             overflow: "hidden",
                         }}
                     >
-                        {/* Imagen */}
                         <img
                             src={cancha.foto}
                             alt={cancha.nombre}
@@ -116,18 +112,12 @@ export default function ClubDetalle() {
                             }}
                         />
 
-                        {/* Info */}
                         <div style={{ padding: "10px" }}>
                             <h3 style={{ margin: "0 0 5px 0" }}>
                                 {cancha.nombre}
                             </h3>
 
-                            <p
-                                style={{
-                                    margin: "0 0 10px 0",
-                                    fontSize: "14px",
-                                }}
-                            >
+                            <p style={{ margin: "0 0 10px 0", fontSize: "14px" }}>
                                 {cancha.descripcion}
                             </p>
 
@@ -138,16 +128,12 @@ export default function ClubDetalle() {
                                     alignItems: "center",
                                 }}
                             >
-                                <span
-                                    style={{
-                                        fontSize: "13px",
-                                        color: "green",
-                                    }}
-                                >
+                                <span style={{ fontSize: "13px", color: "green" }}>
                                     {cancha.deporte} • Disponible
                                 </span>
 
                                 <button
+                                    onClick={() => navigate(`/reserva/${cancha.id}`)}
                                     style={{
                                         padding: "5px 10px",
                                         border: "none",
