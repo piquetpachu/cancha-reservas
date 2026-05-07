@@ -31,7 +31,7 @@
     border-radius: 50%;
 }
 
-/* ❌ sacar rojo de fines de semana */
+/* sacar rojo de fines de semana */
 .react-calendar__month-view__weekend {
     color: white !important;
 }
@@ -47,7 +47,7 @@
     color: rgb(51, 24, 203);
 }
 
-/* 🔴 días reservados */
+/* días reservados */
 .ocupado {
     background: red !important;
     color: white !important;

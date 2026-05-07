@@ -28,7 +28,7 @@ export default function Reserva() {
         "19:00"
     ];
 
-    // 📅 FORMATEAR FECHA
+    // FORMATEAR FECHA
     function formatearFecha(fecha) {
 
         const year = fecha.getFullYear();
