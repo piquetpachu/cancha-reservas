@@ -84,13 +84,19 @@ export default function Login() {
 
             <br /><br />
 
-            <input
-              type="text"
-              placeholder="Teléfono"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              required
-            />
+<input
+  type="tel"
+  value={telefono}
+  maxLength={15}
+  placeholder="Ej: 3794123456"
+  onChange={(e) => {
+
+    // 🔥 solo números
+    const soloNumeros = e.target.value.replace(/\D/g, '')
+
+    setTelefono(soloNumeros)
+  }}
+/>
 
             <br /><br />
           </>
