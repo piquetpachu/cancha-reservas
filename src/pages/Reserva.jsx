@@ -24,18 +24,38 @@ export default function Reserva() {
     // -------------------------
     // FORMATEAR FECHA
     // -------------------------
-    function formatearFecha(fecha) {
-        const year = fecha.getFullYear();
-        const month = String(fecha.getMonth() + 1).padStart(2, "0");
-        const day = String(fecha.getDate()).padStart(2, "0");
+    function formatearFecha(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     }
 
     // -------------------------
-    // NORMALIZAR HORA
+    // DIA SEMANA
     // -------------------------
-    function normalizarHora(hora) {
-        return hora ? hora.slice(0, 5) : "";
+    function obtenerDiaSemana(date) {
+        return date.toLocaleDateString("es-ES", {
+            weekday: "long"
+        }).toLowerCase();
+    }
+
+    // -------------------------
+    // GENERAR HORARIOS (CLAVE)
+    // -------------------------
+    function generarSlots(inicio, fin) {
+
+        const slots = [];
+
+        let [h] = inicio.split(":").map(Number);
+        let [hf] = fin.split(":").map(Number);
+
+        while (h < hf) {
+            slots.push(`${String(h).padStart(2, "0")}:00`);
+            h++;
+        }
+
+        return slots;
     }
 
     // -------------------------
@@ -75,24 +95,14 @@ export default function Reserva() {
 
     }, [id]);
 
-    // 🔥 DEBUG CORRECTO (NO en consola global)
-    useEffect(() => {
-        console.log("HORARIOS:", horarios);
-    }, [horarios]);
-
     // -------------------------
-    // RESERVAS DEL DÍA
+    // FILTRAR HORARIOS DEL DÍA
     // -------------------------
-    function reservasDelDia(fechaStr) {
-        return reservas.filter(r =>
-            formatearFecha(new Date(r.fecha)) === fechaStr
-        );
-    }
+    const diaSeleccionado = obtenerDiaSemana(fecha);
 
-    function diaCompleto(fechaStr) {
-        return horarios.length > 0 &&
-            reservasDelDia(fechaStr).length >= horarios.length;
-    }
+    const horariosDelDia = horarios.filter(
+        h => h.dia_semana === diaSeleccionado
+    );
 
     // -------------------------
     // RESERVAR
@@ -116,7 +126,7 @@ export default function Reserva() {
 
         const ocupado = reservas.some(r =>
             formatearFecha(new Date(r.fecha)) === fechaStr &&
-            normalizarHora(r.hora_inicio) === normalizarHora(hora)
+            r.hora_inicio?.slice(0, 5) === hora
         );
 
         if (ocupado) {
@@ -142,10 +152,7 @@ export default function Reserva() {
 
         setReservas(prev => [
             ...prev,
-            {
-                fecha: fechaStr,
-                hora_inicio: hora
-            }
+            { fecha: fechaStr, hora_inicio: hora }
         ]);
 
         setMensaje("Reserva confirmada ✅");
@@ -175,60 +182,58 @@ export default function Reserva() {
             <p>{cancha.descripcion}</p>
 
             {/* CALENDARIO */}
-            <div style={{ display: "flex", justifyContent: "center" }}>
-                <Calendar
-                    onChange={setFecha}
-                    value={fecha}
-                    className="calendario"
-                    tileClassName={({ date }) => {
-
-                        const fechaStr = formatearFecha(date);
-
-                        if (diaCompleto(fechaStr)) {
-                            return "ocupado";
-                        }
-
-                        return null;
-                    }}
-                />
-            </div>
+            <Calendar
+                onChange={setFecha}
+                value={fecha}
+                className="calendario"
+            />
 
             {/* HORARIOS */}
             <div style={{ marginTop: "20px" }}>
-                <h4>Horarios</h4>
+                <h4>Horarios disponibles ({diaSeleccionado})</h4>
 
-                {horarios.map((h) => {
+                {horariosDelDia.length === 0 ? (
+                    <p>No hay horarios este día</p>
+                ) : (
+                    horariosDelDia.map((h) => {
 
-                    const horaInicio = normalizarHora(h.hora_inicio);
+                        const slots = generarSlots(
+                            h.hora_inicio.slice(0, 5),
+                            h.hora_fin.slice(0, 5)
+                        );
 
-                    const ocupado = reservas.some(r =>
-                        formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
-                        normalizarHora(r.hora_inicio) === horaInicio
-                    );
+                        return slots.map((horaSlot) => {
 
-                    return (
-                        <button
-                            key={h.id}
-                            disabled={ocupado}
-                            onClick={() => setHora(horaInicio)}
-                            style={{
-                                margin: "5px",
-                                padding: "10px",
-                                background: ocupado
-                                    ? "#999"
-                                    : hora === horaInicio
-                                        ? "green"
-                                        : "#444",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "6px",
-                                cursor: ocupado ? "not-allowed" : "pointer"
-                            }}
-                        >
-                            {horaInicio}
-                        </button>
-                    );
-                })}
+                            const ocupado = reservas.some(r =>
+                                formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
+                                r.hora_inicio?.slice(0, 5) === horaSlot
+                            );
+
+                            return (
+                                <button
+                                    key={horaSlot}
+                                    disabled={ocupado}
+                                    onClick={() => setHora(horaSlot)}
+                                    style={{
+                                        margin: "5px",
+                                        padding: "10px",
+                                        background: ocupado
+                                            ? "#999"
+                                            : hora === horaSlot
+                                                ? "green"
+                                                : "#444",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "6px",
+                                        cursor: ocupado ? "not-allowed" : "pointer"
+                                    }}
+                                >
+                                    {horaSlot}
+                                </button>
+                            );
+                        });
+                    })
+                )}
             </div>
 
             {/* RESERVAR */}
