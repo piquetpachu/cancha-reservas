@@ -18,71 +18,76 @@ export default function Reserva() {
 
     const [mensaje, setMensaje] = useState("");
 
-    const [fechasReservadas, setFechasReservadas] = useState([]);
+    const [horarios, setHorarios] = useState([]);
+    const [reservas, setReservas] = useState([]);
 
-    const horarios = [
-        "10:00",
-        "11:00",
-        "12:00",
-        "18:00",
-        "19:00"
-    ];
-
+    // -------------------------
     // FORMATEAR FECHA
+    // -------------------------
     function formatearFecha(fecha) {
-
         const year = fecha.getFullYear();
-
-        const month = String(
-            fecha.getMonth() + 1
-        ).padStart(2, "0");
-
-        const day = String(
-            fecha.getDate()
-        ).padStart(2, "0");
-
+        const month = String(fecha.getMonth() + 1).padStart(2, "0");
+        const day = String(fecha.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     }
 
+    // -------------------------
+    // CARGAR DATOS
+    // -------------------------
     useEffect(() => {
 
         async function fetchData() {
 
-            // cancha + club
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("canchas")
                 .select("*, clubs(*)")
                 .eq("id", id)
                 .single();
 
-            if (!error) {
+            if (data) {
                 setCancha(data);
                 setClub(data.clubs);
             }
 
-            // reservas
-            const { data: reservas } = await supabase
-                .from("reservas")
-                .select("fecha")
+            const { data: horariosData } = await supabase
+                .from("horarios_cancha")
+                .select("*")
                 .eq("cancha_id", id);
 
-            if (reservas) {
+            setHorarios(horariosData || []);
 
-                const fechas = reservas.map((r) =>
-                    formatearFecha(new Date(r.fecha))
-                );
+            const { data: reservasData } = await supabase
+                .from("reservas")
+                .select("fecha, hora_inicio")
+                .eq("cancha_id", id);
 
-                console.log("RESERVAS RAW:", reservas);
-                console.log("FECHAS RESERVADAS:", fechas);
-
-                setFechasReservadas(fechas);
-            }
+            setReservas(reservasData || []);
         }
 
-        fetchData();
+        if (id) fetchData();
 
     }, [id]);
 
+    // -------------------------
+    // HORARIOS OCUPADOS POR DÍA
+    // -------------------------
+    function reservasDelDia(fechaStr) {
+        return reservas.filter(r =>
+            formatearFecha(new Date(r.fecha)) === fechaStr
+        );
+    }
+
+    // 🔥 SOLO ROJO SI EL DÍA ESTÁ COMPLETAMENTE LLENO
+    function diaCompleto(fechaStr) {
+
+        const ocupados = reservasDelDia(fechaStr);
+
+        return horarios.length > 0 && ocupados.length >= horarios.length;
+    }
+
+    // -------------------------
+    // RESERVAR
+    // -------------------------
     async function reservar() {
 
         const { data: userData } = await supabase.auth.getUser();
@@ -100,9 +105,13 @@ export default function Reserva() {
 
         const fechaStr = formatearFecha(fecha);
 
-        // evitar duplicadas
-        if (fechasReservadas.includes(fechaStr)) {
-            setMensaje("Ese día ya está reservado ❌");
+        const ocupado = reservas.some(r =>
+            formatearFecha(new Date(r.fecha)) === fechaStr &&
+            r.hora_inicio === hora
+        );
+
+        if (ocupado) {
+            setMensaje("Ese horario ya está reservado ❌");
             return;
         }
 
@@ -112,89 +121,62 @@ export default function Reserva() {
                 usuario_id: user.id,
                 cancha_id: cancha.id,
                 fecha: fechaStr,
-                hora_inicio: hora + ":00",
-                hora_fin: hora + ":00",
+                hora_inicio: hora,
+                hora_fin: hora,
                 estado: "confirmada"
             });
 
         if (error) {
-
             setMensaje("Error: " + error.message);
-
-        } else {
-
-            // agregar fecha ocupada al estado
-            setFechasReservadas(prev => [
-                ...prev,
-                fechaStr
-            ]);
-
-            setMensaje("Reserva confirmada ✅");
+            return;
         }
+
+        setReservas(prev => [
+            ...prev,
+            {
+                fecha: fechaStr,
+                hora_inicio: hora
+            }
+        ]);
+
+        setMensaje("Reserva confirmada ✅");
     }
 
     if (!cancha) return <p>Cargando...</p>;
 
     return (
-        <div
-            style={{
-                padding: "20px",
-                textAlign: "center"
-            }}
-        >
+        <div style={{ padding: "20px", textAlign: "center" }}>
 
-            {/* volver */}
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    marginBottom: "15px",
-                    padding: "8px 12px",
-                    cursor: "pointer"
-                }}
-            >
+            <button onClick={() => navigate(-1)}>
                 ⬅ Volver
             </button>
 
-            {/* club */}
             <h2>{club?.nombre}</h2>
 
-            {/* imagen */}
             {cancha.foto && (
                 <img
                     src={cancha.foto}
                     alt={cancha.nombre}
                     width="300"
-                    style={{
-                        borderRadius: "10px",
-                        marginBottom: "15px"
-                    }}
+                    style={{ borderRadius: "10px" }}
                 />
             )}
 
-            {/* info */}
             <h3>{cancha.nombre}</h3>
-
             <p>{cancha.descripcion}</p>
 
-            {/* calendario */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginTop: "20px"
-                }}
-            >
+            {/* CALENDARIO */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
                 <Calendar
                     onChange={setFecha}
                     value={fecha}
                     className="calendario"
-
                     tileClassName={({ date }) => {
 
                         const fechaStr = formatearFecha(date);
 
-                        if (fechasReservadas.includes(fechaStr)) {
-                            return "ocupado";
+                        if (diaCompleto(fechaStr)) {
+                            return "ocupado"; // 🔴 SOLO SI ESTÁ LLENO
                         }
 
                         return null;
@@ -202,59 +184,50 @@ export default function Reserva() {
                 />
             </div>
 
-            {/* horarios */}
+            {/* HORARIOS */}
             <div style={{ marginTop: "20px" }}>
-
                 <h4>Horarios</h4>
 
-                {horarios.map((h) => (
+                {horarios.map((h) => {
 
-                    <button
-                        key={h}
-                        onClick={() => setHora(h)}
-                        style={{
-                            margin: "5px",
-                            padding: "10px",
-                            background:
-                                hora === h
-                                    ? "green"
-                                    : "#555",
+                    const ocupado = reservas.some(r =>
+                        formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
+                        r.hora_inicio === h.hora_inicio
+                    );
 
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        {h}
-                    </button>
-
-                ))}
+                    return (
+                        <button
+                            key={h.id}
+                            disabled={ocupado}
+                            onClick={() => setHora(h.hora_inicio)}
+                            style={{
+                                margin: "5px",
+                                padding: "10px",
+                                background: ocupado
+                                    ? "#999"
+                                    : hora === h.hora_inicio
+                                        ? "green"
+                                        : "#444",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: ocupado ? "not-allowed" : "pointer"
+                            }}
+                        >
+                            {h.hora_inicio}
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* botón */}
+            {/* RESERVAR */}
             <div style={{ marginTop: "20px" }}>
-
-                <button
-                    onClick={reservar}
-                    style={{
-                        padding: "10px 20px",
-                        background: "#007bff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer"
-                    }}
-                >
+                <button onClick={reservar}>
                     Confirmar Reserva
                 </button>
-
             </div>
 
-            {/* mensaje */}
-            <p style={{ marginTop: "15px" }}>
-                {mensaje}
-            </p>
+            <p>{mensaje}</p>
 
         </div>
     );
