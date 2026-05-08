@@ -32,6 +32,13 @@ export default function Reserva() {
     }
 
     // -------------------------
+    // NORMALIZAR HORA
+    // -------------------------
+    function normalizarHora(hora) {
+        return hora ? hora.slice(0, 5) : "";
+    }
+
+    // -------------------------
     // CARGAR DATOS
     // -------------------------
     useEffect(() => {
@@ -68,8 +75,13 @@ export default function Reserva() {
 
     }, [id]);
 
+    // 🔥 DEBUG CORRECTO (NO en consola global)
+    useEffect(() => {
+        console.log("HORARIOS:", horarios);
+    }, [horarios]);
+
     // -------------------------
-    // HORARIOS OCUPADOS POR DÍA
+    // RESERVAS DEL DÍA
     // -------------------------
     function reservasDelDia(fechaStr) {
         return reservas.filter(r =>
@@ -77,12 +89,9 @@ export default function Reserva() {
         );
     }
 
-    // 🔥 SOLO ROJO SI EL DÍA ESTÁ COMPLETAMENTE LLENO
     function diaCompleto(fechaStr) {
-
-        const ocupados = reservasDelDia(fechaStr);
-
-        return horarios.length > 0 && ocupados.length >= horarios.length;
+        return horarios.length > 0 &&
+            reservasDelDia(fechaStr).length >= horarios.length;
     }
 
     // -------------------------
@@ -107,7 +116,7 @@ export default function Reserva() {
 
         const ocupado = reservas.some(r =>
             formatearFecha(new Date(r.fecha)) === fechaStr &&
-            r.hora_inicio === hora
+            normalizarHora(r.hora_inicio) === normalizarHora(hora)
         );
 
         if (ocupado) {
@@ -176,7 +185,7 @@ export default function Reserva() {
                         const fechaStr = formatearFecha(date);
 
                         if (diaCompleto(fechaStr)) {
-                            return "ocupado"; // 🔴 SOLO SI ESTÁ LLENO
+                            return "ocupado";
                         }
 
                         return null;
@@ -190,22 +199,24 @@ export default function Reserva() {
 
                 {horarios.map((h) => {
 
+                    const horaInicio = normalizarHora(h.hora_inicio);
+
                     const ocupado = reservas.some(r =>
                         formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
-                        r.hora_inicio === h.hora_inicio
+                        normalizarHora(r.hora_inicio) === horaInicio
                     );
 
                     return (
                         <button
                             key={h.id}
                             disabled={ocupado}
-                            onClick={() => setHora(h.hora_inicio)}
+                            onClick={() => setHora(horaInicio)}
                             style={{
                                 margin: "5px",
                                 padding: "10px",
                                 background: ocupado
                                     ? "#999"
-                                    : hora === h.hora_inicio
+                                    : hora === horaInicio
                                         ? "green"
                                         : "#444",
                                 color: "white",
@@ -214,7 +225,7 @@ export default function Reserva() {
                                 cursor: ocupado ? "not-allowed" : "pointer"
                             }}
                         >
-                            {h.hora_inicio}
+                            {horaInicio}
                         </button>
                     );
                 })}
