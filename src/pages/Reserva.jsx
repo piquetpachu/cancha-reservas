@@ -14,16 +14,18 @@ export default function Reserva() {
     const [club, setClub] = useState(null);
 
     const [fecha, setFecha] = useState(new Date());
-    const [hora, setHora] = useState("");
+
+    const [horaInicio, setHoraInicio] = useState("");
+    const [duracion, setDuracion] = useState(1);
 
     const [mensaje, setMensaje] = useState("");
 
     const [horarios, setHorarios] = useState([]);
     const [reservas, setReservas] = useState([]);
 
-    // -------------------------
-    // FORMATEAR FECHA (YYYY-MM-DD)
-    // -------------------------
+    // =========================
+    // FECHA FORMATO
+    // =========================
     function formatearFecha(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -31,18 +33,39 @@ export default function Reserva() {
         return `${year}-${month}-${day}`;
     }
 
-    // -------------------------
-    // OBTENER DIA SEMANA
-    // -------------------------
-    function obtenerDiaSemana(date) {
-        return date.toLocaleDateString("es-ES", {
+    // =========================
+    // DÍA SEMANA
+    // =========================
+    function normalizarDia(date) {
+        const raw = date.toLocaleDateString("es-ES", {
             weekday: "long"
         }).toLowerCase();
+
+        const mapa = {
+            miércoles: "miercoles",
+            miercoles: "miercoles",
+            sábado: "sabado",
+            sabado: "sabado"
+        };
+
+        return mapa[raw] || raw;
     }
 
-    // -------------------------
-    // CARGAR DATOS
-    // -------------------------
+    // =========================
+    // GENERAR HORARIO FIN
+    // =========================
+    function calcularFin(inicio, horas) {
+
+        const [h] = inicio.split(":").map(Number);
+
+        const fin = h + Number(horas);
+
+        return `${String(fin).padStart(2, "0")}:00`;
+    }
+
+    // =========================
+    // CARGA DATOS
+    // =========================
     useEffect(() => {
 
         async function fetchData() {
@@ -77,18 +100,17 @@ export default function Reserva() {
 
     }, [id]);
 
-    // -------------------------
-    // FILTRAR HORARIOS POR DIA
-    // -------------------------
-    const diaSeleccionado = obtenerDiaSemana(fecha);
+    if (!cancha) return <p>Cargando...</p>;
+
+    const diaSeleccionado = normalizarDia(fecha);
 
     const horariosDelDia = horarios.filter(
         h => h.dia_semana === diaSeleccionado
     );
 
-    // -------------------------
+    // =========================
     // RESERVAR
-    // -------------------------
+    // =========================
     async function reservar() {
 
         const { data: userData } = await supabase.auth.getUser();
@@ -99,16 +121,19 @@ export default function Reserva() {
             return;
         }
 
-        if (!fecha || !hora) {
-            setMensaje("Seleccioná fecha y horario");
+        if (!horaInicio) {
+            setMensaje("Seleccioná un horario");
             return;
         }
 
         const fechaStr = formatearFecha(fecha);
+        const horaFin = calcularFin(horaInicio, duracion);
 
+        // validar conflicto
         const ocupado = reservas.some(r =>
             formatearFecha(new Date(r.fecha)) === fechaStr &&
-            r.hora_inicio?.slice(0, 5) === hora
+            r.hora_inicio?.slice(0, 5) >= horaInicio &&
+            r.hora_inicio?.slice(0, 5) < horaFin
         );
 
         if (ocupado) {
@@ -122,8 +147,8 @@ export default function Reserva() {
                 usuario_id: user.id,
                 cancha_id: cancha.id,
                 fecha: fechaStr,
-                hora_inicio: hora,
-                hora_fin: hora,
+                hora_inicio: horaInicio,
+                hora_fin: horaFin,
                 estado: "confirmada"
             });
 
@@ -134,14 +159,15 @@ export default function Reserva() {
 
         setReservas(prev => [
             ...prev,
-            { fecha: fechaStr, hora_inicio: hora }
+            { fecha: fechaStr, hora_inicio: horaInicio }
         ]);
 
         setMensaje("Reserva confirmada ✅");
     }
 
-    if (!cancha) return <p>Cargando...</p>;
-
+    // =========================
+    // UI
+    // =========================
     return (
         <div style={{ padding: "20px", textAlign: "center" }}>
 
@@ -151,17 +177,7 @@ export default function Reserva() {
 
             <h2>{club?.nombre}</h2>
 
-            {cancha.foto && (
-                <img
-                    src={cancha.foto}
-                    alt={cancha.nombre}
-                    width="300"
-                    style={{ borderRadius: "10px" }}
-                />
-            )}
-
             <h3>{cancha.nombre}</h3>
-            <p>{cancha.descripcion}</p>
 
             {/* CALENDARIO */}
             <Calendar
@@ -170,33 +186,49 @@ export default function Reserva() {
                 className="calendario"
             />
 
-            {/* HORARIOS DEL DÍA */}
-            <div style={{ marginTop: "20px" }}>
-                <h4>Horarios disponibles ({diaSeleccionado})</h4>
+            {/* HORARIOS */}
+            <h4>Elegí hora de inicio</h4>
 
-                {horariosDelDia.length === 0 ? (
-                    <p>No hay horarios este día</p>
-                ) : (
-                    horariosDelDia.map((h) => {
+            {horariosDelDia.length === 0 ? (
+                <p>No hay horarios</p>
+            ) : (
+                horariosDelDia.map(h => {
 
-                        const horaInicio = h.hora_inicio.slice(0, 5);
+                    const inicio = h.hora_inicio.slice(0, 5);
+                    const fin = h.hora_fin.slice(0, 5);
+
+                    const horas = [];
+
+                    let start = parseInt(inicio.split(":")[0]);
+                    const end = parseInt(fin.split(":")[0]);
+
+                    while (start < end) {
+
+                        const hora = `${String(start).padStart(2, "0")}:00`;
+
+                        horas.push(hora);
+
+                        start++;
+                    }
+
+                    return horas.map(hora => {
 
                         const ocupado = reservas.some(r =>
                             formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
-                            r.hora_inicio?.slice(0, 5) === horaInicio
+                            r.hora_inicio?.slice(0, 5) === hora
                         );
 
                         return (
                             <button
-                                key={h.id}
+                                key={hora}
                                 disabled={ocupado}
-                                onClick={() => setHora(horaInicio)}
+                                onClick={() => setHoraInicio(hora)}
                                 style={{
                                     margin: "5px",
                                     padding: "10px",
                                     background: ocupado
                                         ? "#999"
-                                        : hora === horaInicio
+                                        : horaInicio === hora
                                             ? "green"
                                             : "#444",
                                     color: "white",
@@ -205,11 +237,25 @@ export default function Reserva() {
                                     cursor: ocupado ? "not-allowed" : "pointer"
                                 }}
                             >
-                                {horaInicio}
+                                {hora}
                             </button>
                         );
-                    })
-                )}
+                    });
+                })
+            )}
+
+            {/* DURACIÓN */}
+            <div style={{ marginTop: "20px" }}>
+                <h4>Duración (horas)</h4>
+
+                <select
+                    value={duracion}
+                    onChange={(e) => setDuracion(e.target.value)}
+                >
+                    <option value={1}>1 hora</option>
+                    <option value={2}>2 horas</option>
+                    <option value={3}>3 horas</option>
+                </select>
             </div>
 
             {/* RESERVAR */}
