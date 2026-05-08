@@ -22,7 +22,7 @@ export default function Reserva() {
     const [reservas, setReservas] = useState([]);
 
     // -------------------------
-    // FORMATEAR FECHA
+    // FORMATEAR FECHA (YYYY-MM-DD)
     // -------------------------
     function formatearFecha(date) {
         const year = date.getFullYear();
@@ -32,30 +32,12 @@ export default function Reserva() {
     }
 
     // -------------------------
-    // DIA SEMANA
+    // OBTENER DIA SEMANA
     // -------------------------
     function obtenerDiaSemana(date) {
         return date.toLocaleDateString("es-ES", {
             weekday: "long"
         }).toLowerCase();
-    }
-
-    // -------------------------
-    // GENERAR HORARIOS (CLAVE)
-    // -------------------------
-    function generarSlots(inicio, fin) {
-
-        const slots = [];
-
-        let [h] = inicio.split(":").map(Number);
-        let [hf] = fin.split(":").map(Number);
-
-        while (h < hf) {
-            slots.push(`${String(h).padStart(2, "0")}:00`);
-            h++;
-        }
-
-        return slots;
     }
 
     // -------------------------
@@ -96,7 +78,7 @@ export default function Reserva() {
     }, [id]);
 
     // -------------------------
-    // FILTRAR HORARIOS DEL DÍA
+    // FILTRAR HORARIOS POR DIA
     // -------------------------
     const diaSeleccionado = obtenerDiaSemana(fecha);
 
@@ -188,7 +170,7 @@ export default function Reserva() {
                 className="calendario"
             />
 
-            {/* HORARIOS */}
+            {/* HORARIOS DEL DÍA */}
             <div style={{ marginTop: "20px" }}>
                 <h4>Horarios disponibles ({diaSeleccionado})</h4>
 
@@ -197,41 +179,35 @@ export default function Reserva() {
                 ) : (
                     horariosDelDia.map((h) => {
 
-                        const slots = generarSlots(
-                            h.hora_inicio.slice(0, 5),
-                            h.hora_fin.slice(0, 5)
+                        const horaInicio = h.hora_inicio.slice(0, 5);
+
+                        const ocupado = reservas.some(r =>
+                            formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
+                            r.hora_inicio?.slice(0, 5) === horaInicio
                         );
 
-                        return slots.map((horaSlot) => {
-
-                            const ocupado = reservas.some(r =>
-                                formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
-                                r.hora_inicio?.slice(0, 5) === horaSlot
-                            );
-
-                            return (
-                                <button
-                                    key={horaSlot}
-                                    disabled={ocupado}
-                                    onClick={() => setHora(horaSlot)}
-                                    style={{
-                                        margin: "5px",
-                                        padding: "10px",
-                                        background: ocupado
-                                            ? "#999"
-                                            : hora === horaSlot
-                                                ? "green"
-                                                : "#444",
-                                        color: "white",
-                                        border: "none",
-                                        borderRadius: "6px",
-                                        cursor: ocupado ? "not-allowed" : "pointer"
-                                    }}
-                                >
-                                    {horaSlot}
-                                </button>
-                            );
-                        });
+                        return (
+                            <button
+                                key={h.id}
+                                disabled={ocupado}
+                                onClick={() => setHora(horaInicio)}
+                                style={{
+                                    margin: "5px",
+                                    padding: "10px",
+                                    background: ocupado
+                                        ? "#999"
+                                        : hora === horaInicio
+                                            ? "green"
+                                            : "#444",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: ocupado ? "not-allowed" : "pointer"
+                                }}
+                            >
+                                {horaInicio}
+                            </button>
+                        );
                     })
                 )}
             </div>
