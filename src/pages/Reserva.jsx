@@ -14,75 +14,103 @@ export default function Reserva() {
     const [club, setClub] = useState(null);
 
     const [fecha, setFecha] = useState(new Date());
-    const [hora, setHora] = useState("");
+
+    const [horaInicio, setHoraInicio] = useState("");
+    const [duracion, setDuracion] = useState(1);
 
     const [mensaje, setMensaje] = useState("");
 
-    const [fechasReservadas, setFechasReservadas] = useState([]);
+    const [horarios, setHorarios] = useState([]);
+    const [reservas, setReservas] = useState([]);
 
-    const horarios = [
-        "10:00",
-        "11:00",
-        "12:00",
-        "18:00",
-        "19:00"
-    ];
-
-    // FORMATEAR FECHA
-    function formatearFecha(fecha) {
-
-        const year = fecha.getFullYear();
-
-        const month = String(
-            fecha.getMonth() + 1
-        ).padStart(2, "0");
-
-        const day = String(
-            fecha.getDate()
-        ).padStart(2, "0");
-
+    // =========================
+    // FECHA FORMATO
+    // =========================
+    function formatearFecha(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     }
 
+    // =========================
+    // DÍA SEMANA
+    // =========================
+    function normalizarDia(date) {
+        const raw = date.toLocaleDateString("es-ES", {
+            weekday: "long"
+        }).toLowerCase();
+
+        const mapa = {
+            miércoles: "miercoles",
+            miercoles: "miercoles",
+            sábado: "sabado",
+            sabado: "sabado"
+        };
+
+        return mapa[raw] || raw;
+    }
+
+    // =========================
+    // GENERAR HORARIO FIN
+    // =========================
+    function calcularFin(inicio, horas) {
+
+        const [h] = inicio.split(":").map(Number);
+
+        const fin = h + Number(horas);
+
+        return `${String(fin).padStart(2, "0")}:00`;
+    }
+
+    // =========================
+    // CARGA DATOS
+    // =========================
     useEffect(() => {
 
         async function fetchData() {
 
-            // cancha + club
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("canchas")
                 .select("*, clubs(*)")
                 .eq("id", id)
                 .single();
 
-            if (!error) {
+            if (data) {
                 setCancha(data);
                 setClub(data.clubs);
             }
 
-            // reservas
-            const { data: reservas } = await supabase
-                .from("reservas")
-                .select("fecha")
+            const { data: horariosData } = await supabase
+                .from("horarios_cancha")
+                .select("*")
                 .eq("cancha_id", id);
 
-            if (reservas) {
+            setHorarios(horariosData || []);
 
-                const fechas = reservas.map((r) =>
-                    formatearFecha(new Date(r.fecha))
-                );
+            const { data: reservasData } = await supabase
+                .from("reservas")
+                .select("fecha, hora_inicio")
+                .eq("cancha_id", id);
 
-                console.log("RESERVAS RAW:", reservas);
-                console.log("FECHAS RESERVADAS:", fechas);
-
-                setFechasReservadas(fechas);
-            }
+            setReservas(reservasData || []);
         }
 
-        fetchData();
+        if (id) fetchData();
 
     }, [id]);
 
+    if (!cancha) return <p>Cargando...</p>;
+
+    const diaSeleccionado = normalizarDia(fecha);
+
+    const horariosDelDia = horarios.filter(
+        h => h.dia_semana === diaSeleccionado
+    );
+
+    // =========================
+    // RESERVAR
+    // =========================
     async function reservar() {
 
         const { data: userData } = await supabase.auth.getUser();
@@ -93,16 +121,23 @@ export default function Reserva() {
             return;
         }
 
-        if (!fecha || !hora) {
-            setMensaje("Seleccioná fecha y horario");
+        if (!horaInicio) {
+            setMensaje("Seleccioná un horario");
             return;
         }
 
         const fechaStr = formatearFecha(fecha);
+        const horaFin = calcularFin(horaInicio, duracion);
 
-        // evitar duplicadas
-        if (fechasReservadas.includes(fechaStr)) {
-            setMensaje("Ese día ya está reservado ❌");
+        // validar conflicto
+        const ocupado = reservas.some(r =>
+            formatearFecha(new Date(r.fecha)) === fechaStr &&
+            r.hora_inicio?.slice(0, 5) >= horaInicio &&
+            r.hora_inicio?.slice(0, 5) < horaFin
+        );
+
+        if (ocupado) {
+            setMensaje("Ese horario ya está reservado ❌");
             return;
         }
 
@@ -112,149 +147,125 @@ export default function Reserva() {
                 usuario_id: user.id,
                 cancha_id: cancha.id,
                 fecha: fechaStr,
-                hora_inicio: hora + ":00",
-                hora_fin: hora + ":00",
+                hora_inicio: horaInicio,
+                hora_fin: horaFin,
                 estado: "confirmada"
             });
 
         if (error) {
-
             setMensaje("Error: " + error.message);
-
-        } else {
-
-            // agregar fecha ocupada al estado
-            setFechasReservadas(prev => [
-                ...prev,
-                fechaStr
-            ]);
-
-            setMensaje("Reserva confirmada ✅");
+            return;
         }
+
+        setReservas(prev => [
+            ...prev,
+            { fecha: fechaStr, hora_inicio: horaInicio }
+        ]);
+
+        setMensaje("Reserva confirmada ✅");
     }
 
-    if (!cancha) return <p>Cargando...</p>;
-
+    // =========================
+    // UI
+    // =========================
     return (
-        <div
-            style={{
-                padding: "20px",
-                textAlign: "center"
-            }}
-        >
+        <div style={{ padding: "20px", textAlign: "center" }}>
 
-            {/* volver */}
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    marginBottom: "15px",
-                    padding: "8px 12px",
-                    cursor: "pointer"
-                }}
-            >
+            <button onClick={() => navigate(-1)}>
                 ⬅ Volver
             </button>
 
-            {/* club */}
             <h2>{club?.nombre}</h2>
 
-            {/* imagen */}
-            {cancha.foto && (
-                <img
-                    src={cancha.foto}
-                    alt={cancha.nombre}
-                    width="300"
-                    style={{
-                        borderRadius: "10px",
-                        marginBottom: "15px"
-                    }}
-                />
-            )}
-
-            {/* info */}
             <h3>{cancha.nombre}</h3>
 
-            <p>{cancha.descripcion}</p>
+            {/* CALENDARIO */}
+            <Calendar
+                onChange={setFecha}
+                value={fecha}
+                className="calendario"
+            />
 
-            {/* calendario */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginTop: "20px"
-                }}
-            >
-                <Calendar
-                    onChange={setFecha}
-                    value={fecha}
-                    className="calendario"
+            {/* HORARIOS */}
+            <h4>Elegí hora de inicio</h4>
 
-                    tileClassName={({ date }) => {
+            {horariosDelDia.length === 0 ? (
+                <p>No hay horarios</p>
+            ) : (
+                horariosDelDia.map(h => {
 
-                        const fechaStr = formatearFecha(date);
+                    const inicio = h.hora_inicio.slice(0, 5);
+                    const fin = h.hora_fin.slice(0, 5);
 
-                        if (fechasReservadas.includes(fechaStr)) {
-                            return "ocupado";
-                        }
+                    const horas = [];
 
-                        return null;
-                    }}
-                />
-            </div>
+                    let start = parseInt(inicio.split(":")[0]);
+                    const end = parseInt(fin.split(":")[0]);
 
-            {/* horarios */}
+                    while (start < end) {
+
+                        const hora = `${String(start).padStart(2, "0")}:00`;
+
+                        horas.push(hora);
+
+                        start++;
+                    }
+
+                    return horas.map(hora => {
+
+                        const ocupado = reservas.some(r =>
+                            formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
+                            r.hora_inicio?.slice(0, 5) === hora
+                        );
+
+                        return (
+                            <button
+                                key={hora}
+                                disabled={ocupado}
+                                onClick={() => setHoraInicio(hora)}
+                                style={{
+                                    margin: "5px",
+                                    padding: "10px",
+                                    background: ocupado
+                                        ? "#999"
+                                        : horaInicio === hora
+                                            ? "green"
+                                            : "#444",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: ocupado ? "not-allowed" : "pointer"
+                                }}
+                            >
+                                {hora}
+                            </button>
+                        );
+                    });
+                })
+            )}
+
+            {/* DURACIÓN */}
             <div style={{ marginTop: "20px" }}>
+                <h4>Duración (horas)</h4>
 
-                <h4>Horarios</h4>
-
-                {horarios.map((h) => (
-
-                    <button
-                        key={h}
-                        onClick={() => setHora(h)}
-                        style={{
-                            margin: "5px",
-                            padding: "10px",
-                            background:
-                                hora === h
-                                    ? "green"
-                                    : "#555",
-
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        {h}
-                    </button>
-
-                ))}
-            </div>
-
-            {/* botón */}
-            <div style={{ marginTop: "20px" }}>
-
-                <button
-                    onClick={reservar}
-                    style={{
-                        padding: "10px 20px",
-                        background: "#007bff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer"
-                    }}
+                <select
+                    value={duracion}
+                    onChange={(e) => setDuracion(e.target.value)}
                 >
+                    <option value={1}>1 hora</option>
+                    <option value={2}>2 horas</option>
+                    <option value={3}>3 horas</option>
+                </select>
+            </div>
+
+            {/* RESERVAR */}
+            <div style={{ marginTop: "20px" }}>
+                <button onClick={reservar}>
                     Confirmar Reserva
                 </button>
-
             </div>
 
-            {/* mensaje */}
-            <p style={{ marginTop: "15px" }}>
-                {mensaje}
-            </p>
+            <p>{mensaje}</p>
 
         </div>
     );
