@@ -207,6 +207,7 @@ export default function ClubDetalleDueno() {
                                 </button>
 
                                 <button
+                                    onClick={() => navigate(`/bloqueos/${cancha.id}`)}
                                     style={{
                                         padding: "5px 10px",
                                         border: "none",

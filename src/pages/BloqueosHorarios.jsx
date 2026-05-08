@@ -9,6 +9,7 @@ export default function BloqueosHorarios() {
     const [fecha, setFecha] = useState("");
     const [horaInicio, setHoraInicio] = useState("");
     const [horaFin, setHoraFin] = useState("");
+    const [motivo, setMotivo] = useState("");
     const [bloqueos, setBloqueos] = useState([]);
 
     // =========================
@@ -18,27 +19,37 @@ export default function BloqueosHorarios() {
 
         if (!id) return;
 
-        async function cargar() {
-
-            const { data } = await supabase
-                .from("bloqueos_horarios")
-                .select("*")
-                .eq("cancha_id", id)
-                .order("hora_inicio");
-
-            setBloqueos(data || []);
-        }
-
-        cargar();
+        cargarBloqueos();
 
     }, [id]);
+
+    async function cargarBloqueos() {
+
+        const { data, error } = await supabase
+            .from("bloqueos_horarios")
+            .select("*")
+            .eq("cancha_id", id)
+            .order("hora_inicio");
+
+        if (error) {
+            console.log("ERROR:", error);
+            return;
+        }
+
+        setBloqueos(data || []);
+    }
 
     // =========================
     // CREAR BLOQUEO
     // =========================
     async function crearBloqueo() {
 
-        if (!horaInicio || !horaFin) return;
+        console.log("BOTÓN BLOQUEO PRESIONADO");
+
+        if (!horaInicio || !horaFin) {
+            console.log("FALTAN HORARIOS");
+            return;
+        }
 
         const { error } = await supabase
             .from("bloqueos_horarios")
@@ -46,36 +57,34 @@ export default function BloqueosHorarios() {
                 cancha_id: id,
                 fecha: fecha || null,
                 hora_inicio: horaInicio,
-                hora_fin: horaFin
+                hora_fin: horaFin,
+                motivo: motivo || ""
             });
 
-        if (!error) {
-
-            const { data } = await supabase
-                .from("bloqueos_horarios")
-                .select("*")
-                .eq("cancha_id", id);
-
-            setBloqueos(data || []);
+        if (error) {
+            console.log("ERROR SUPABASE:", error);
+            return;
         }
+
+        setFecha("");
+        setHoraInicio("");
+        setHoraFin("");
+        setMotivo("");
+
+        cargarBloqueos();
     }
 
     // =========================
     // ELIMINAR BLOQUEO
     // =========================
-    async function eliminarBloqueo(bloqueoId) {
+    async function eliminar(idBloqueo) {
 
-        const { error } = await supabase
+        await supabase
             .from("bloqueos_horarios")
             .delete()
-            .eq("id", bloqueoId);
+            .eq("id", idBloqueo);
 
-        if (!error) {
-
-            setBloqueos(prev =>
-                prev.filter(b => b.id !== bloqueoId)
-            );
-        }
+        cargarBloqueos();
     }
 
     // =========================
@@ -84,7 +93,7 @@ export default function BloqueosHorarios() {
     return (
         <div style={{ padding: "20px", maxWidth: "500px" }}>
 
-            <h2>Bloqueos de Horarios</h2>
+            <h2>Bloqueos (Dueño)</h2>
 
             <p>Fecha (opcional)</p>
             <input
@@ -107,16 +116,23 @@ export default function BloqueosHorarios() {
                 onChange={(e) => setHoraFin(e.target.value)}
             />
 
+            <p>Motivo (opcional)</p>
+            <input
+                type="text"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+            />
+
             <button
                 onClick={crearBloqueo}
                 style={{ marginTop: "10px" }}
             >
-                Bloquear horario
+                Crear bloqueo
             </button>
 
             <hr />
 
-            <h3>Bloqueos activos</h3>
+            <h3>Bloqueos actuales</h3>
 
             {bloqueos.length === 0 ? (
                 <p>No hay bloqueos</p>
@@ -125,32 +141,37 @@ export default function BloqueosHorarios() {
                     <div
                         key={b.id}
                         style={{
-                            padding: "10px",
                             border: "1px solid #ccc",
-                            marginBottom: "8px",
+                            padding: "10px",
+                            marginBottom: "10px",
                             borderRadius: "8px"
                         }}
                     >
+
                         <p>
-                            📅 {b.fecha || "Todos los días"}
+                            📅 {b.fecha || "Sin fecha"}
                         </p>
 
                         <p>
                             🕐 {b.hora_inicio} - {b.hora_fin}
                         </p>
 
+                        <p>
+                            📝 {b.motivo}
+                        </p>
+
                         <button
-                            onClick={() => eliminarBloqueo(b.id)}
+                            onClick={() => eliminar(b.id)}
                             style={{
                                 background: "red",
                                 color: "white",
                                 border: "none",
-                                padding: "5px 10px",
-                                borderRadius: "5px"
+                                padding: "5px 10px"
                             }}
                         >
                             Eliminar
                         </button>
+
                     </div>
                 ))
             )}
