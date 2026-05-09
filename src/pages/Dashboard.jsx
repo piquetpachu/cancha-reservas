@@ -1,7 +1,9 @@
 import Navbar from '../components/Navbar'
+import ClubList from "../pages/ClubList";
 import { useEffect, useState } from 'react'
 import { getUser, logout } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
+
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
@@ -35,7 +37,8 @@ export default function Dashboard() {
         <>
           <p>Bienvenido: <strong>{user.email}</strong></p>
 
-        
+          <ClubList />   
+
         </>
       ) : (
         <p>Cargando...</p>

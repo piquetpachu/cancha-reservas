@@ -6,6 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import CrearClub from "./pages/CrearClub";
 import CrearCancha from "./pages/CrearCancha";
+import ClubList from "./pages/Clublist";
+import ClubDetalle from "./pages/ClubDetalle";
+import Reserva from "./pages/Reserva";
 import './App.css'
 
 function App() {
@@ -25,6 +28,9 @@ function App() {
     </ProtectedRoute>
   }
 />
+        <Route path="/home" element={<ClubList />} />
+        <Route path="/club/:id" element={<ClubDetalle />} />
+        <Route path="/reserva/:id" element={<Reserva />} />
       </Routes>
     </BrowserRouter>
   );
