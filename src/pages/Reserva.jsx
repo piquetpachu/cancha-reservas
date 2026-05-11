@@ -24,9 +24,9 @@ export default function Reserva() {
     const [reservas, setReservas] = useState([]);
     const [bloqueos, setBloqueos] = useState([]);
 
-    // =========================
+ 
     // FECHA FORMATO
-    // =========================
+   
     function formatearFecha(date) {
 
         const offset = date.getTimezoneOffset();
@@ -40,9 +40,8 @@ export default function Reserva() {
             .split("T")[0];
     }
 
-    // =========================
-    // DÍA SEMANA
-    // =========================
+   
+    // DIA SEMANA
     function normalizarDia(date) {
         const raw = date.toLocaleDateString("es-ES", {
             weekday: "long"
@@ -58,18 +57,18 @@ export default function Reserva() {
         return mapa[raw] || raw;
     }
 
-    // =========================
-    // GENERAR FIN
-    // =========================
+    
+  
+   
     function calcularFin(inicio, horas) {
         const [h] = inicio.split(":").map(Number);
         const fin = h + Number(horas);
         return `${String(fin).padStart(2, "0")}:00`;
     }
 
-    // =========================
+   
     // CARGA DATOS
-    // =========================
+  
     useEffect(() => {
 
         async function fetchData() {
@@ -119,13 +118,8 @@ export default function Reserva() {
         h => h.dia_semana === diaSeleccionado
     );
 
-    // =========================
-    // HELPERS IMPORTANTES (CORRECCIÓN CLAVE)
-    // =========================
-
-    function enRango(hora, inicio, fin) {
-        return hora >= inicio && hora < fin;
-    }
+    
+   
 
     function estaReservado(fechaStr, hora) {
 
@@ -161,9 +155,7 @@ export default function Reserva() {
         });
     }
 
-    // =========================
-    // RESERVAR (SIN TOCAR)
-    // =========================
+    // RESERVA
     async function reservar() {
 
         const { data: userData } = await supabase.auth.getUser();
@@ -229,9 +221,7 @@ export default function Reserva() {
 
         setMensaje("Reserva confirmada ✅");
     }
-    // =========================
-    // UI
-    // =========================
+   
     return (
         <div style={{ padding: "20px", textAlign: "center" }}>
 
