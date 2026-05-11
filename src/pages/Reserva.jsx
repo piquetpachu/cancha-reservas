@@ -22,15 +22,22 @@ export default function Reserva() {
 
     const [horarios, setHorarios] = useState([]);
     const [reservas, setReservas] = useState([]);
+    const [bloqueos, setBloqueos] = useState([]);
 
     // =========================
     // FECHA FORMATO
     // =========================
     function formatearFecha(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+
+        const offset = date.getTimezoneOffset();
+
+        const localDate = new Date(
+            date.getTime() - offset * 60000
+        );
+
+        return localDate
+            .toISOString()
+            .split("T")[0];
     }
 
     // =========================
@@ -52,14 +59,11 @@ export default function Reserva() {
     }
 
     // =========================
-    // GENERAR HORARIO FIN
+    // GENERAR FIN
     // =========================
     function calcularFin(inicio, horas) {
-
         const [h] = inicio.split(":").map(Number);
-
         const fin = h + Number(horas);
-
         return `${String(fin).padStart(2, "0")}:00`;
     }
 
@@ -90,10 +94,17 @@ export default function Reserva() {
 
             const { data: reservasData } = await supabase
                 .from("reservas")
-                .select("fecha, hora_inicio")
+                .select("*")
                 .eq("cancha_id", id);
 
             setReservas(reservasData || []);
+
+            const { data: bloqueosData } = await supabase
+                .from("bloqueos_horarios")
+                .select("*")
+                .eq("cancha_id", id);
+
+            setBloqueos(bloqueosData || []);
         }
 
         if (id) fetchData();
@@ -109,7 +120,49 @@ export default function Reserva() {
     );
 
     // =========================
-    // RESERVAR
+    // HELPERS IMPORTANTES (CORRECCIÓN CLAVE)
+    // =========================
+
+    function enRango(hora, inicio, fin) {
+        return hora >= inicio && hora < fin;
+    }
+
+    function estaReservado(fechaStr, hora) {
+
+    return reservas.some(r => {
+
+        const fechaReserva = String(r.fecha).split("T")[0];
+
+        if (fechaReserva !== fechaStr) {
+            return false;
+        }
+
+        const inicio = r.hora_inicio.slice(0, 5);
+        const fin = r.hora_fin.slice(0, 5);
+
+        return hora >= inicio && hora < fin;
+    });
+}
+
+    function estaBloqueado(fechaStr, hora) {
+
+        return bloqueos.some(b => {
+
+            const fechaBloqueo = String(b.fecha).split("T")[0];
+
+            if (fechaBloqueo !== fechaStr) {
+                return false;
+            }
+
+            const inicio = b.hora_inicio.slice(0, 5);
+            const fin = b.hora_fin.slice(0, 5);
+
+            return hora >= inicio && hora < fin;
+        });
+    }
+
+    // =========================
+    // RESERVAR (SIN TOCAR)
     // =========================
     async function reservar() {
 
@@ -129,12 +182,20 @@ export default function Reserva() {
         const fechaStr = formatearFecha(fecha);
         const horaFin = calcularFin(horaInicio, duracion);
 
-        // validar conflicto
-        const ocupado = reservas.some(r =>
-            formatearFecha(new Date(r.fecha)) === fechaStr &&
-            r.hora_inicio?.slice(0, 5) >= horaInicio &&
-            r.hora_inicio?.slice(0, 5) < horaFin
-        );
+        const ocupado = reservas.some(r => {
+
+            if (formatearFecha(new Date(r.fecha)) !== fechaStr) {
+                return false;
+            }
+
+            const inicioReserva = r.hora_inicio?.slice(0, 5);
+            const finReserva = r.hora_fin?.slice(0, 5);
+
+            return (
+                horaInicio < finReserva &&
+                horaFin > inicioReserva
+            );
+        });
 
         if (ocupado) {
             setMensaje("Ese horario ya está reservado ❌");
@@ -159,12 +220,15 @@ export default function Reserva() {
 
         setReservas(prev => [
             ...prev,
-            { fecha: fechaStr, hora_inicio: horaInicio }
+            {
+                fecha: fechaStr,
+                hora_inicio: horaInicio,
+                hora_fin: horaFin
+            }
         ]);
 
         setMensaje("Reserva confirmada ✅");
     }
-
     // =========================
     // UI
     // =========================
@@ -176,81 +240,72 @@ export default function Reserva() {
             </button>
 
             <h2>{club?.nombre}</h2>
-
             <h3>{cancha.nombre}</h3>
 
-            {/* CALENDARIO */}
             <Calendar
                 onChange={setFecha}
                 value={fecha}
                 className="calendario"
             />
 
-            {/* HORARIOS */}
             <h4>Elegí hora de inicio</h4>
 
-            {horariosDelDia.length === 0 ? (
-                <p>No hay horarios</p>
-            ) : (
-                horariosDelDia.map(h => {
+            {horariosDelDia.map(h => {
 
-                    const inicio = h.hora_inicio.slice(0, 5);
-                    const fin = h.hora_fin.slice(0, 5);
+                const inicio = h.hora_inicio.slice(0, 5);
+                const fin = h.hora_fin.slice(0, 5);
 
-                    const horas = [];
+                const horas = [];
 
-                    let start = parseInt(inicio.split(":")[0]);
-                    const end = parseInt(fin.split(":")[0]);
+                let start = parseInt(inicio.split(":")[0]);
+                const end = parseInt(fin.split(":")[0]);
 
-                    while (start < end) {
+                const fechaStr = formatearFecha(fecha);
 
-                        const hora = `${String(start).padStart(2, "0")}:00`;
+                while (start < end) {
 
-                        horas.push(hora);
+                    const hora = `${String(start).padStart(2, "0")}:00`;
 
-                        start++;
-                    }
+                    const reservado = estaReservado(fechaStr, hora);
+                    const bloqueado = estaBloqueado(fechaStr, hora);
 
-                    return horas.map(hora => {
+                    const noDisponible = reservado || bloqueado;
 
-                        const ocupado = reservas.some(r =>
-                            formatearFecha(new Date(r.fecha)) === formatearFecha(fecha) &&
-                            r.hora_inicio?.slice(0, 5) === hora
-                        );
+                    horas.push(
+                        <button
+                            key={hora}
+                            disabled={noDisponible}
+                            onClick={() => setHoraInicio(hora)}
+                            style={{
+                                margin: "5px",
+                                padding: "10px",
+                                background: noDisponible
+                                    ? "#777"
+                                    : horaInicio === hora
+                                        ? "green"
+                                        : "#444",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: noDisponible ? "not-allowed" : "pointer"
+                            }}
+                        >
+                            {hora}
+                        </button>
+                    );
 
-                        return (
-                            <button
-                                key={hora}
-                                disabled={ocupado}
-                                onClick={() => setHoraInicio(hora)}
-                                style={{
-                                    margin: "5px",
-                                    padding: "10px",
-                                    background: ocupado
-                                        ? "#999"
-                                        : horaInicio === hora
-                                            ? "green"
-                                            : "#444",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "6px",
-                                    cursor: ocupado ? "not-allowed" : "pointer"
-                                }}
-                            >
-                                {hora}
-                            </button>
-                        );
-                    });
-                })
-            )}
+                    start++;
+                }
 
-            {/* DURACIÓN */}
+                return horas;
+            })}
+
             <div style={{ marginTop: "20px" }}>
                 <h4>Duración (horas)</h4>
 
                 <select
                     value={duracion}
-                    onChange={(e) => setDuracion(e.target.value)}
+                    onChange={(e) => setDuracion(Number(e.target.value))}
                 >
                     <option value={1}>1 hora</option>
                     <option value={2}>2 horas</option>
@@ -258,7 +313,6 @@ export default function Reserva() {
                 </select>
             </div>
 
-            {/* RESERVAR */}
             <div style={{ marginTop: "20px" }}>
                 <button onClick={reservar}>
                     Confirmar Reserva
