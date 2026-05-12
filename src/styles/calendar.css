@@ -4,21 +4,20 @@
     width: 100%;
     margin: 20px auto;
     background: #1e1e1e;
-    /* fondo oscuro */
     color: white;
     border-radius: 12px;
     padding: 10px;
     border: none;
 }
 
-/* navegación (mes/año) */
+/* navegación */
 .react-calendar__navigation button {
     color: white;
     background: none;
     font-weight: bold;
 }
 
-/* días de la semana (L M M J V S D) */
+/* días semana */
 .react-calendar__month-view__weekdays {
     text-align: center;
     font-size: 12px;
@@ -27,13 +26,8 @@
 
 /* días normales */
 .react-calendar__tile {
-    color: rgb(255, 255, 255);
+    color: white;
     border-radius: 50%;
-}
-
-/* sacar rojo de fines de semana */
-.react-calendar__month-view__weekend {
-    color: white !important;
 }
 
 /* hover */
@@ -41,16 +35,26 @@
     background: #444;
 }
 
-/* día seleccionado */
+/* seleccionado */
 .react-calendar__tile--active {
-    background: #007bff;
-    color: rgb(51, 24, 203);
+    background: #007bff !important;
+    color: white !important;
+    border-radius: 50%;
 }
 
-/* días reservados */
+/* 🔴 DÍA COMPLETAMENTE OCUPADO */
 .ocupado {
-    background: red !important;
+    background: #e53935 !important;
+    /* rojo más limpio */
     color: white !important;
+    border-radius: 50%;
+    opacity: 0.95;
+}
+
+/* 🟡 (OPCIONAL FUTURO) día con algunas reservas */
+.parcial {
+    background: #ffb300 !important;
+    color: black !important;
     border-radius: 50%;
 }
 
