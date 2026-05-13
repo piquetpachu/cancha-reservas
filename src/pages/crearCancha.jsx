@@ -7,6 +7,7 @@ function CrearCancha() {
     const [nombre, setNombre] = useState("");
     const [tipo, setTipo] = useState("");
     const [descripcion, setDescripcion] = useState("");
+    const [precioPorHora, setPrecioPorHora] = useState("");
     const [imagen, setImagen] = useState(null);
     const [mensaje, setMensaje] = useState("");
 
@@ -79,7 +80,8 @@ function CrearCancha() {
                     deporte: tipo,
                     descripcion: descripcion,
                     foto: urlImagen,
-                    club_id: club_id
+                    club_id: club_id,
+                    precio_por_hora: Number(precioPorHora)
                 },
             ]);
 
@@ -90,6 +92,7 @@ function CrearCancha() {
             setNombre("");
             setTipo("");
             setDescripcion("");
+            setPrecioPorHora("");
             setImagen(null);
         }
     };
@@ -130,6 +133,16 @@ function CrearCancha() {
                         onChange={(e) => setDescripcion(e.target.value)}
                     />
                     <br />
+
+                    <br />
+
+                    <input
+                        type="number"
+                        placeholder="Precio por hora"
+                        value={precioPorHora}
+                        onChange={(e) => setPrecioPorHora(e.target.value)}
+                        required
+                    />
 
                     <input
                         type="file"

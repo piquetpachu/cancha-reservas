@@ -11,6 +11,9 @@ export default function ClubDetalleDueno() {
     const [deporteSeleccionado, setDeporteSeleccionado] =
         useState("futbol");
 
+    const [precioEditando, setPrecioEditando] = useState({});
+    const [guardandoPrecio, setGuardandoPrecio] = useState(false);
+
     useEffect(() => {
 
         async function cargarCanchas() {
@@ -32,6 +35,48 @@ export default function ClubDetalleDueno() {
 
     }, [id]);
 
+    // =========================
+    // GUARDAR PRECIO
+    // =========================
+    async function guardarPrecio(canchaId) {
+
+        const precio = precioEditando[canchaId];
+
+        if (!precio || Number(precio) <= 0) {
+            alert("Ingresá un precio válido");
+            return;
+        }
+
+        setGuardandoPrecio(true);
+
+        const { error } = await supabase
+            .from("canchas")
+            .update({
+                precio_por_hora: Number(precio)
+            })
+            .eq("id", canchaId);
+
+        setGuardandoPrecio(false);
+
+        if (error) {
+            alert("Error: " + error.message);
+            return;
+        }
+
+        setCanchas(prev =>
+            prev.map(c =>
+                c.id === canchaId
+                    ? {
+                        ...c,
+                        precio_por_hora: Number(precio)
+                    }
+                    : c
+            )
+        );
+
+        alert("Precio actualizado ✅");
+    }
+
     const canchasFiltradas =
         canchas.filter(
             (c) =>
@@ -42,9 +87,13 @@ export default function ClubDetalleDueno() {
 
         <div
             style={{
-                padding: "20px",
+                padding: "15px",
                 maxWidth: "600px",
-                margin: "0 auto"
+                margin: "0 auto",
+                paddingBottom: "60px",
+                background: "#121212",
+                minHeight: "100vh",
+                color: "white"
             }}
         >
 
@@ -53,17 +102,26 @@ export default function ClubDetalleDueno() {
                 onClick={() => navigate(-1)}
                 style={{
                     marginBottom: "15px",
-                    padding: "6px 12px",
+                    padding: "8px 12px",
                     border: "none",
-                    background: "#ccc",
-                    borderRadius: "5px",
+                    background: "#1e1e1e",
+                    color: "white",
+                    borderRadius: "8px",
                     cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "13px"
                 }}
             >
                 ← Volver
             </button>
 
-            <h2 style={{ marginBottom: "15px" }}>
+            <h2
+                style={{
+                    marginBottom: "18px",
+                    fontSize: "24px",
+                    fontWeight: "bold"
+                }}
+            >
                 Mis Canchas
             </h2>
 
@@ -71,8 +129,8 @@ export default function ClubDetalleDueno() {
             <div
                 style={{
                     display: "flex",
-                    gap: "10px",
-                    marginBottom: "20px"
+                    gap: "8px",
+                    marginBottom: "18px"
                 }}
             >
 
@@ -83,23 +141,23 @@ export default function ClubDetalleDueno() {
                         )
                     }
                     style={{
-                        padding: "8px 15px",
+                        flex: 1,
+                        padding: "10px",
                         background:
                             deporteSeleccionado === "futbol"
                                 ? "#007bff"
-                                : "#e0e0e0",
+                                : "#1f1f1f",
 
-                        color:
-                            deporteSeleccionado === "futbol"
-                                ? "white"
-                                : "black",
+                        color: "white",
 
                         border: "none",
-                        borderRadius: "5px",
+                        borderRadius: "8px",
                         cursor: "pointer",
+                        fontWeight: "bold",
+                        fontSize: "14px"
                     }}
                 >
-                    Fútbol
+                    ⚽ Fútbol
                 </button>
 
                 <button
@@ -109,23 +167,23 @@ export default function ClubDetalleDueno() {
                         )
                     }
                     style={{
-                        padding: "8px 15px",
+                        flex: 1,
+                        padding: "10px",
                         background:
                             deporteSeleccionado === "padel"
                                 ? "#007bff"
-                                : "#e0e0e0",
+                                : "#1f1f1f",
 
-                        color:
-                            deporteSeleccionado === "padel"
-                                ? "white"
-                                : "black",
+                        color: "white",
 
                         border: "none",
-                        borderRadius: "5px",
+                        borderRadius: "8px",
                         cursor: "pointer",
+                        fontWeight: "bold",
+                        fontSize: "14px"
                     }}
                 >
-                    Pádel
+                    🎾 Pádel
                 </button>
 
             </div>
@@ -142,10 +200,11 @@ export default function ClubDetalleDueno() {
                     <div
                         key={cancha.id}
                         style={{
-                            border: "1px solid #ccc",
-                            borderRadius: "8px",
-                            marginBottom: "15px",
+                            borderRadius: "14px",
+                            marginBottom: "18px",
                             overflow: "hidden",
+                            background: "#1b1b1b",
+                            border: "1px solid #2c2c2c"
                         }}
                     >
 
@@ -160,32 +219,115 @@ export default function ClubDetalleDueno() {
                             }}
                         />
 
-                        <div style={{ padding: "10px" }}>
+                        <div style={{ padding: "14px" }}>
 
+                            {/* NOMBRE */}
                             <h3
                                 style={{
-                                    margin:
-                                        "0 0 5px 0"
+                                    margin: "0 0 6px 0",
+                                    fontSize: "20px",
+                                    fontWeight: "bold"
                                 }}
                             >
                                 {cancha.nombre}
                             </h3>
 
+                            {/* DESCRIPCIÓN */}
                             <p
                                 style={{
-                                    margin:
-                                        "0 0 10px 0",
-                                    fontSize: "14px"
+                                    marginBottom: "14px",
+                                    fontSize: "13px",
+                                    color: "#c9c9c9",
+                                    lineHeight: "1.4"
                                 }}
                             >
                                 {cancha.descripcion}
                             </p>
 
-                            {/* botones dueño */}
+                            {/* PRECIO */}
+                            <div
+                                style={{
+                                    background: "#242424",
+                                    borderRadius: "10px",
+                                    padding: "12px",
+                                    marginBottom: "14px"
+                                }}
+                            >
+
+                                <p
+                                    style={{
+                                        marginBottom: "10px",
+                                        fontWeight: "bold",
+                                        color: "#35c759",
+                                        fontSize: "16px"
+                                    }}
+                                >
+                                    💲 Precio por hora:
+                                    {" "}
+                                    {cancha.precio_por_hora
+                                        ? `$${cancha.precio_por_hora}`
+                                        : "Sin definir"}
+                                </p>
+
+                                {/* INPUT PRECIO */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: "8px"
+                                    }}
+                                >
+
+                                    <input
+                                        type="number"
+                                        placeholder="Precio"
+                                        value={
+                                            precioEditando[cancha.id]
+                                            ?? cancha.precio_por_hora
+                                            ?? ""
+                                        }
+                                        onChange={(e) =>
+                                            setPrecioEditando(prev => ({
+                                                ...prev,
+                                                [cancha.id]: e.target.value
+                                            }))
+                                        }
+                                        style={{
+                                            flex: 1,
+                                            padding: "10px",
+                                            borderRadius: "8px",
+                                            border: "1px solid #444",
+                                            background: "#121212",
+                                            color: "white",
+                                            fontSize: "14px"
+                                        }}
+                                    />
+
+                                    <button
+                                        onClick={() => guardarPrecio(cancha.id)}
+                                        disabled={guardandoPrecio}
+                                        style={{
+                                            padding: "10px 12px",
+                                            border: "none",
+                                            background: "#1f8b24",
+                                            color: "white",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontWeight: "bold",
+                                            fontSize: "13px"
+                                        }}
+                                    >
+                                        Guardar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            {/* BOTONES */}
                             <div
                                 style={{
                                     display: "flex",
-                                    gap: "10px",
+                                    gap: "8px",
                                     flexWrap: "wrap"
                                 }}
                             >
@@ -195,12 +337,16 @@ export default function ClubDetalleDueno() {
                                         navigate(`/horarios/${cancha.id}`)
                                     }
                                     style={{
-                                        padding: "5px 10px",
+                                        flex: 1,
+                                        minWidth: "100px",
+                                        padding: "10px",
                                         border: "none",
                                         background: "#007bff",
                                         color: "white",
-                                        borderRadius: "5px",
+                                        borderRadius: "8px",
                                         cursor: "pointer",
+                                        fontWeight: "bold",
+                                        fontSize: "13px"
                                     }}
                                 >
                                     Horarios
@@ -209,12 +355,16 @@ export default function ClubDetalleDueno() {
                                 <button
                                     onClick={() => navigate(`/bloqueos/${cancha.id}`)}
                                     style={{
-                                        padding: "5px 10px",
+                                        flex: 1,
+                                        minWidth: "100px",
+                                        padding: "10px",
                                         border: "none",
                                         background: "#dc3545",
                                         color: "white",
-                                        borderRadius: "5px",
+                                        borderRadius: "8px",
                                         cursor: "pointer",
+                                        fontWeight: "bold",
+                                        fontSize: "13px"
                                     }}
                                 >
                                     Bloqueos
@@ -222,14 +372,16 @@ export default function ClubDetalleDueno() {
 
                                 <button
                                     style={{
-                                        border: "1px solid #ccc",
-                                        borderRadius: "10px",
-                                        marginBottom: "20px",
-                                        marginLeft: "auto",
-                                        marginRight: "auto",
-                                        overflow: "hidden",
+                                        flex: 1,
+                                        minWidth: "100px",
+                                        padding: "10px",
+                                        border: "none",
+                                        background: "#444",
+                                        color: "white",
+                                        borderRadius: "8px",
                                         cursor: "pointer",
-                                        maxWidth: "400px"
+                                        fontWeight: "bold",
+                                        fontSize: "13px"
                                     }}
                                 >
                                     Reservas
