@@ -14,6 +14,17 @@ export default function ClubDetalleDueno() {
     const [precioEditando, setPrecioEditando] = useState({});
     const [guardandoPrecio, setGuardandoPrecio] = useState(false);
 
+    // =========================
+    // EDITAR CANCHA
+    // =========================
+    const [editandoCancha, setEditandoCancha] = useState(null);
+
+    const [nombreEditado, setNombreEditado] = useState("");
+    const [descripcionEditada, setDescripcionEditada] = useState("");
+    const [imagenNueva, setImagenNueva] = useState(null);
+
+    const [guardandoCancha, setGuardandoCancha] = useState(false);
+
     useEffect(() => {
 
         async function cargarCanchas() {
@@ -75,6 +86,101 @@ export default function ClubDetalleDueno() {
         );
 
         alert("Precio actualizado ✅");
+    }
+
+    // =========================
+    // ABRIR EDITOR
+    // =========================
+    function abrirEditor(cancha) {
+
+        setEditandoCancha(cancha.id);
+
+        setNombreEditado(cancha.nombre || "");
+        setDescripcionEditada(cancha.descripcion || "");
+
+        setImagenNueva(null);
+    }
+
+    // =========================
+    // GUARDAR CAMBIOS CANCHA
+    // =========================
+    async function guardarCambiosCancha(cancha) {
+
+        setGuardandoCancha(true);
+
+        let urlImagen = cancha.foto;
+
+        // subir nueva imagen
+        if (imagenNueva) {
+
+            const extension =
+                imagenNueva.name.split(".").pop();
+
+            const nombreArchivo =
+                `${Date.now()}.${extension}`;
+
+            const { error: errorUpload } =
+                await supabase.storage
+                    .from("canchas")
+                    .upload(nombreArchivo, imagenNueva);
+
+            if (errorUpload) {
+
+                setGuardandoCancha(false);
+
+                alert(
+                    "Error subiendo imagen: "
+                    + errorUpload.message
+                );
+
+                return;
+            }
+
+            const { data } =
+                supabase.storage
+                    .from("canchas")
+                    .getPublicUrl(nombreArchivo);
+
+            urlImagen = data.publicUrl;
+        }
+
+        // update cancha
+        const { error } =
+            await supabase
+                .from("canchas")
+                .update({
+                    nombre: nombreEditado,
+                    descripcion: descripcionEditada,
+                    foto: urlImagen
+                })
+                .eq("id", cancha.id);
+
+        setGuardandoCancha(false);
+
+        if (error) {
+            alert(
+                "Error actualizando cancha: "
+                + error.message
+            );
+            return;
+        }
+
+        setCanchas(prev =>
+            prev.map(c =>
+                c.id === cancha.id
+                    ? {
+                        ...c,
+                        nombre: nombreEditado,
+                        descripcion: descripcionEditada,
+                        foto: urlImagen
+                    }
+                    : c
+            )
+        );
+
+        setEditandoCancha(null);
+
+        alert("Cancha actualizada ✅");
     }
 
     const canchasFiltradas =
@@ -301,6 +407,124 @@ export default function ClubDetalleDueno() {
                                     >
                                         {cancha.descripcion}
                                     </p>
+
+                                    {/* EDITAR */}
+                                    <div
+                                        style={{
+                                            marginBottom: "18px"
+                                        }}
+                                    >
+
+                                        <button
+                                            onClick={() =>
+                                                abrirEditor(cancha)
+                                            }
+                                            style={{
+                                                width: "100%",
+                                                padding: "10px",
+                                                border: "none",
+                                                background: "#2f2f2f",
+                                                color: "white",
+                                                borderRadius: "10px",
+                                                cursor: "pointer",
+                                                fontWeight: "bold",
+                                                fontSize: "13px"
+                                            }}
+                                        >
+                                            ✏️ Editar cancha
+                                        </button>
+
+                                    </div>
+
+                                    {/* PANEL EDITAR */}
+                                    {editandoCancha === cancha.id && (
+
+                                        <div
+                                            style={{
+                                                background: "#242424",
+                                                padding: "14px",
+                                                borderRadius: "12px",
+                                                marginBottom: "18px",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "12px"
+                                            }}
+                                        >
+
+                                            <input
+                                                type="text"
+                                                placeholder="Nombre"
+                                                value={nombreEditado}
+                                                onChange={(e) =>
+                                                    setNombreEditado(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                style={{
+                                                    padding: "12px",
+                                                    borderRadius: "10px",
+                                                    border: "1px solid #444",
+                                                    background: "#121212",
+                                                    color: "white",
+                                                    fontSize: "14px"
+                                                }}
+                                            />
+
+                                            <textarea
+                                                placeholder="Descripción"
+                                                value={descripcionEditada}
+                                                onChange={(e) =>
+                                                    setDescripcionEditada(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                style={{
+                                                    padding: "12px",
+                                                    borderRadius: "10px",
+                                                    border: "1px solid #444",
+                                                    background: "#121212",
+                                                    color: "white",
+                                                    fontSize: "14px",
+                                                    minHeight: "100px",
+                                                    resize: "vertical"
+                                                }}
+                                            />
+
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) =>
+                                                    setImagenNueva(
+                                                        e.target.files[0]
+                                                    )
+                                                }
+                                                style={{
+                                                    color: "white"
+                                                }}
+                                            />
+
+                                            <button
+                                                onClick={() =>
+                                                    guardarCambiosCancha(cancha)
+                                                }
+                                                disabled={guardandoCancha}
+                                                style={{
+                                                    padding: "12px",
+                                                    border: "none",
+                                                    background: "#1f8b24",
+                                                    color: "white",
+                                                    borderRadius: "10px",
+                                                    cursor: "pointer",
+                                                    fontWeight: "bold",
+                                                    fontSize: "14px"
+                                                }}
+                                            >
+                                                Guardar cambios
+                                            </button>
+
+                                        </div>
+
+                                    )}
 
                                     {/* PRECIO */}
                                     <div
