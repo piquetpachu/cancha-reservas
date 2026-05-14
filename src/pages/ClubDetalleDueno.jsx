@@ -14,9 +14,9 @@ export default function ClubDetalleDueno() {
     const [precioEditando, setPrecioEditando] = useState({});
     const [guardandoPrecio, setGuardandoPrecio] = useState(false);
 
-    // =========================
+   
     // EDITAR CANCHA
-    // =========================
+    
     const [editandoCancha, setEditandoCancha] = useState(null);
 
     const [nombreEditado, setNombreEditado] = useState("");
@@ -88,9 +88,9 @@ export default function ClubDetalleDueno() {
         alert("Precio actualizado ✅");
     }
 
-    // =========================
+    
     // ABRIR EDITOR
-    // =========================
+    
     function abrirEditor(cancha) {
 
         setEditandoCancha(cancha.id);
@@ -101,9 +101,9 @@ export default function ClubDetalleDueno() {
         setImagenNueva(null);
     }
 
-    // =========================
+   
     // GUARDAR CAMBIOS CANCHA
-    // =========================
+    
     async function guardarCambiosCancha(cancha) {
 
         setGuardandoCancha(true);
@@ -656,6 +656,9 @@ export default function ClubDetalleDueno() {
                                         </button>
 
                                         <button
+                                            onClick={() =>
+                                                navigate(`/reservas-dueno/${cancha.id}`)
+                                            }
                                             style={{
                                                 flex: 1,
                                                 minWidth: "110px",
