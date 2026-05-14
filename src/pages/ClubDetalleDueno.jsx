@@ -87,313 +87,378 @@ export default function ClubDetalleDueno() {
 
         <div
             style={{
-                padding: "15px",
-                maxWidth: "600px",
-                margin: "0 auto",
-                paddingBottom: "60px",
-                background: "#121212",
+                padding: "18px",
+                width: "100%",
                 minHeight: "100vh",
-                color: "white"
+                background: "#121212",
+                color: "white",
+                boxSizing: "border-box"
             }}
         >
 
-            {/* volver */}
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    marginBottom: "15px",
-                    padding: "8px 12px",
-                    border: "none",
-                    background: "#1e1e1e",
-                    color: "white",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    fontSize: "13px"
-                }}
-            >
-                ← Volver
-            </button>
-
-            <h2
-                style={{
-                    marginBottom: "18px",
-                    fontSize: "24px",
-                    fontWeight: "bold"
-                }}
-            >
-                Mis Canchas
-            </h2>
-
-            {/* filtros */}
             <div
                 style={{
-                    display: "flex",
-                    gap: "8px",
-                    marginBottom: "18px"
+                    width: "100%",
+                    maxWidth: "900px",
+                    margin: "0 auto"
                 }}
             >
 
+                {/* volver */}
                 <button
-                    onClick={() =>
-                        setDeporteSeleccionado(
-                            "futbol"
-                        )
-                    }
+                    onClick={() => navigate(-1)}
                     style={{
-                        flex: 1,
-                        padding: "10px",
-                        background:
-                            deporteSeleccionado === "futbol"
-                                ? "#007bff"
-                                : "#1f1f1f",
-
-                        color: "white",
-
+                        marginBottom: "18px",
+                        padding: "10px 14px",
                         border: "none",
-                        borderRadius: "8px",
+                        background: "#1e1e1e",
+                        color: "white",
+                        borderRadius: "10px",
                         cursor: "pointer",
                         fontWeight: "bold",
-                        fontSize: "14px"
+                        fontSize: "13px"
                     }}
                 >
-                    ⚽ Fútbol
+                    ← Volver
                 </button>
 
-                <button
-                    onClick={() =>
-                        setDeporteSeleccionado(
-                            "padel"
-                        )
-                    }
+                <h2
                     style={{
-                        flex: 1,
-                        padding: "10px",
-                        background:
-                            deporteSeleccionado === "padel"
-                                ? "#007bff"
-                                : "#1f1f1f",
-
-                        color: "white",
-
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        fontSize: "14px"
+                        marginBottom: "20px",
+                        fontSize: "26px",
+                        fontWeight: "bold"
                     }}
                 >
-                    🎾 Pádel
-                </button>
+                    Mis Canchas
+                </h2>
 
-            </div>
+                {/* filtros */}
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        marginBottom: "24px"
+                    }}
+                >
 
-            {/* canchas */}
-            {canchasFiltradas.length === 0 ? (
+                    <button
+                        onClick={() =>
+                            setDeporteSeleccionado(
+                                "futbol"
+                            )
+                        }
+                        style={{
+                            flex: 1,
+                            padding: "12px",
+                            background:
+                                deporteSeleccionado === "futbol"
+                                    ? "#007bff"
+                                    : "#1f1f1f",
 
-                <p>No hay canchas</p>
+                            color: "white",
 
-            ) : (
+                            border: "none",
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                            fontSize: "14px"
+                        }}
+                    >
+                        ⚽ Fútbol
+                    </button>
 
-                canchasFiltradas.map((cancha) => (
+                    <button
+                        onClick={() =>
+                            setDeporteSeleccionado(
+                                "padel"
+                            )
+                        }
+                        style={{
+                            flex: 1,
+                            padding: "12px",
+                            background:
+                                deporteSeleccionado === "padel"
+                                    ? "#007bff"
+                                    : "#1f1f1f",
+
+                            color: "white",
+
+                            border: "none",
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                            fontSize: "14px"
+                        }}
+                    >
+                        🎾 Pádel
+                    </button>
+
+                </div>
+
+                {/* sin canchas */}
+                {canchasFiltradas.length === 0 ? (
 
                     <div
-                        key={cancha.id}
                         style={{
-                            borderRadius: "14px",
-                            marginBottom: "18px",
-                            overflow: "hidden",
+                            width: "100%",
+                            minHeight: "60vh",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                             background: "#1b1b1b",
-                            border: "1px solid #2c2c2c"
+                            borderRadius: "16px",
+                            border: "1px solid #2b2b2b",
+                            textAlign: "center",
+                            padding: "30px",
+                            boxSizing: "border-box"
                         }}
                     >
 
-                        {/* FOTO */}
-                        <img
-                            src={cancha.foto}
-                            alt={cancha.nombre}
-                            style={{
-                                width: "100%",
-                                height: "150px",
-                                objectFit: "cover",
-                            }}
-                        />
+                        <div>
 
-                        <div style={{ padding: "14px" }}>
-
-                            {/* NOMBRE */}
                             <h3
                                 style={{
-                                    margin: "0 0 6px 0",
-                                    fontSize: "20px",
-                                    fontWeight: "bold"
+                                    marginBottom: "10px",
+                                    fontSize: "22px"
                                 }}
                             >
-                                {cancha.nombre}
+                                No hay canchas
                             </h3>
 
-                            {/* DESCRIPCIÓN */}
                             <p
                                 style={{
-                                    marginBottom: "14px",
-                                    fontSize: "13px",
-                                    color: "#c9c9c9",
-                                    lineHeight: "1.4"
+                                    color: "#bdbdbd",
+                                    fontSize: "15px",
+                                    lineHeight: "1.5"
                                 }}
                             >
-                                {cancha.descripcion}
+                                Todavía no agregaste canchas de
+                                {
+                                    deporteSeleccionado === "futbol"
+                                        ? " fútbol"
+                                        : " pádel"
+                                }
                             </p>
-
-                            {/* PRECIO */}
-                            <div
-                                style={{
-                                    background: "#242424",
-                                    borderRadius: "10px",
-                                    padding: "12px",
-                                    marginBottom: "14px"
-                                }}
-                            >
-
-                                <p
-                                    style={{
-                                        marginBottom: "10px",
-                                        fontWeight: "bold",
-                                        color: "#35c759",
-                                        fontSize: "16px"
-                                    }}
-                                >
-                                    💲 Precio por hora:
-                                    {" "}
-                                    {cancha.precio_por_hora
-                                        ? `$${cancha.precio_por_hora}`
-                                        : "Sin definir"}
-                                </p>
-
-                                {/* INPUT PRECIO */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: "8px"
-                                    }}
-                                >
-
-                                    <input
-                                        type="number"
-                                        placeholder="Precio"
-                                        value={
-                                            precioEditando[cancha.id]
-                                            ?? cancha.precio_por_hora
-                                            ?? ""
-                                        }
-                                        onChange={(e) =>
-                                            setPrecioEditando(prev => ({
-                                                ...prev,
-                                                [cancha.id]: e.target.value
-                                            }))
-                                        }
-                                        style={{
-                                            flex: 1,
-                                            padding: "10px",
-                                            borderRadius: "8px",
-                                            border: "1px solid #444",
-                                            background: "#121212",
-                                            color: "white",
-                                            fontSize: "14px"
-                                        }}
-                                    />
-
-                                    <button
-                                        onClick={() => guardarPrecio(cancha.id)}
-                                        disabled={guardandoPrecio}
-                                        style={{
-                                            padding: "10px 12px",
-                                            border: "none",
-                                            background: "#1f8b24",
-                                            color: "white",
-                                            borderRadius: "8px",
-                                            cursor: "pointer",
-                                            fontWeight: "bold",
-                                            fontSize: "13px"
-                                        }}
-                                    >
-                                        Guardar
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            {/* BOTONES */}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: "8px",
-                                    flexWrap: "wrap"
-                                }}
-                            >
-
-                                <button
-                                    onClick={() =>
-                                        navigate(`/horarios/${cancha.id}`)
-                                    }
-                                    style={{
-                                        flex: 1,
-                                        minWidth: "100px",
-                                        padding: "10px",
-                                        border: "none",
-                                        background: "#007bff",
-                                        color: "white",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "bold",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Horarios
-                                </button>
-
-                                <button
-                                    onClick={() => navigate(`/bloqueos/${cancha.id}`)}
-                                    style={{
-                                        flex: 1,
-                                        minWidth: "100px",
-                                        padding: "10px",
-                                        border: "none",
-                                        background: "#dc3545",
-                                        color: "white",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "bold",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Bloqueos
-                                </button>
-
-                                <button
-                                    style={{
-                                        flex: 1,
-                                        minWidth: "100px",
-                                        padding: "10px",
-                                        border: "none",
-                                        background: "#444",
-                                        color: "white",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: "bold",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Reservas
-                                </button>
-
-                            </div>
 
                         </div>
 
                     </div>
-                ))
-            )}
+
+                ) : (
+
+                    <div
+                        style={{
+                            display: "grid",
+                            gap: "18px"
+                        }}
+                    >
+
+                        {canchasFiltradas.map((cancha) => (
+
+                            <div
+                                key={cancha.id}
+                                style={{
+                                    width: "100%",
+                                    borderRadius: "16px",
+                                    overflow: "hidden",
+                                    background: "#1b1b1b",
+                                    border: "1px solid #2c2c2c"
+                                }}
+                            >
+
+                                {/* FOTO */}
+                                <img
+                                    src={cancha.foto}
+                                    alt={cancha.nombre}
+                                    style={{
+                                        width: "100%",
+                                        height: "180px",
+                                        objectFit: "cover",
+                                    }}
+                                />
+
+                                <div style={{ padding: "16px" }}>
+
+                                    {/* NOMBRE */}
+                                    <h3
+                                        style={{
+                                            margin: "0 0 8px 0",
+                                            fontSize: "22px",
+                                            fontWeight: "bold"
+                                        }}
+                                    >
+                                        {cancha.nombre}
+                                    </h3>
+
+                                    {/* DESCRIPCIÓN */}
+                                    <p
+                                        style={{
+                                            marginBottom: "16px",
+                                            fontSize: "14px",
+                                            color: "#c9c9c9",
+                                            lineHeight: "1.5"
+                                        }}
+                                    >
+                                        {cancha.descripcion}
+                                    </p>
+
+                                    {/* PRECIO */}
+                                    <div
+                                        style={{
+                                            background: "#242424",
+                                            borderRadius: "12px",
+                                            padding: "14px",
+                                            marginBottom: "16px"
+                                        }}
+                                    >
+
+                                        <p
+                                            style={{
+                                                marginBottom: "12px",
+                                                fontWeight: "bold",
+                                                color: "#35c759",
+                                                fontSize: "16px"
+                                            }}
+                                        >
+                                            💲 Precio por hora:
+                                            {" "}
+                                            {cancha.precio_por_hora
+                                                ? `$${cancha.precio_por_hora}`
+                                                : "Sin definir"}
+                                        </p>
+
+                                        {/* INPUT PRECIO */}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: "10px",
+                                                flexWrap: "wrap"
+                                            }}
+                                        >
+
+                                            <input
+                                                type="number"
+                                                placeholder="Precio"
+                                                value={
+                                                    precioEditando[cancha.id]
+                                                    ?? cancha.precio_por_hora
+                                                    ?? ""
+                                                }
+                                                onChange={(e) =>
+                                                    setPrecioEditando(prev => ({
+                                                        ...prev,
+                                                        [cancha.id]: e.target.value
+                                                    }))
+                                                }
+                                                style={{
+                                                    flex: 1,
+                                                    minWidth: "120px",
+                                                    padding: "10px",
+                                                    borderRadius: "10px",
+                                                    border: "1px solid #444",
+                                                    background: "#121212",
+                                                    color: "white",
+                                                    fontSize: "14px",
+                                                    outline: "none"
+                                                }}
+                                            />
+
+                                            <button
+                                                onClick={() => guardarPrecio(cancha.id)}
+                                                disabled={guardandoPrecio}
+                                                style={{
+                                                    padding: "10px 14px",
+                                                    border: "none",
+                                                    background: "#1f8b24",
+                                                    color: "white",
+                                                    borderRadius: "10px",
+                                                    cursor: "pointer",
+                                                    fontWeight: "bold",
+                                                    fontSize: "13px"
+                                                }}
+                                            >
+                                                Guardar
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                    {/* BOTONES */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "10px",
+                                            flexWrap: "wrap"
+                                        }}
+                                    >
+
+                                        <button
+                                            onClick={() =>
+                                                navigate(`/horarios/${cancha.id}`)
+                                            }
+                                            style={{
+                                                flex: 1,
+                                                minWidth: "110px",
+                                                padding: "11px",
+                                                border: "none",
+                                                background: "#007bff",
+                                                color: "white",
+                                                borderRadius: "10px",
+                                                cursor: "pointer",
+                                                fontWeight: "bold",
+                                                fontSize: "13px"
+                                            }}
+                                        >
+                                            Horarios
+                                        </button>
+
+                                        <button
+                                            onClick={() => navigate(`/bloqueos/${cancha.id}`)}
+                                            style={{
+                                                flex: 1,
+                                                minWidth: "110px",
+                                                padding: "11px",
+                                                border: "none",
+                                                background: "#dc3545",
+                                                color: "white",
+                                                borderRadius: "10px",
+                                                cursor: "pointer",
+                                                fontWeight: "bold",
+                                                fontSize: "13px"
+                                            }}
+                                        >
+                                            Bloqueos
+                                        </button>
+
+                                        <button
+                                            style={{
+                                                flex: 1,
+                                                minWidth: "110px",
+                                                padding: "11px",
+                                                border: "none",
+                                                background: "#444",
+                                                color: "white",
+                                                borderRadius: "10px",
+                                                cursor: "pointer",
+                                                fontWeight: "bold",
+                                                fontSize: "13px"
+                                            }}
+                                        >
+                                            Reservas
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        ))}
+
+                    </div>
+                )}
+
+            </div>
 
         </div>
     );
