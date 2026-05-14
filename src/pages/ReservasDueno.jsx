@@ -14,10 +14,10 @@ export default function ReservasDueno() {
     const [filtroEstado, setFiltroEstado] =
         useState("todas");
 
-    // =========================
-    // CARGAR RESERVAS
-    // =========================
-    useEffect(() => {
+
+        // CARGAR RESERVAS
+
+        useEffect(() => {
 
         async function cargarReservas() {
 
@@ -73,9 +73,7 @@ export default function ReservasDueno() {
                                 perfil.nombre;
                         }
 
-                        // =========================
                         // CALCULAR HORAS
-                        // =========================
 
                         const inicio =
                             reserva.hora_inicio?.slice(0, 5);
@@ -97,9 +95,8 @@ export default function ReservasDueno() {
                                 Math.max(h2 - h1, 1);
                         }
 
-                        // =========================
                         // TOTAL ESTIMADO
-                        // =========================
+
                         const totalEstimado =
                             cantidadHoras *
                             Number(precioCancha);
@@ -126,9 +123,8 @@ export default function ReservasDueno() {
 
     }, [id]);
 
-    // =========================
     // CANCELAR RESERVA
-    // =========================
+
     async function cancelarReserva(reservaId) {
 
         const confirmar = window.confirm("¿Cancelar esta reserva?");
@@ -159,9 +155,8 @@ export default function ReservasDueno() {
         alert("Reserva cancelada");
     }
 
-    // =========================
     // FILTROS
-    // =========================
+
     const reservasFiltradas =
         reservas.filter((r) => {
 
@@ -180,9 +175,8 @@ export default function ReservasDueno() {
             return true;
         });
 
-    // =========================
     // ESTADÍSTICAS
-    // =========================
+
     const reservasActivas =
         reservas.filter(
             r => r.estado !== "cancelada"

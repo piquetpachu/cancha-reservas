@@ -52,9 +52,8 @@ export default function DashboardDueno() {
 
     }, []);
 
-    // =========================
     // ABRIR EDICIÓN
-    // =========================
+
     function abrirEdicion(club) {
 
         setEditandoClub(club.id);
@@ -66,9 +65,9 @@ export default function DashboardDueno() {
         setImagenNueva(null);
     }
 
-    // =========================
+    
     // CANCELAR
-    // =========================
+
     function cancelarEdicion() {
 
         setEditandoClub(null);
@@ -80,18 +79,16 @@ export default function DashboardDueno() {
         setImagenNueva(null);
     }
 
-    // =========================
     // GUARDAR CAMBIOS
-    // =========================
+
     async function guardarCambios(club) {
 
         setGuardando(true);
 
         let urlImagen = club.foto;
 
-        // =========================
         // SUBIR NUEVA FOTO
-        // =========================
+
         if (imagenNueva) {
 
             const extension =
@@ -124,9 +121,8 @@ export default function DashboardDueno() {
             urlImagen = data.publicUrl;
         }
 
-        // =========================
         // UPDATE
-        // =========================
+
         const { error } =
             await supabase
                 .from("clubs")
@@ -150,9 +146,8 @@ export default function DashboardDueno() {
             return;
         }
 
-        // =========================
         // ACTUALIZAR FRONT
-        // =========================
+
         setClubs(prev =>
             prev.map(c =>
                 c.id === club.id
@@ -251,9 +246,7 @@ export default function DashboardDueno() {
                             }}
                         >
 
-                            {/* ========================= */}
-                            {/* MODO NORMAL */}
-                            {/* ========================= */}
+                           
                             {editandoClub !== club.id ? (
 
                                 <>
@@ -342,9 +335,9 @@ export default function DashboardDueno() {
                             ) : (
 
                                 <>
-                                    {/* ========================= */}
-                                    {/* MODO EDICIÓN */}
-                                    {/* ========================= */}
+                                    
+                                   
+                                   
 
                                     <input
                                         type="text"

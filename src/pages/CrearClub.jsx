@@ -25,17 +25,17 @@ function CrearClub() {
             return;
         }
 
-        // 📸 URL FINAL
+        //  URL FINAL
         let urlImagen = null;
 
-        // 📸 SUBIR IMAGEN
+        //  SUBIR IMAGEN
         if (imagen) {
 
             // obtener extensión
             const extension =
                 imagen.name.split(".").pop();
 
-            // nombre limpio y único
+            // nombre limpio
             const nombreArchivo =
                 `${Date.now()}-${Math.random()
                     .toString(36)

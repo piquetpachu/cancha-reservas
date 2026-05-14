@@ -46,9 +46,8 @@ export default function ClubDetalleDueno() {
 
     }, [id]);
 
-    // =========================
     // GUARDAR PRECIO
-    // =========================
+
     async function guardarPrecio(canchaId) {
 
         const precio = precioEditando[canchaId];

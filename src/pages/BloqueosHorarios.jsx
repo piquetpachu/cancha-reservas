@@ -12,9 +12,8 @@ export default function BloqueosHorarios() {
     const [motivo, setMotivo] = useState("");
     const [bloqueos, setBloqueos] = useState([]);
 
-    // =========================
     // CARGAR BLOQUEOS
-    // =========================
+
     useEffect(() => {
 
         if (!id) return;
@@ -39,9 +38,8 @@ export default function BloqueosHorarios() {
         setBloqueos(data || []);
     }
 
-    // =========================
     // CREAR BLOQUEO
-    // =========================
+
     async function crearBloqueo() {
 
         console.log("BOTÓN BLOQUEO PRESIONADO");
@@ -74,9 +72,8 @@ export default function BloqueosHorarios() {
         cargarBloqueos();
     }
 
-    // =========================
     // ELIMINAR BLOQUEO
-    // =========================
+
     async function eliminar(idBloqueo) {
 
         await supabase
@@ -87,9 +84,8 @@ export default function BloqueosHorarios() {
         cargarBloqueos();
     }
 
-    // =========================
     // UI
-    // =========================
+
     return (
         <div style={{ padding: "20px", maxWidth: "500px" }}>
 

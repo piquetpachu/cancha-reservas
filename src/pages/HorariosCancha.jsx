@@ -23,9 +23,9 @@ export default function HorariosCancha() {
         "domingo"
     ];
 
-    // =========================
+   
     // CARGA SEGURA
-    // =========================
+   
     useEffect(() => {
 
         if (!id) return;
@@ -48,9 +48,9 @@ export default function HorariosCancha() {
 
     }, [id]);
 
-    // =========================
+    
     // DÍAS
-    // =========================
+    
     function toggleDia(dia) {
 
         setDiasSeleccionados(prev =>
@@ -81,9 +81,9 @@ export default function HorariosCancha() {
         ]);
     }
 
-    // =========================
+    
     // GUARDAR
-    // =========================
+    
     async function guardarHorario() {
 
         if (
@@ -95,9 +95,9 @@ export default function HorariosCancha() {
             return;
         }
 
-        // =========================
+        
         // VALIDAR HORAS
-        // =========================
+        
         if (horaInicio >= horaFin) {
             setMensaje(
                 "La hora final debe ser mayor"
@@ -105,9 +105,9 @@ export default function HorariosCancha() {
             return;
         }
 
-        // =========================
+       
         // VALIDAR SUPERPOSICIÓN
-        // =========================
+       
         const existeSolapamiento = horarios.some(h => {
 
             const mismoDia =
@@ -132,9 +132,9 @@ export default function HorariosCancha() {
             return;
         }
 
-        // =========================
+        
         // CREAR DATOS
-        // =========================
+       
         const datos = diasSeleccionados.map(dia => ({
             cancha_id: id,
             dia_semana: dia,
@@ -142,9 +142,9 @@ export default function HorariosCancha() {
             hora_fin: horaFin
         }));
 
-        // =========================
+       
         // INSERTAR
-        // =========================
+       
         const { error } = await supabase
             .from("horarios_cancha")
             .insert(datos);
@@ -160,9 +160,9 @@ export default function HorariosCancha() {
         setHoraInicio("");
         setHoraFin("");
 
-        // =========================
+       
         // RECARGAR
-        // =========================
+      
         const { data } = await supabase
             .from("horarios_cancha")
             .select("*")
@@ -173,9 +173,9 @@ export default function HorariosCancha() {
         setHorarios(data || []);
     }
 
-    // =========================
+    
     // ELIMINAR
-    // =========================
+   
     async function eliminarHorario(horarioId) {
 
         const { error } = await supabase
@@ -191,9 +191,9 @@ export default function HorariosCancha() {
         }
     }
 
-    // =========================
+    
     // UI
-    // =========================
+
     return (
 
         <div

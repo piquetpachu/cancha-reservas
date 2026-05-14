@@ -203,7 +203,7 @@ export default function Reserva() {
         const fechaStr = formatearFecha(fecha);
 
 
-        // VALIDAR SI ALGUNA YA ESTÁ OCUPADA
+        // VALIDAR SI ESTA OCUPADA
 
         for (const hora of horasSeleccionadas) {
 

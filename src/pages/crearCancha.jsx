@@ -16,9 +16,8 @@ function CrearCancha() {
 
     const [mensaje, setMensaje] = useState("");
 
-    // =========================
     // CARGAR CLUBS DEL DUEÑO
-    // =========================
+
     useEffect(() => {
 
         async function cargarClubs() {
@@ -40,6 +39,7 @@ function CrearCancha() {
                 setClubs(data || []);
 
                 // seleccionar automáticamente el primero
+
                 if (data && data.length > 0) {
                     setClubSeleccionado(data[0].id);
                 }
@@ -50,9 +50,8 @@ function CrearCancha() {
 
     }, []);
 
-    // =========================
     // CREAR CANCHA
-    // =========================
+
     const crearCancha = async (e) => {
 
         e.preventDefault();
