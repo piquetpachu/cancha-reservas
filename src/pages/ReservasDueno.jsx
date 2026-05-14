@@ -23,6 +23,17 @@ export default function ReservasDueno() {
 
             setLoading(true);
 
+            // cancha
+            const { data: canchaData } =
+                await supabase
+                    .from("canchas")
+                    .select("precio_por_hora")
+                    .eq("id", id)
+                    .single();
+
+            const precioCancha =
+                canchaData?.precio_por_hora || 0;
+
             // reservas
             const { data, error } =
                 await supabase
@@ -62,9 +73,42 @@ export default function ReservasDueno() {
                                 perfil.nombre;
                         }
 
+                        // =========================
+                        // CALCULAR HORAS
+                        // =========================
+
+                        const inicio =
+                            reserva.hora_inicio?.slice(0, 5);
+
+                        const fin =
+                            reserva.hora_fin?.slice(0, 5);
+
+                        let cantidadHoras = 1;
+
+                        if (inicio && fin) {
+
+                            const [h1] =
+                                inicio.split(":").map(Number);
+
+                            const [h2] =
+                                fin.split(":").map(Number);
+
+                            cantidadHoras =
+                                Math.max(h2 - h1, 1);
+                        }
+
+                        // =========================
+                        // TOTAL ESTIMADO
+                        // =========================
+                        const totalEstimado =
+                            cantidadHoras *
+                            Number(precioCancha);
+
                         return {
                             ...reserva,
-                            nombreUsuario
+                            nombreUsuario,
+                            cantidadHoras,
+                            totalEstimado
                         };
                     })
                 );
@@ -87,28 +131,20 @@ export default function ReservasDueno() {
     // =========================
     async function cancelarReserva(reservaId) {
 
-        const confirmar =
-            window.confirm(
-                "¿Cancelar esta reserva?"
-            );
-
+        const confirmar = window.confirm("¿Cancelar esta reserva?");
         if (!confirmar) return;
 
-        const { error } =
-            await supabase
-                .from("reservas")
-                .update({
-                    estado: "cancelada"
-                })
-                .eq("id", reservaId);
+        const { error } = await supabase
+            .from("reservas")
+            .update({ estado: "cancelada" })
+            .eq("id", reservaId);
 
         if (error) {
-            alert(
-                "Error: " + error.message
-            );
+            alert("Error: " + error.message);
             return;
         }
 
+        // 🔥 SOLO ACTUALIZAMOS ESTADO LOCAL (NO RECARGAMOS TODO)
         setReservas(prev =>
             prev.map(r =>
                 r.id === reservaId
@@ -450,6 +486,34 @@ export default function ReservasDueno() {
                                     {reserva.hora_inicio}
                                     {" - "}
                                     {reserva.hora_fin}
+                                </p>
+
+                                {/* HORAS */}
+                                <p
+                                    style={{
+                                        marginBottom: "10px",
+                                        color: "#ffd166",
+                                        fontWeight: "bold"
+                                    }}
+                                >
+                                    ⏱️
+                                    {" "}
+                                    {reserva.cantidadHoras}
+                                    {" "}
+                                    hora(s)
+                                </p>
+
+                                {/* TOTAL */}
+                                <p
+                                    style={{
+                                        marginBottom: "10px",
+                                        color: "#35c759",
+                                        fontWeight: "bold"
+                                    }}
+                                >
+                                    💰 Total estimado:
+                                    {" "}
+                                    ${reserva.totalEstimado}
                                 </p>
 
                                 {/* CLIENTE */}
