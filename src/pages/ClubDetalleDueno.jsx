@@ -14,9 +14,9 @@ export default function ClubDetalleDueno() {
     const [precioEditando, setPrecioEditando] = useState({});
     const [guardandoPrecio, setGuardandoPrecio] = useState(false);
 
-   
+
     // EDITAR CANCHA
-    
+
     const [editandoCancha, setEditandoCancha] = useState(null);
 
     const [nombreEditado, setNombreEditado] = useState("");
@@ -33,7 +33,8 @@ export default function ClubDetalleDueno() {
                 await supabase
                     .from("canchas")
                     .select("*")
-                    .eq("club_id", id);
+                    .eq("club_id", id)
+                    .eq("habilitacion", "disponible");
 
             if (!error) {
                 setCanchas(data || []);
@@ -87,9 +88,9 @@ export default function ClubDetalleDueno() {
         alert("Precio actualizado ✅");
     }
 
-    
+
     // ABRIR EDITOR
-    
+
     function abrirEditor(cancha) {
 
         setEditandoCancha(cancha.id);
@@ -100,9 +101,9 @@ export default function ClubDetalleDueno() {
         setImagenNueva(null);
     }
 
-   
+
     // GUARDAR CAMBIOS CANCHA
-    
+
     async function guardarCambiosCancha(cancha) {
 
         setGuardandoCancha(true);
@@ -180,6 +181,47 @@ export default function ClubDetalleDueno() {
         setEditandoCancha(null);
 
         alert("Cancha actualizada ✅");
+    }
+
+
+    // ELIMINAR CANCHA
+
+    async function eliminarCancha(canchaId) {
+
+        const confirmar =
+            window.confirm(
+                "¿Seguro que querés eliminar esta cancha?"
+            );
+
+        if (!confirmar) return;
+
+        const { error } =
+            await supabase
+                .from("canchas")
+                .update({
+                    habilitacion: "eliminado"
+                })
+                .eq("id", canchaId);
+
+        if (error) {
+
+            alert(
+                "Error eliminando cancha: "
+                + error.message
+            );
+
+            return;
+        }
+
+        // SACAR DEL FRONT
+
+        setCanchas(prev =>
+            prev.filter(c =>
+                c.id !== canchaId
+            )
+        );
+
+        alert("Cancha eliminada ✅");
     }
 
     const canchasFiltradas =
@@ -672,6 +714,26 @@ export default function ClubDetalleDueno() {
                                             }}
                                         >
                                             Reservas
+                                        </button>
+
+                                        <button
+                                            onClick={() =>
+                                                eliminarCancha(cancha.id)
+                                            }
+                                            style={{
+                                                flex: 1,
+                                                minWidth: "110px",
+                                                padding: "11px",
+                                                border: "none",
+                                                background: "#ff3b30",
+                                                color: "white",
+                                                borderRadius: "10px",
+                                                cursor: "pointer",
+                                                fontWeight: "bold",
+                                                fontSize: "13px"
+                                            }}
+                                        >
+                                            Eliminar
                                         </button>
 
                                     </div>

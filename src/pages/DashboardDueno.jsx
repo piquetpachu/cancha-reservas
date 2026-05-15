@@ -38,7 +38,8 @@ export default function DashboardDueno() {
                 await supabase
                     .from("clubs")
                     .select("*")
-                    .eq("owner_id", user.id);
+                    .eq("owner_id", user.id)
+                    .eq("habilitacion", "disponible");
 
             console.log(data);
             console.log(error);
@@ -51,6 +52,43 @@ export default function DashboardDueno() {
         cargarClubes();
 
     }, []);
+
+    // =========================
+    // ELIMINAR CLUB
+    // =========================
+
+    async function eliminarClub(clubId) {
+
+        const confirmar = window.confirm(
+            "¿Seguro que querés eliminar este club?"
+        );
+
+        if (!confirmar) return;
+
+        const { error } = await supabase
+            .from("clubs")
+            .update({
+                habilitacion: "eliminado"
+            })
+            .eq("id", clubId);
+
+        if (error) {
+
+            alert(
+                "Error eliminando club: "
+                + error.message
+            );
+
+            return;
+        }
+
+        // actualizar frontend
+        setClubs(prev =>
+            prev.filter(c => c.id !== clubId)
+        );
+
+        alert("Club eliminado ✅");
+    }
 
     // ABRIR EDICIÓN
 
@@ -65,7 +103,6 @@ export default function DashboardDueno() {
         setImagenNueva(null);
     }
 
-    
     // CANCELAR
 
     function cancelarEdicion() {
@@ -246,7 +283,6 @@ export default function DashboardDueno() {
                             }}
                         >
 
-                           
                             {editandoClub !== club.id ? (
 
                                 <>
@@ -328,6 +364,26 @@ export default function DashboardDueno() {
                                             Editar club
                                         </button>
 
+                                        {/* ELIMINAR */}
+                                        <button
+                                            onClick={() =>
+                                                eliminarClub(club.id)
+                                            }
+                                            style={{
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "11px",
+                                                border: "none",
+                                                borderRadius: "10px",
+                                                background: "#dc3545",
+                                                color: "white",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            Eliminar club
+                                        </button>
+
                                     </div>
 
                                 </>
@@ -335,9 +391,6 @@ export default function DashboardDueno() {
                             ) : (
 
                                 <>
-                                    
-                                   
-                                   
 
                                     <input
                                         type="text"

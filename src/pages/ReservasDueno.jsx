@@ -14,10 +14,16 @@ export default function ReservasDueno() {
     const [filtroEstado, setFiltroEstado] =
         useState("todas");
 
+    // NUEVOS FILTROS
+    const [fechaFiltro, setFechaFiltro] =
+        useState("");
 
-        // CARGAR RESERVAS
+    const [soloHoy, setSoloHoy] =
+        useState(false);
 
-        useEffect(() => {
+    // CARGAR RESERVAS
+
+    useEffect(() => {
 
         async function cargarReservas() {
 
@@ -140,7 +146,7 @@ export default function ReservasDueno() {
             return;
         }
 
-        // 🔥 SOLO ACTUALIZAMOS ESTADO LOCAL (NO RECARGAMOS TODO)
+        // SOLO ACTUALIZAMOS ESTADO LOCAL
         setReservas(prev =>
             prev.map(r =>
                 r.id === reservaId
@@ -160,16 +166,43 @@ export default function ReservasDueno() {
     const reservasFiltradas =
         reservas.filter((r) => {
 
-            if (filtroEstado === "todas") {
-                return true;
-            }
+            // FILTRO ESTADO
 
             if (filtroEstado === "activas") {
-                return r.estado !== "cancelada";
+
+                if (r.estado === "cancelada") {
+                    return false;
+                }
             }
 
             if (filtroEstado === "canceladas") {
-                return r.estado === "cancelada";
+
+                if (r.estado !== "cancelada") {
+                    return false;
+                }
+            }
+
+            // FILTRO FECHA
+
+            if (fechaFiltro) {
+
+                if (r.fecha !== fechaFiltro) {
+                    return false;
+                }
+            }
+
+            // SOLO HOY
+
+            if (soloHoy) {
+
+                const hoy =
+                    new Date()
+                        .toISOString()
+                        .split("T")[0];
+
+                if (r.fecha !== hoy) {
+                    return false;
+                }
             }
 
             return true;
@@ -396,6 +429,56 @@ export default function ReservasDueno() {
                     >
                         Canceladas
                     </button>
+
+                </div>
+
+                {/* FILTRO FECHA */}
+
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        flexWrap: "wrap",
+                        marginBottom: "24px"
+                    }}
+                >
+
+                    <input
+                        type="date"
+                        value={fechaFiltro}
+                        onChange={(e) =>
+                            setFechaFiltro(e.target.value)
+                        }
+                        style={{
+                            padding: "10px",
+                            borderRadius: "10px",
+                            border: "1px solid #333",
+                            background: "#1f1f1f",
+                            color: "white"
+                        }}
+                    />
+
+                    <button
+                        onClick={() =>
+                            setSoloHoy(!soloHoy)
+                        }
+                        style={{
+                            padding: "10px 14px",
+                            border: "none",
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            background:
+                                soloHoy
+                                    ? "#ff9800"
+                                    : "#1f1f1f",
+                            color: "white",
+                            fontWeight: "bold"
+                        }}
+                    >
+                        Hoy
+                    </button>
+
+                    
 
                 </div>
 
