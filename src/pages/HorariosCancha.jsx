@@ -59,7 +59,6 @@ export default function HorariosCancha() {
             if (prev.includes(dia)) {
                 return prev.filter(d => d !== dia);
             }
-
             return [...prev, dia];
         });
     }
