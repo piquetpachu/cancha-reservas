@@ -63,3 +63,21 @@ export async function getUser() {
 
   return data.user
 }
+export async function getProfile() {
+  const user = await getUser()
+
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
+
+  if (error) {
+    console.error("Error obteniendo perfil:", error.message)
+    return null
+  }
+
+  return data
+}

@@ -70,6 +70,10 @@ export default function Navbar() {
         </>
       )}
 
+      <button onClick={() => navigate('/admin/solicitudes')}>
+        panel Admin
+      </button>
+
       <button onClick={handleLogout}>
         Cerrar sesión
       </button>
