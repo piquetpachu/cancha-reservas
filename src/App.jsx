@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import AdminSolicitudes from './pages/AdminSolicitudes'
 import AdminRoute from "./components/AdminRoute";
+import DashboardAdmin from "./pages/DashboardAdmin";
+import AdminClubes from "./pages/AdminClubes";
+
+
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -52,8 +56,14 @@ function App() {
 
         {/* ADMIN */}
         <Route path="/admin/solicitudes" element={<AdminRoute> <AdminSolicitudes /></AdminRoute>}/>
+        <Route path="/admin" element={<AdminRoute> <DashboardAdmin /> </AdminRoute> }/>
+        <Route
+          path="/admin/clubes" element={<AdminRoute> <AdminClubes />  </AdminRoute>}/>
+          
+           
+              
+           
          
-        
 
       </Routes>
 
