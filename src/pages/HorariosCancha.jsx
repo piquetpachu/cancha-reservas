@@ -23,48 +23,65 @@ export default function HorariosCancha() {
         "domingo"
     ];
 
-   
-    // CARGA SEGURA
-   
+    // CARGAR HORARIOS
+
+    async function cargarHorarios() {
+
+        const { data, error } = await supabase
+            .from("horarios_cancha")
+            .select("*")
+            .eq("cancha_id", id)
+            .order("dia_semana", { ascending: true })
+            .order("hora_inicio", { ascending: true });
+
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        setHorarios(data || []);
+    }
+
     useEffect(() => {
 
         if (!id) return;
 
-        const cargar = async () => {
-
-            const { data, error } = await supabase
-                .from("horarios_cancha")
-                .select("*")
-                .eq("cancha_id", id)
-                .order("dia_semana")
-                .order("hora_inicio");
-
-            if (!error) {
-                setHorarios(data || []);
-            }
-        };
-
-        cargar();
+        cargarHorarios();
 
     }, [id]);
 
-    
-    // DÍAS
-    
+    // TOGGLE DÍA
+
     function toggleDia(dia) {
 
-        setDiasSeleccionados(prev =>
-            prev.includes(dia)
-                ? prev.filter(d => d !== dia)
-                : [...prev, dia]
-        );
+        setDiasSeleccionados(prev => {
+
+            if (prev.includes(dia)) {
+                return prev.filter(d => d !== dia);
+            }
+
+            return [...prev, dia];
+        });
     }
 
+    // SELECCIONES RÁPIDAS
+    
+
     function seleccionarTodos() {
-        setDiasSeleccionados(dias);
+
+        setDiasSeleccionados([
+            "lunes",
+            "martes",
+            "miercoles",
+            "jueves",
+            "viernes",
+            "sabado",
+            "domingo"
+        ]);
     }
 
     function seleccionarSemana() {
+
         setDiasSeleccionados([
             "lunes",
             "martes",
@@ -75,16 +92,29 @@ export default function HorariosCancha() {
     }
 
     function seleccionarFinde() {
+
         setDiasSeleccionados([
             "sabado",
             "domingo"
         ]);
     }
 
+   
+    // NORMALIZAR HORAS
     
-    // GUARDAR
-    
+
+    function normalizarHora(hora) {
+
+        return hora.slice(0, 2) + ":00";
+    }
+
+   
+    // GUARDAR HORARIO
+   
+
     async function guardarHorario() {
+
+        setMensaje("");
 
         if (
             !diasSeleccionados.length ||
@@ -95,19 +125,42 @@ export default function HorariosCancha() {
             return;
         }
 
-        
+        const inicio = normalizarHora(horaInicio);
+        const fin = normalizarHora(horaFin);
+
         // VALIDAR HORAS
-        
-        if (horaInicio >= horaFin) {
+
+        if (inicio >= fin) {
+
             setMensaje(
                 "La hora final debe ser mayor"
             );
+
             return;
         }
 
-       
+        // VALIDAR DUPLICADOS
+
+        const existeDuplicado = horarios.some(h => {
+
+            return (
+                diasSeleccionados.includes(h.dia_semana) &&
+                h.hora_inicio.slice(0, 5) === inicio &&
+                h.hora_fin.slice(0, 5) === fin
+            );
+        });
+
+        if (existeDuplicado) {
+
+            setMensaje(
+                "Ese horario ya existe"
+            );
+
+            return;
+        }
+
         // VALIDAR SUPERPOSICIÓN
-       
+
         const existeSolapamiento = horarios.some(h => {
 
             const mismoDia =
@@ -120,79 +173,90 @@ export default function HorariosCancha() {
             }
 
             return (
-                horaInicio < h.hora_fin &&
-                horaFin > h.hora_inicio
+                inicio < h.hora_fin &&
+                fin > h.hora_inicio
             );
         });
 
         if (existeSolapamiento) {
+
             setMensaje(
                 "Ya existe un horario que se superpone"
             );
+
             return;
         }
 
-        
         // CREAR DATOS
-       
+
         const datos = diasSeleccionados.map(dia => ({
             cancha_id: id,
             dia_semana: dia,
-            hora_inicio: horaInicio,
-            hora_fin: horaFin
+            hora_inicio: inicio,
+            hora_fin: fin
         }));
 
-       
         // INSERTAR
-       
+
         const { error } = await supabase
             .from("horarios_cancha")
             .insert(datos);
 
         if (error) {
-            setMensaje("Error: " + error.message);
+
+            console.log(error);
+
+            setMensaje(
+                "Error: " + error.message
+            );
+
             return;
         }
 
-        setMensaje("Horarios agregados ✅");
+        // LIMPIAR
 
         setDiasSeleccionados([]);
         setHoraInicio("");
         setHoraFin("");
 
-       
-        // RECARGAR
-      
-        const { data } = await supabase
-            .from("horarios_cancha")
-            .select("*")
-            .eq("cancha_id", id)
-            .order("dia_semana")
-            .order("hora_inicio");
+        setMensaje(
+            "Horarios agregados ✅"
+        );
 
-        setHorarios(data || []);
+        // RECARGAR
+
+        await cargarHorarios();
     }
 
-    
-    // ELIMINAR
    
+    // ELIMINAR HORARIO
+   
+
     async function eliminarHorario(horarioId) {
 
         const { error } = await supabase
             .from("horarios_cancha")
             .delete()
-            .eq("id", horarioId);
+            .match({
+                id: horarioId
+            });
 
-        if (!error) {
+        if (error) {
 
-            setHorarios(prev =>
-                prev.filter(h => h.id !== horarioId)
+            console.log(error);
+
+            setMensaje(
+                "Error eliminando horario"
             );
+
+            return;
         }
+
+        await cargarHorarios();
     }
 
-    
-    // UI
+   
+
 
     return (
 
@@ -210,7 +274,7 @@ export default function HorariosCancha() {
 
             <h2>Horarios de la cancha</h2>
 
-            {/* botones rápidos */}
+            {/* BOTONES RÁPIDOS */}
             <div
                 style={{
                     display: "flex",
@@ -233,7 +297,7 @@ export default function HorariosCancha() {
 
             </div>
 
-            {/* días */}
+            {/* DÍAS */}
             <div style={{ marginTop: "10px" }}>
 
                 {dias.map(dia => (
@@ -258,24 +322,76 @@ export default function HorariosCancha() {
 
             </div>
 
-            {/* horas */}
-            <div style={{ marginTop: "10px" }}>
+            {/* HORAS */}
+            <div
+                style={{
+                    marginTop: "10px",
+                    display: "flex",
+                    gap: "10px"
+                }}
+            >
 
-                <input
-                    type="time"
+                <select
                     value={horaInicio}
                     onChange={(e) =>
                         setHoraInicio(e.target.value)
                     }
-                />
+                    style={{
+                        padding: "8px"
+                    }}
+                >
 
-                <input
-                    type="time"
+                    <option value="">
+                        Hora inicio
+                    </option>
+
+                    {Array.from({ length: 24 }).map((_, i) => {
+
+                        const hora =
+                            String(i).padStart(2, "0") + ":00";
+
+                        return (
+                            <option
+                                key={hora}
+                                value={hora}
+                            >
+                                {hora}
+                            </option>
+                        );
+                    })}
+
+                </select>
+
+                <select
                     value={horaFin}
                     onChange={(e) =>
                         setHoraFin(e.target.value)
                     }
-                />
+                    style={{
+                        padding: "8px"
+                    }}
+                >
+
+                    <option value="">
+                        Hora de cierre
+                    </option>
+
+                    {Array.from({ length: 24 }).map((_, i) => {
+
+                        const hora =
+                            String(i).padStart(2, "0") + ":00";
+
+                        return (
+                            <option
+                                key={hora}
+                                value={hora}
+                            >
+                                {hora}
+                            </option>
+                        );
+                    })}
+
+                </select>
 
             </div>
 
@@ -288,7 +404,7 @@ export default function HorariosCancha() {
 
             <p>{mensaje}</p>
 
-            {/* lista */}
+            {/* LISTA */}
             <h3>Horarios cargados</h3>
 
             {horarios.length === 0 ? (
@@ -324,10 +440,9 @@ export default function HorariosCancha() {
                         </span>
 
                         <button
-                            onClick={() => {
-                                console.log("Eliminar:", h);
-                                eliminarHorario(h.id);
-                            }}
+                            onClick={() =>
+                                eliminarHorario(h.id)
+                            }
                         >
                             X
                         </button>
