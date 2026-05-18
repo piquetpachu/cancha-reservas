@@ -40,6 +40,7 @@ export default function Profile() {
               id: u.id,
               nombre: '',
               telefono: '',
+              email: u.email, 
               rol: 'cliente'
             })
             .select()

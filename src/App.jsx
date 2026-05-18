@@ -5,7 +5,8 @@ import AdminSolicitudes from './pages/AdminSolicitudes'
 import AdminRoute from "./components/AdminRoute";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import AdminClubes from "./pages/AdminClubes";
-
+import AdminUsuarios from "./pages/AdminUsuarios";
+import AdminUsuarioDetalle from "./pages/AdminUsuarioDetalle";
 
 
 import Login from "./pages/Login";
@@ -57,13 +58,16 @@ function App() {
         {/* ADMIN */}
         <Route path="/admin/solicitudes" element={<AdminRoute> <AdminSolicitudes /></AdminRoute>}/>
         <Route path="/admin" element={<AdminRoute> <DashboardAdmin /> </AdminRoute> }/>
-        <Route
-          path="/admin/clubes" element={<AdminRoute> <AdminClubes />  </AdminRoute>}/>
+        <Route path="/admin/clubes" element={<AdminRoute> <AdminClubes />  </AdminRoute>}/>
+        <Route path="/admin/usuarios" element={<AdminRoute> <AdminUsuarios />  </AdminRoute>}/>  
+        <Route path="/admin/usuarios/:id" element={<AdminRoute>  <AdminUsuarioDetalle /> </AdminRoute>} />
           
-           
-              
-           
-         
+          
+            
+             
+            
+          
+       
 
       </Routes>
 
