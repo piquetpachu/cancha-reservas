@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from './components/ProtectedRoute'
+//import ProtectedRoute from './components/ProtectedRoute'
 
 import AdminSolicitudes from './pages/AdminSolicitudes'
+import AdminRoute from "./components/AdminRoute";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -50,14 +51,9 @@ function App() {
         <Route path="/reservas-dueno/:id" element={<ReservasDueno />} />
 
         {/* ADMIN */}
-        <Route
-          path="/admin/solicitudes"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminSolicitudes />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin/solicitudes" element={<AdminRoute> <AdminSolicitudes /></AdminRoute>}/>
+         
+        
 
       </Routes>
 
