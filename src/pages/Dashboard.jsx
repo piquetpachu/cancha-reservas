@@ -2,6 +2,7 @@ import Navbar from '../components/Navbar'
 import ClubList from "../pages/ClubList";
 import { useEffect, useState } from 'react'
 import { getUser, logout } from '../services/authService'
+import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 
 
@@ -10,18 +11,40 @@ export default function Dashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
+
     async function checkUser() {
-      const u = await getUser()
+
+      const u = await getUser();
 
       if (!u) {
-        navigate('/login')
+
+        navigate('/login');
+
       } else {
-        setUser(u)
+
+        setUser(u);
+
+        // buscar rol
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("rol")
+          .eq("id", u.id)
+          .single();
+
+        console.log(data);
+        console.log(error);
+
+        // si es dueño
+        if (data?.rol === "dueno") {
+
+          navigate("/dashboard-dueno");
+        }
       }
     }
 
-    checkUser()
-  }, [])
+    checkUser();
+
+  }, []);
 
   async function handleLogout() {
     await logout()

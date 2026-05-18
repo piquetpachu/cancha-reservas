@@ -9,6 +9,11 @@ import CrearCancha from "./pages/CrearCancha";
 import ClubList from "./pages/Clublist";
 import ClubDetalle from "./pages/ClubDetalle";
 import Reserva from "./pages/Reserva";
+import DashboardDueno from "./pages/DashboardDueno";
+import ClubDetalleDueno from "./pages/ClubDetalleDueno";
+import HorariosCancha from "./pages/HorariosCancha";
+import BloqueosHorarios from "./pages/BloqueosHorarios";
+import ReservasDueno from "./pages/ReservasDueno";
 import './App.css'
 
 function App() {
@@ -31,6 +36,12 @@ function App() {
         <Route path="/home" element={<ClubList />} />
         <Route path="/club/:id" element={<ClubDetalle />} />
         <Route path="/reserva/:id" element={<Reserva />} />
+        <Route path="/dashboard-dueno" element={<DashboardDueno />} />
+        <Route path="/club-dueno/:id" element={<ClubDetalleDueno />} />
+        <Route path="/horarios/:id" element={<HorariosCancha />} />
+        <Route path="/bloqueos/:id" element={<BloqueosHorarios />} />
+        <Route path="/reservas-dueno/:id" element={<ReservasDueno />} />
+
       </Routes>
     </BrowserRouter>
   );
