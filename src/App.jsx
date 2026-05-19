@@ -7,6 +7,7 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import AdminClubes from "./pages/AdminClubes";
 import AdminUsuarios from "./pages/AdminUsuarios";
 import AdminUsuarioDetalle from "./pages/AdminUsuarioDetalle";
+import AdminClubDetalle from "./pages/AdminClubDetalle";
 
 
 import Login from "./pages/Login";
@@ -61,9 +62,9 @@ function App() {
         <Route path="/admin/clubes" element={<AdminRoute> <AdminClubes />  </AdminRoute>}/>
         <Route path="/admin/usuarios" element={<AdminRoute> <AdminUsuarios />  </AdminRoute>}/>  
         <Route path="/admin/usuarios/:id" element={<AdminRoute>  <AdminUsuarioDetalle /> </AdminRoute>} />
+
+        <Route path="/admin/club/:id"  element={<AdminClubDetalle />} />
           
-          
-            
              
             
           
