@@ -8,6 +8,8 @@ import AdminClubes from "./pages/AdminClubes";
 import AdminUsuarios from "./pages/AdminUsuarios";
 import AdminUsuarioDetalle from "./pages/AdminUsuarioDetalle";
 import AdminClubDetalle from "./pages/AdminClubDetalle";
+import AdminCanchaDetalle from "./pages/AdminCanchaDetalle";
+import AdminReservas from "./pages/AdminReservas";
 
 
 import Login from "./pages/Login";
@@ -64,7 +66,21 @@ function App() {
         <Route path="/admin/usuarios/:id" element={<AdminRoute>  <AdminUsuarioDetalle /> </AdminRoute>} />
 
         <Route path="/admin/club/:id"  element={<AdminClubDetalle />} />
+        <Route path="/admin/cancha/:id" element={<AdminRoute> <AdminCanchaDetalle /> </AdminRoute>} /> 
+        <Route path="/admin/reservas" element={<AdminRoute>  <AdminReservas /></AdminRoute>} />
           
+          
+            
+             
+            
+          
+        
+          
+            
+              
+            
+          
+       
              
             
           

@@ -137,16 +137,14 @@ export default function AdminClubDetalle() {
                     display: "flex",
                     flexDirection: "column",
                     gap: "10px",
-                    marginBottom: "14px"
+                    marginBottom: "16px"
                 }}
             >
 
                 <button
-                   
                     onClick={() =>
                         navigate("/admin/clubes")
                     }
-                    
                     style={{
                         width: "fit-content",
                         background: "#1f1f1f",
@@ -166,7 +164,7 @@ export default function AdminClubDetalle() {
                     <h1
                         style={{
                             margin: 0,
-                            fontSize: "22px",
+                            fontSize: "24px",
                             fontWeight: "700"
                         }}
                     >
@@ -175,12 +173,12 @@ export default function AdminClubDetalle() {
 
                     <p
                         style={{
-                            marginTop: "3px",
+                            marginTop: "4px",
                             color: "#9e9e9e",
                             fontSize: "13px"
                         }}
                     >
-                        Panel administrativo
+                        Panel administrativo del club
                     </p>
 
                 </div>
@@ -193,7 +191,7 @@ export default function AdminClubDetalle() {
                 style={{
                     background: "#1a1a1a",
                     border: "1px solid #2a2a2a",
-                    borderRadius: "16px",
+                    borderRadius: "18px",
                     overflow: "hidden",
                     marginBottom: "18px"
                 }}
@@ -204,7 +202,7 @@ export default function AdminClubDetalle() {
                 <div
                     style={{
                         width: "100%",
-                        height: "180px",
+                        height: "210px",
                         background: "#222"
                     }}
                 >
@@ -245,7 +243,7 @@ export default function AdminClubDetalle() {
 
                 <div
                     style={{
-                        padding: "14px"
+                        padding: "16px"
                     }}
                 >
 
@@ -253,21 +251,37 @@ export default function AdminClubDetalle() {
                         style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            alignItems: "center",
+                            alignItems: "flex-start",
                             gap: "10px",
-                            marginBottom: "10px"
+                            marginBottom: "12px"
                         }}
                     >
 
-                        <h2
-                            style={{
-                                margin: 0,
-                                fontSize: "20px",
-                                fontWeight: "700"
-                            }}
-                        >
-                            {club.nombre}
-                        </h2>
+                        <div>
+
+                            <h2
+                                style={{
+                                    margin: 0,
+                                    fontSize: "24px",
+                                    fontWeight: "700",
+                                    lineHeight: "1.2"
+                                }}
+                            >
+                                {club.nombre}
+                            </h2>
+
+                            <p
+                                style={{
+                                    marginTop: "6px",
+                                    color: "#bdbdbd",
+                                    fontSize: "13px",
+                                    lineHeight: "1.5"
+                                }}
+                            >
+                                {club.direccion || "Sin dirección"}
+                            </p>
+
+                        </div>
 
                         <span
                             style={{
@@ -279,7 +293,7 @@ export default function AdminClubDetalle() {
                                     club.habilitacion === "eliminado"
                                         ? "#ff8a80"
                                         : "#69f0ae",
-                                padding: "5px 10px",
+                                padding: "6px 12px",
                                 borderRadius: "999px",
                                 fontSize: "11px",
                                 fontWeight: "700",
@@ -292,46 +306,78 @@ export default function AdminClubDetalle() {
 
                     </div>
 
-                    <p
-                        style={{
-                            margin: 0,
-                            color: "#bdbdbd",
-                            fontSize: "13px",
-                            marginBottom: "10px",
-                            lineHeight: "1.5"
-                        }}
-                    >
-                        {club.direccion || "Sin dirección"}
-                    </p>
+                    {/* STATS */}
 
                     <div
                         style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px"
+                            display: "grid",
+                            gridTemplateColumns: "repeat(2, 1fr)",
+                            gap: "10px",
+                            marginTop: "16px"
                         }}
                     >
 
-                        <div>
-
-                            <span
-                                style={{
-                                    color: "#8e8e8e",
-                                    fontSize: "11px"
-                                }}
-                            >
-                                ID DEL CLUB
-                            </span>
+                        <div
+                            style={{
+                                background: "#202020",
+                                borderRadius: "12px",
+                                padding: "12px"
+                            }}
+                        >
 
                             <p
                                 style={{
-                                    margin: "2px 0 0 0",
-                                    fontSize: "12px",
-                                    wordBreak: "break-word"
+                                    margin: 0,
+                                    fontSize: "11px",
+                                    color: "#9e9e9e",
+                                    textTransform: "uppercase"
                                 }}
                             >
-                                {club.id}
+                                Canchas
                             </p>
+
+                            <h3
+                                style={{
+                                    margin: "6px 0 0 0",
+                                    fontSize: "22px"
+                                }}
+                            >
+                                {canchas.length}
+                            </h3>
+
+                        </div>
+
+                        <div
+                            style={{
+                                background: "#202020",
+                                borderRadius: "12px",
+                                padding: "12px"
+                            }}
+                        >
+
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: "11px",
+                                    color: "#9e9e9e",
+                                    textTransform: "uppercase"
+                                }}
+                            >
+                                Estado
+                            </p>
+
+                            <h3
+                                style={{
+                                    margin: "6px 0 0 0",
+                                    fontSize: "18px",
+                                    color:
+                                        club.habilitacion === "eliminado"
+                                            ? "#ff8a80"
+                                            : "#69f0ae"
+                                }}
+                            >
+                                {club.habilitacion}
+                            </h3>
 
                         </div>
 
@@ -341,34 +387,44 @@ export default function AdminClubDetalle() {
 
             </div>
 
-            {/* CANCHAS */}
+            {/* HEADER CANCHAS */}
 
             <div
                 style={{
-                    marginBottom: "12px"
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "12px",
+                    gap: "10px"
                 }}
             >
 
-                <h2
-                    style={{
-                        margin: 0,
-                        fontSize: "18px"
-                    }}
-                >
-                    Canchas
-                </h2>
+                <div>
 
-                <p
-                    style={{
-                        marginTop: "3px",
-                        color: "#9e9e9e",
-                        fontSize: "12px"
-                    }}
-                >
-                    {canchas.length} canchas registradas
-                </p>
+                    <h2
+                        style={{
+                            margin: 0,
+                            fontSize: "20px"
+                        }}
+                    >
+                        Canchas
+                    </h2>
+
+                    <p
+                        style={{
+                            marginTop: "4px",
+                            color: "#9e9e9e",
+                            fontSize: "12px"
+                        }}
+                    >
+                        Administración de canchas del club
+                    </p>
+
+                </div>
 
             </div>
+
+            {/* SIN CANCHAS */}
 
             {canchas.length === 0 ? (
 
@@ -376,14 +432,14 @@ export default function AdminClubDetalle() {
                     style={{
                         background: "#1a1a1a",
                         border: "1px solid #2a2a2a",
-                        borderRadius: "14px",
-                        padding: "18px",
+                        borderRadius: "16px",
+                        padding: "20px",
                         textAlign: "center",
                         color: "#9e9e9e",
                         fontSize: "13px"
                     }}
                 >
-                    Este club no tiene canchas
+                    Este club todavía no tiene canchas registradas
                 </div>
 
             ) : (
@@ -392,57 +448,197 @@ export default function AdminClubDetalle() {
 
                     <div
                         key={cancha.id}
+                        onClick={() =>
+                            navigate(`/admin/cancha/${cancha.id}`)
+                        }
                         style={{
                             background: "#1a1a1a",
                             border: "1px solid #2a2a2a",
-                            borderRadius: "14px",
-                            padding: "14px",
-                            marginBottom: "10px"
+                            borderRadius: "16px",
+                            overflow: "hidden",
+                            marginBottom: "14px",
+                            cursor: "pointer"
                         }}
                     >
 
+                        {/* FOTO */}
+
                         <div
                             style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                gap: "10px"
+                                width: "100%",
+                                height: "170px",
+                                background: "#222"
                             }}
                         >
 
-                            <div>
+                            {cancha.foto ? (
 
-                                <h3
+                                <img
+                                    src={cancha.foto}
+                                    alt={cancha.nombre}
                                     style={{
-                                        margin: 0,
-                                        fontSize: "16px"
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover"
+                                    }}
+                                />
+
+                            ) : (
+
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        color: "#666",
+                                        fontSize: "13px"
                                     }}
                                 >
-                                    {cancha.nombre}
-                                </h3>
+                                    Sin imagen
+                                </div>
 
-                                <p
-                                    style={{
-                                        marginTop: "4px",
-                                        color: "#bdbdbd",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    {cancha.tipo || "Sin tipo"}
-                                </p>
+                            )}
 
-                            </div>
+                        </div>
+
+                        {/* INFO */}
+
+                        <div
+                            style={{
+                                padding: "14px"
+                            }}
+                        >
 
                             <div
                                 style={{
-                                    background: "#202020",
-                                    padding: "6px 10px",
-                                    borderRadius: "10px",
-                                    fontSize: "12px",
-                                    fontWeight: "700"
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "flex-start",
+                                    gap: "10px"
                                 }}
                             >
-                                ${cancha.precio}
+
+                                <div
+                                    style={{
+                                        flex: 1
+                                    }}
+                                >
+
+                                    <h3
+                                        style={{
+                                            margin: 0,
+                                            fontSize: "19px",
+                                            lineHeight: "1.3"
+                                        }}
+                                    >
+                                        {cancha.nombre}
+                                    </h3>
+
+                                    <p
+                                        style={{
+                                            marginTop: "6px",
+                                            color: "#bdbdbd",
+                                            fontSize: "13px"
+                                        }}
+                                    >
+                                        {cancha.deporte || "Sin deporte"}
+                                    </p>
+
+                                </div>
+
+                                <span
+                                    style={{
+                                        background:
+                                            cancha.habilitacion === "eliminado"
+                                                ? "#4a1f1f"
+                                                : "#173524",
+                                        color:
+                                            cancha.habilitacion === "eliminado"
+                                                ? "#ff8a80"
+                                                : "#69f0ae",
+                                        padding: "5px 10px",
+                                        borderRadius: "999px",
+                                        fontSize: "11px",
+                                        fontWeight: "700",
+                                        textTransform: "uppercase",
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    {cancha.habilitacion || "disponible"}
+                                </span>
+
+                            </div>
+
+                            {/* DESCRIPCION */}
+
+                            <p
+                                style={{
+                                    marginTop: "12px",
+                                    marginBottom: "14px",
+                                    color: "#cfcfcf",
+                                    fontSize: "13px",
+                                    lineHeight: "1.6"
+                                }}
+                            >
+                                {cancha.descripcion || "Sin descripción"}
+                            </p>
+
+                            {/* FOOTER */}
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    flexWrap: "wrap"
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: "8px",
+                                        flexWrap: "wrap"
+                                    }}
+                                >
+
+                                    <div
+                                        style={{
+                                            background: "#202020",
+                                            borderRadius: "10px",
+                                            padding: "8px 10px",
+                                            fontSize: "12px"
+                                        }}
+                                    >
+                                        💰 ${cancha.precio_por_hora}
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            background: "#202020",
+                                            borderRadius: "10px",
+                                            padding: "8px 10px",
+                                            fontSize: "12px"
+                                        }}
+                                    >
+                                        🏟️ {cancha.deporte}
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    style={{
+                                        color: "#69f0ae",
+                                        fontSize: "12px",
+                                        fontWeight: "700"
+                                    }}
+                                >
+                                    Ver detalle →
+                                </div>
+
                             </div>
 
                         </div>
