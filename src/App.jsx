@@ -11,7 +11,7 @@ import AdminClubDetalle from "./pages/AdminClubDetalle";
 import AdminCanchaDetalle from "./pages/AdminCanchaDetalle";
 import AdminReservas from "./pages/AdminReservas";
 import AdminEditarCancha from "./pages/AdminEditarCancha";
-
+import AdminHorariosCancha from "./pages/AdminHorariosCancha";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -75,6 +75,10 @@ function App() {
           element={<AdminEditarCancha />}
         />
             
+        <Route
+          path="/admin/cancha/:id/horarios"
+          element={<AdminHorariosCancha />}
+        />
              
             
           
