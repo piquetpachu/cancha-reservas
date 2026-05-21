@@ -12,6 +12,8 @@ import AdminCanchaDetalle from "./pages/AdminCanchaDetalle";
 import AdminReservas from "./pages/AdminReservas";
 import AdminEditarCancha from "./pages/AdminEditarCancha";
 import AdminHorariosCancha from "./pages/AdminHorariosCancha";
+import AdminBloqueos from "./pages/AdminBloqueosCancha";;
+import AdminEstadisticas from "./pages/AdminEstadisticas";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -81,9 +83,19 @@ function App() {
         />
              
             
-          
+        <Route
+          path="/admin/bloqueos"
+          element={<AdminBloqueos />}
+        />
         
-          
+        <Route
+          path="/admin/estadisticas"
+          element={
+            <AdminRoute>
+              <AdminEstadisticas />
+            </AdminRoute>
+          }
+        />
             
               
             

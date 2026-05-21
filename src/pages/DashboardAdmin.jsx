@@ -165,6 +165,39 @@ export default function DashboardAdmin() {
                     >
                         Entrar
                     </button>
+                    {/* ESTADISTICAS */}
+                    <div
+                        style={{
+                            background: "#1e1e1e",
+                            padding: "20px",
+                            borderRadius: "14px",
+                            border: "1px solid #333"
+                        }}
+                    >
+
+                        <h2>
+                            Estadísticas
+                        </h2>
+
+                        <p>
+                            Métricas y análisis del sistema.
+                        </p>
+
+                        <button
+                            onClick={() =>
+                                navigate("/admin/estadisticas")
+                            }
+                            style={{
+                                padding: "10px 16px",
+                                border: "none",
+                                borderRadius: "10px",
+                                cursor: "pointer"
+                            }}
+                        >
+                            Entrar
+                        </button>
+
+                    </div>
 
                 </div>
 

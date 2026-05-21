@@ -310,7 +310,7 @@ export default function AdminCanchaDetalle() {
 
                 <button
                     onClick={() =>
-                        navigate(`/admin/cancha/${id}/bloqueos`)
+                        navigate(`/admin/bloqueos`)
                     }
                     style={{
                         width: "100%",
