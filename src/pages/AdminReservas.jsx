@@ -6,9 +6,7 @@ export default function AdminReservas() {
     const [reservas, setReservas] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // =========================
     // FILTROS
-    // =========================
 
     const [busqueda, setBusqueda] = useState("");
 
@@ -18,9 +16,7 @@ export default function AdminReservas() {
 
     const [filtroCancha, setFiltroCancha] = useState("");
 
-    // =========================
     // CARGAR
-    // =========================
 
     useEffect(() => {
 
@@ -61,10 +57,9 @@ export default function AdminReservas() {
         setLoading(false);
     }
 
-    // =========================
     // CANCELAR
-    // =========================
 
+    
     async function cancelarReserva(id) {
 
         const confirmar = window.confirm(
@@ -89,9 +84,7 @@ export default function AdminReservas() {
         await cargarReservas();
     }
 
-    // =========================
     // RESTAURAR
-    // =========================
 
     async function restaurarReserva(id) {
 
@@ -117,9 +110,7 @@ export default function AdminReservas() {
         await cargarReservas();
     }
 
-    // =========================
     // FILTRADAS
-    // =========================
 
     const reservasFiltradas = useMemo(() => {
 
@@ -166,9 +157,7 @@ export default function AdminReservas() {
         filtroCancha
     ]);
 
-    // =========================
     // LISTA CANCHAS
-    // =========================
 
     const canchasUnicas = [
         ...new Set(
@@ -178,9 +167,7 @@ export default function AdminReservas() {
         )
     ];
 
-    // =========================
     // STATS
-    // =========================
 
     const totalReservas = reservas.length;
 
@@ -192,9 +179,7 @@ export default function AdminReservas() {
         (r) => r.estado === "cancelada"
     ).length;
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 

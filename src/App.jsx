@@ -72,39 +72,15 @@ function App() {
         <Route path="/admin/cancha/:id" element={<AdminRoute> <AdminCanchaDetalle /> </AdminRoute>} /> 
         <Route path="/admin/reservas" element={<AdminRoute>  <AdminReservas /></AdminRoute>} />
           
-        <Route
-          path="/admin/cancha/:id/editar"
-          element={<AdminEditarCancha />}
-        />
+        <Route  path="/admin/cancha/:id/editar" element={<AdminEditarCancha />}/>
             
-        <Route
-          path="/admin/cancha/:id/horarios"
-          element={<AdminHorariosCancha />}
-        />
+        <Route  path="/admin/cancha/:id/horarios" element={<AdminHorariosCancha />}/>
              
             
-        <Route
-          path="/admin/bloqueos"
-          element={<AdminBloqueos />}
-        />
+        <Route path="/admin/bloqueos" element={<AdminBloqueos />}/>
         
-        <Route
-          path="/admin/estadisticas"
-          element={
-            <AdminRoute>
-              <AdminEstadisticas />
-            </AdminRoute>
-          }
-        />
-            
-              
-            
+        <Route  path="/admin/estadisticas"  element={ <AdminRoute><AdminEstadisticas /> </AdminRoute>} />
           
-       
-             
-            
-          
-       
 
       </Routes>
 

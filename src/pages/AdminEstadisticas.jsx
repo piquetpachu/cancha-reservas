@@ -26,9 +26,7 @@ export default function AdminEstadisticas() {
 
         setLoading(true);
 
-        // =========================
         // USUARIOS
-        // =========================
 
         const {
             data: usuariosData,
@@ -46,9 +44,7 @@ export default function AdminEstadisticas() {
             setUsuarios(usuariosData || []);
         }
 
-        // =========================
         // CLUBS
-        // =========================
 
         const {
             data: clubsData,
@@ -66,9 +62,7 @@ export default function AdminEstadisticas() {
             setClubs(clubsData || []);
         }
 
-        // =========================
         // CANCHAS
-        // =========================
 
         const {
             data: canchasData,
@@ -86,9 +80,7 @@ export default function AdminEstadisticas() {
             setCanchas(canchasData || []);
         }
 
-        // =========================
         // RESERVAS
-        // =========================
 
         const {
             data: reservasData,
@@ -112,9 +104,7 @@ export default function AdminEstadisticas() {
             setReservas(reservasData || []);
         }
 
-        // =========================
         // BLOQUEOS
-        // =========================
 
         const {
             data: bloqueosData,
@@ -135,9 +125,7 @@ export default function AdminEstadisticas() {
         setLoading(false);
     }
 
-    // =========================
     // FECHAS
-    // =========================
 
     const hoy = new Date();
 
@@ -172,9 +160,7 @@ export default function AdminEstadisticas() {
         return true;
     }
 
-    // =========================
     // RESERVAS FILTRADAS
-    // =========================
 
     const reservasFiltradas = useMemo(() => {
 
@@ -184,9 +170,7 @@ export default function AdminEstadisticas() {
 
     }, [reservas, filtroPeriodo]);
 
-    // =========================
     // TOTALES
-    // =========================
 
     const totalUsuarios = usuarios.length;
 
@@ -232,9 +216,7 @@ export default function AdminEstadisticas() {
     const totalBloqueos =
         bloqueos.length;
 
-    // =========================
     // DEPORTES MÁS USADOS
-    // =========================
 
     const deportesMap = {};
 
@@ -252,9 +234,7 @@ export default function AdminEstadisticas() {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
-    // =========================
     // HORARIOS PICO
-    // =========================
 
     const horasMap = {};
 
@@ -272,9 +252,7 @@ export default function AdminEstadisticas() {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
-    // =========================
     // CANCHAS MÁS USADAS
-    // =========================
 
     const canchasMap = {};
 
@@ -292,9 +270,7 @@ export default function AdminEstadisticas() {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 

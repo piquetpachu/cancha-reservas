@@ -22,9 +22,7 @@ export default function AdminClubDetalle() {
 
         setLoading(true);
 
-        // =========================
         // CLUB
-        // =========================
 
         const {
             data: clubData,
@@ -44,9 +42,7 @@ export default function AdminClubDetalle() {
 
         setClub(clubData);
 
-        // =========================
         // CANCHAS
-        // =========================
 
         const {
             data: canchasData,
@@ -71,9 +67,7 @@ export default function AdminClubDetalle() {
         setLoading(false);
     }
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 
@@ -95,9 +89,7 @@ export default function AdminClubDetalle() {
         );
     }
 
-    // =========================
     // CLUB NO ENCONTRADO
-    // =========================
 
     if (!club) {
 

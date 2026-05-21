@@ -27,10 +27,9 @@ export default function AdminCanchaDetalle() {
 
         setLoading(true);
 
-        // =========================
         // CANCHA
-        // =========================
 
+    
         const {
             data: canchaData,
             error: canchaError
@@ -49,9 +48,9 @@ export default function AdminCanchaDetalle() {
 
         setCancha(canchaData);
 
-        // =========================
+      
         // CLUB
-        // =========================
+       
 
         if (canchaData.club_id) {
 
@@ -74,9 +73,9 @@ export default function AdminCanchaDetalle() {
             }
         }
 
-        // =========================
+       
         // HORARIOS
-        // =========================
+       
 
         const {
             data: horariosData,
@@ -98,9 +97,7 @@ export default function AdminCanchaDetalle() {
             setHorarios(horariosData || []);
         }
 
-        // =========================
         // BLOQUEOS
-        // =========================
 
         const {
             data: bloqueosData,
@@ -122,9 +119,7 @@ export default function AdminCanchaDetalle() {
             setBloqueos(bloqueosData || []);
         }
 
-        // =========================
         // RESERVAS
-        // =========================
 
         const {
             data: reservasData,
@@ -149,9 +144,7 @@ export default function AdminCanchaDetalle() {
         setLoading(false);
     }
 
-    // =========================
     // ELIMINAR
-    // =========================
 
     async function eliminarCancha() {
 
@@ -177,9 +170,7 @@ export default function AdminCanchaDetalle() {
         await cargarDatos();
     }
 
-    // =========================
     // RESTAURAR
-    // =========================
 
     async function restaurarCancha() {
 
@@ -199,9 +190,7 @@ export default function AdminCanchaDetalle() {
         await cargarDatos();
     }
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 
@@ -222,9 +211,7 @@ export default function AdminCanchaDetalle() {
         );
     }
 
-    // =========================
     // NO ENCONTRADA
-    // =========================
 
     if (!cancha) {
 

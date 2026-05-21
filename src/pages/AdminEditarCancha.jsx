@@ -60,9 +60,7 @@ export default function AdminEditarCancha() {
 
         setGuardando(true);
 
-        // =========================
         // VALIDACIONES
-        // =========================
 
         if (!nombre.trim()) {
 
@@ -109,9 +107,7 @@ export default function AdminEditarCancha() {
         navigate(`/admin/cancha/${id}`);
     }
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 

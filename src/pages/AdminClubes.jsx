@@ -40,9 +40,7 @@ export default function AdminClubes() {
         setLoading(false);
     }
 
-    // =========================
     // ELIMINAR
-    // =========================
 
     async function eliminarClub(id) {
 
@@ -68,9 +66,7 @@ export default function AdminClubes() {
         await cargarClubes();
     }
 
-    // =========================
     // RESTAURAR
-    // =========================
 
     async function restaurarClub(id) {
 
@@ -90,9 +86,7 @@ export default function AdminClubes() {
         await cargarClubes();
     }
 
-    // =========================
     // FILTROS
-    // =========================
 
     const clubsFiltrados = clubs.filter((club) => {
 
@@ -109,9 +103,7 @@ export default function AdminClubes() {
         return coincideBusqueda && coincideEstado;
     });
 
-    // =========================
     // LOADING
-    // =========================
 
     if (loading) {
 

@@ -7,10 +7,10 @@ export default function AdminSolicitudes() {
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // 🆕 filtro
+  //  filtro
   const [filtro, setFiltro] = useState('todas')
 
-  // 🔄 CARGAR DATOS
+  // CARGAR DATOS
   useEffect(() => {
     async function load() {
       try {
