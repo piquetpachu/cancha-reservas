@@ -58,21 +58,25 @@ export default function Navbar() {
       </div>
 
       {/* SOLO DUEÑO O ADMIN */}
-      {(rol === "dueno" || rol === "dueño" || rol === "admin") && (
+      {(rol === "dueno" ||  rol === "admin") && (
         <>
           <button onClick={() => navigate('/crear-club')}>
             Crear Club
           </button>
 
+          <button onClick={() => navigate('/dashboard-dueno')}>
+            dashboard Dueño
+          </button>
+
           <button onClick={() => navigate('/crear-cancha')}>
             Crear Cancha
+          </button>
+          <button onClick={() => navigate('/admin/solicitudes')}>
+            panel Admin
           </button>
         </>
       )}
 
-      <button onClick={() => navigate('/admin/solicitudes')}>
-        panel Admin
-      </button>
 
       <button onClick={handleLogout}>
         Cerrar sesión
