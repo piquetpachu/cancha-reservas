@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import Navbar from '../components/Navbar'
 export default function DashboardAdmin() {
 
     const navigate = useNavigate();
@@ -15,7 +15,7 @@ export default function DashboardAdmin() {
                 boxSizing: "border-box"
             }}
         >
-
+            <Navbar />
             <h1
                 style={{
                     marginBottom: "30px"

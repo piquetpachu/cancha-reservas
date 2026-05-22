@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import Navbar from '../components/Navbar'
 
 export default function AdminBloqueos() {
 
@@ -214,10 +215,9 @@ export default function AdminBloqueos() {
     if (loading) {
 
         return (
-
             <div
-                style={{
-                    minHeight: "100vh",
+            style={{
+                minHeight: "100vh",
                     background: "#121212",
                     display: "flex",
                     justifyContent: "center",
@@ -229,18 +229,19 @@ export default function AdminBloqueos() {
             </div>
         );
     }
-
+    
     return (
-
+        
         <div
-            style={{
-                minHeight: "100vh",
+        style={{
+            minHeight: "100vh",
                 background: "#121212",
                 color: "white",
                 padding: "14px",
                 boxSizing: "border-box"
             }}
         >
+            <Navbar />
 
             <h1
                 style={{

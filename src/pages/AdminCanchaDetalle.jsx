@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Navbar from '../components/Navbar'
 import { supabase } from "../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -210,13 +211,13 @@ export default function AdminCanchaDetalle() {
             </div>
         );
     }
-
+    
     // NO ENCONTRADA
-
+    
     if (!cancha) {
-
+        
         return (
-
+            
             <div
                 style={{
                     minHeight: "100vh",
@@ -226,23 +227,24 @@ export default function AdminCanchaDetalle() {
                     alignItems: "center",
                     color: "white"
                 }}
-            >
+                >
                 Cancha no encontrada
             </div>
         );
     }
-
+    
     return (
-
+        
         <div
-            style={{
-                minHeight: "100vh",
+        style={{
+            minHeight: "100vh",
                 background: "#121212",
                 color: "white",
                 padding: "14px",
                 boxSizing: "border-box"
             }}
         >
+            <Navbar />
 
             {/* BOTON */}
 
