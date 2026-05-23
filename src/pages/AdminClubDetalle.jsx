@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 export default function AdminClubDetalle() {
 
     const navigate = useNavigate();
-
     const { id } = useParams();
 
     const [club, setClub] = useState(null);
@@ -13,632 +12,265 @@ export default function AdminClubDetalle() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
-        cargarClub();
-
+        cargar();
     }, [id]);
 
-    async function cargarClub() {
+    async function cargar() {
 
         setLoading(true);
 
-        // CLUB
-
-        const {
-            data: clubData,
-            error: clubError
-        } = await supabase
+        const { data: clubData } = await supabase
             .from("clubs")
             .select("*")
             .eq("id", id)
             .single();
 
-        if (clubError) {
-
-            console.log(clubError);
-            setLoading(false);
-            return;
-        }
-
         setClub(clubData);
 
-        // CANCHAS
-
-        const {
-            data: canchasData,
-            error: canchasError
-        } = await supabase
+        const { data: canchasData } = await supabase
             .from("canchas")
             .select("*")
             .eq("club_id", id)
-            .order("created_at", {
-                ascending: false
-            });
+            .order("created_at", { ascending: false });
 
-        if (canchasError) {
-
-            console.log(canchasError);
-
-        } else {
-
-            setCanchas(canchasData || []);
-        }
-
+        setCanchas(canchasData || []);
         setLoading(false);
     }
 
-    // LOADING
-
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white",
-                    fontSize: "15px"
-                }}
-            >
-                Cargando club...
+            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-400">
+                Cargando...
             </div>
         );
     }
 
-    // CLUB NO ENCONTRADO
-
     if (!club) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    color: "white",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center"
-                }}
-            >
+            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-400">
                 Club no encontrado
             </div>
         );
     }
 
     return (
-
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "12px",
-                boxSizing: "border-box"
-            }}
-        >
+        <div className="min-h-screen bg-black text-white pb-24">
 
             {/* HEADER */}
-
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "16px"
-                }}
-            >
+            <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-xl border-b border-zinc-900 px-4 py-4">
 
                 <button
-                    onClick={() =>
-                        navigate("/admin/clubes")
-                    }
-                    style={{
-                        width: "fit-content",
-                        background: "#1f1f1f",
-                        border: "1px solid #2e2e2e",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "8px 12px",
-                        fontSize: "13px",
-                        cursor: "pointer"
-                    }}
+                    onClick={() => navigate("/admin/clubes")}
+                    className="text-xs font-semibold px-3 py-2 rounded-full bg-zinc-900 border border-zinc-800 active:scale-95"
                 >
                     ← Volver
                 </button>
 
-                <div>
+                <h1 className="text-2xl font-bold mt-3">
+                    {club.nombre}
+                </h1>
 
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontSize: "24px",
-                            fontWeight: "700"
-                        }}
-                    >
-                        Detalle del Club
-                    </h1>
+                <p className="text-sm text-zinc-400 mt-1">
+                    {club.direccion || "Sin dirección registrada"}
+                </p>
 
-                    <p
-                        style={{
-                            marginTop: "4px",
-                            color: "#9e9e9e",
-                            fontSize: "13px"
-                        }}
-                    >
-                        Panel administrativo del club
-                    </p>
+            </div>
+
+            {/* IMAGEN */}
+            <div className="px-4 mt-4">
+
+                <div className="h-52 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900">
+
+                    {club.foto ? (
+                        <img
+                            src={club.foto}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-zinc-500 text-sm">
+                            Sin imagen
+                        </div>
+                    )}
 
                 </div>
 
             </div>
 
-            {/* TARJETA CLUB */}
+            {/* INFO VISUAL PRO */}
+            <div className="px-4 mt-4 space-y-4">
 
-            <div
-                style={{
-                    background: "#1a1a1a",
-                    border: "1px solid #2a2a2a",
-                    borderRadius: "18px",
-                    overflow: "hidden",
-                    marginBottom: "18px"
-                }}
-            >
+                {/* CLUB INFO */}
+                <div className="bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-2xl p-4">
 
-                {/* FOTO */}
-
-                <div
-                    style={{
-                        width: "100%",
-                        height: "210px",
-                        background: "#222"
-                    }}
-                >
-
-                    {club.foto ? (
-
-                        <img
-                            src={club.foto}
-                            alt={club.nombre}
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover"
-                            }}
-                        />
-
-                    ) : (
-
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                color: "#666",
-                                fontSize: "13px"
-                            }}
-                        >
-                            Sin imagen
-                        </div>
-
-                    )}
-
-                </div>
-
-                {/* INFO */}
-
-                <div
-                    style={{
-                        padding: "16px"
-                    }}
-                >
-
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: "10px",
-                            marginBottom: "12px"
-                        }}
-                    >
+                    <div className="flex justify-between items-start">
 
                         <div>
 
-                            <h2
-                                style={{
-                                    margin: 0,
-                                    fontSize: "24px",
-                                    fontWeight: "700",
-                                    lineHeight: "1.2"
-                                }}
-                            >
+                            <h2 className="text-xl font-bold">
                                 {club.nombre}
                             </h2>
 
-                            <p
-                                style={{
-                                    marginTop: "6px",
-                                    color: "#bdbdbd",
-                                    fontSize: "13px",
-                                    lineHeight: "1.5"
-                                }}
-                            >
-                                {club.direccion || "Sin dirección"}
+                            <p className="text-sm text-zinc-400 mt-1">
+                                {club.direccion || "Sin dirección registrada"}
                             </p>
 
                         </div>
 
-                        <span
-                            style={{
-                                background:
-                                    club.habilitacion === "eliminado"
-                                        ? "#4a1f1f"
-                                        : "#173524",
-                                color:
-                                    club.habilitacion === "eliminado"
-                                        ? "#ff8a80"
-                                        : "#69f0ae",
-                                padding: "6px 12px",
-                                borderRadius: "999px",
-                                fontSize: "11px",
-                                fontWeight: "700",
-                                textTransform: "uppercase",
-                                flexShrink: 0
-                            }}
-                        >
+                        <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border
+                            ${club.habilitacion === "eliminado"
+                                ? "text-red-400 border-red-500/30 bg-red-500/10"
+                                : "text-green-400 border-green-500/30 bg-green-500/10"
+                            }
+                        `}>
                             {club.habilitacion}
                         </span>
 
                     </div>
 
-                    {/* STATS */}
+                </div>
 
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(2, 1fr)",
-                            gap: "10px",
-                            marginTop: "16px"
-                        }}
-                    >
+                {/* STATS VISUALES */}
+                <div className="grid grid-cols-2 gap-3">
 
-                        <div
-                            style={{
-                                background: "#202020",
-                                borderRadius: "12px",
-                                padding: "12px"
-                            }}
-                        >
+                    <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-4">
 
-                            <p
-                                style={{
-                                    margin: 0,
-                                    fontSize: "11px",
-                                    color: "#9e9e9e",
-                                    textTransform: "uppercase"
-                                }}
-                            >
-                                Canchas
-                            </p>
+                        <p className="text-xs text-blue-300 uppercase tracking-wider">
+                            Canchas
+                        </p>
 
-                            <h3
-                                style={{
-                                    margin: "6px 0 0 0",
-                                    fontSize: "22px"
-                                }}
-                            >
-                                {canchas.length}
-                            </h3>
+                        <p className="text-3xl font-extrabold mt-1">
+                            {canchas.length}
+                        </p>
 
-                        </div>
+                    </div>
 
-                        <div
-                            style={{
-                                background: "#202020",
-                                borderRadius: "12px",
-                                padding: "12px"
-                            }}
-                        >
+                    <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/10 border border-green-500/20 rounded-2xl p-4">
 
-                            <p
-                                style={{
-                                    margin: 0,
-                                    fontSize: "11px",
-                                    color: "#9e9e9e",
-                                    textTransform: "uppercase"
-                                }}
-                            >
-                                Estado
-                            </p>
+                        <p className="text-xs text-green-300 uppercase tracking-wider">
+                            Estado
+                        </p>
 
-                            <h3
-                                style={{
-                                    margin: "6px 0 0 0",
-                                    fontSize: "18px",
-                                    color:
-                                        club.habilitacion === "eliminado"
-                                            ? "#ff8a80"
-                                            : "#69f0ae"
-                                }}
-                            >
-                                {club.habilitacion}
-                            </h3>
-
-                        </div>
+                        <p className="text-lg font-bold text-green-400 mt-2">
+                            Activo
+                        </p>
 
                     </div>
 
                 </div>
 
-            </div>
+                {/* DESCRIPCIÓN */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
 
-            {/* HEADER CANCHAS */}
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                        Información del club
+                    </p>
 
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "12px",
-                    gap: "10px"
-                }}
-            >
-
-                <div>
-
-                    <h2
-                        style={{
-                            margin: 0,
-                            fontSize: "20px"
-                        }}
-                    >
-                        Canchas
-                    </h2>
-
-                    <p
-                        style={{
-                            marginTop: "4px",
-                            color: "#9e9e9e",
-                            fontSize: "12px"
-                        }}
-                    >
-                        Administración de canchas del club
+                    <p className="text-sm text-zinc-300 mt-2 leading-relaxed">
+                        {club.descripcion || "Club deportivo con instalaciones disponibles para reservas y actividades deportivas."}
                     </p>
 
                 </div>
 
             </div>
 
-            {/* SIN CANCHAS */}
+            {/* TITULO CANCHAS */}
+            <div className="px-4 mt-6 mb-3">
+                <h2 className="text-lg font-semibold">
+                    Canchas
+                </h2>
+            </div>
 
-            {canchas.length === 0 ? (
+            {/* LISTA CANCHAS */}
+            {/* LISTA CANCHAS */}
+            <div className="px-4 space-y-4">
 
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "16px",
-                        padding: "20px",
-                        textAlign: "center",
-                        color: "#9e9e9e",
-                        fontSize: "13px"
-                    }}
-                >
-                    Este club todavía no tiene canchas registradas
-                </div>
+                {canchas.length === 0 ? (
 
-            ) : (
-
-                canchas.map((cancha) => (
-
-                    <div
-                        key={cancha.id}
-                        onClick={() =>
-                            navigate(`/admin/cancha/${cancha.id}`)
-                        }
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "16px",
-                            overflow: "hidden",
-                            marginBottom: "14px",
-                            cursor: "pointer"
-                        }}
-                    >
-
-                        {/* FOTO */}
-
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "170px",
-                                background: "#222"
-                            }}
-                        >
-
-                            {cancha.foto ? (
-
-                                <img
-                                    src={cancha.foto}
-                                    alt={cancha.nombre}
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover"
-                                    }}
-                                />
-
-                            ) : (
-
-                                <div
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        color: "#666",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Sin imagen
-                                </div>
-
-                            )}
-
-                        </div>
-
-                        {/* INFO */}
-
-                        <div
-                            style={{
-                                padding: "14px"
-                            }}
-                        >
-
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "flex-start",
-                                    gap: "10px"
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        flex: 1
-                                    }}
-                                >
-
-                                    <h3
-                                        style={{
-                                            margin: 0,
-                                            fontSize: "19px",
-                                            lineHeight: "1.3"
-                                        }}
-                                    >
-                                        {cancha.nombre}
-                                    </h3>
-
-                                    <p
-                                        style={{
-                                            marginTop: "6px",
-                                            color: "#bdbdbd",
-                                            fontSize: "13px"
-                                        }}
-                                    >
-                                        {cancha.deporte || "Sin deporte"}
-                                    </p>
-
-                                </div>
-
-                                <span
-                                    style={{
-                                        background:
-                                            cancha.habilitacion === "eliminado"
-                                                ? "#4a1f1f"
-                                                : "#173524",
-                                        color:
-                                            cancha.habilitacion === "eliminado"
-                                                ? "#ff8a80"
-                                                : "#69f0ae",
-                                        padding: "5px 10px",
-                                        borderRadius: "999px",
-                                        fontSize: "11px",
-                                        fontWeight: "700",
-                                        textTransform: "uppercase",
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    {cancha.habilitacion || "disponible"}
-                                </span>
-
-                            </div>
-
-                            {/* DESCRIPCION */}
-
-                            <p
-                                style={{
-                                    marginTop: "12px",
-                                    marginBottom: "14px",
-                                    color: "#cfcfcf",
-                                    fontSize: "13px",
-                                    lineHeight: "1.6"
-                                }}
-                            >
-                                {cancha.descripcion || "Sin descripción"}
-                            </p>
-
-                            {/* FOOTER */}
-
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    flexWrap: "wrap"
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: "8px",
-                                        flexWrap: "wrap"
-                                    }}
-                                >
-
-                                    <div
-                                        style={{
-                                            background: "#202020",
-                                            borderRadius: "10px",
-                                            padding: "8px 10px",
-                                            fontSize: "12px"
-                                        }}
-                                    >
-                                        💰 ${cancha.precio_por_hora}
-                                    </div>
-
-                                    <div
-                                        style={{
-                                            background: "#202020",
-                                            borderRadius: "10px",
-                                            padding: "8px 10px",
-                                            fontSize: "12px"
-                                        }}
-                                    >
-                                        🏟️ {cancha.deporte}
-                                    </div>
-
-                                </div>
-
-                                <div
-                                    style={{
-                                        color: "#69f0ae",
-                                        fontSize: "12px",
-                                        fontWeight: "700"
-                                    }}
-                                >
-                                    Ver detalle →
-                                </div>
-
-                            </div>
-
-                        </div>
-
+                    <div className="text-center py-10 text-zinc-500 text-sm border border-zinc-900 rounded-2xl">
+                        No hay canchas registradas
                     </div>
 
-                ))
-            )}
+                ) : (
+
+                    canchas.map((c) => (
+
+                        <div
+                            key={c.id}
+                            onClick={() => navigate(`/admin/cancha/${c.id}`)}
+                            className="
+                    relative
+                    w-full
+                    rounded-3xl
+                    overflow-hidden
+                    cursor-pointer
+                    shadow-lg
+                    border border-zinc-800
+                    active:scale-[0.98]
+                    transition
+                "
+                        >
+
+                            {/* IMAGEN */}
+                            <img
+                                src={c.foto}
+                                alt={c.nombre}
+                                className="w-full h-44 object-cover brightness-75"
+                            />
+
+                            {/* OVERLAY */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                            {/* ESTADO */}
+                            <div
+                                className={`
+                        absolute top-3 right-3 text-xs px-3 py-1 rounded-full border
+                        ${c.habilitacion === "eliminado"
+                                        ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                        : "bg-green-500/20 text-green-300 border-green-500/30"
+                                    }
+                    `}
+                            >
+                                {c.habilitacion || "activo"}
+                            </div>
+
+                            {/* INFO */}
+                            <div className="absolute bottom-0 w-full p-4">
+
+                                <div className="flex justify-between items-end gap-3">
+
+                                    <h3 className="text-white text-lg font-bold leading-tight">
+                                        {c.nombre}
+                                    </h3>
+
+                                    <span className="text-green-300 font-bold text-sm">
+                                        ${c.precio_por_hora}
+                                    </span>
+
+                                </div>
+
+                                <p className="text-zinc-300 text-sm mt-1">
+                                    {c.deporte || "Sin deporte"}
+                                </p>
+
+                                <p className="text-zinc-400 text-xs mt-1 line-clamp-1">
+                                    {c.descripcion || "Sin descripción"}
+                                </p>
+
+                                <div className="mt-3">
+                                    <span className="text-xs text-white/70">
+                                        Ver detalle →
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    ))
+
+                )}
+
+            </div>
 
         </div>
     );

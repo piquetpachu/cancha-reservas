@@ -3,9 +3,7 @@ import { supabase } from "../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function AdminCanchaDetalle() {
-
     const navigate = useNavigate();
-
     const { id } = useParams();
 
     const [cancha, setCancha] = useState(null);
@@ -18,569 +16,261 @@ export default function AdminCanchaDetalle() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-
         cargarDatos();
-
     }, [id]);
 
     async function cargarDatos() {
-
         setLoading(true);
 
-        // CANCHA
-
-    
-        const {
-            data: canchaData,
-            error: canchaError
-        } = await supabase
+        const { data: canchaData } = await supabase
             .from("canchas")
             .select("*")
             .eq("id", id)
             .single();
 
-        if (canchaError) {
-
-            console.log(canchaError);
-            setLoading(false);
-            return;
-        }
-
         setCancha(canchaData);
 
-      
-        // CLUB
-       
-
-        if (canchaData.club_id) {
-
-            const {
-                data: clubData,
-                error: clubError
-            } = await supabase
+        if (canchaData?.club_id) {
+            const { data: clubData } = await supabase
                 .from("clubs")
                 .select("*")
                 .eq("id", canchaData.club_id)
                 .single();
 
-            if (clubError) {
-
-                console.log(clubError);
-
-            } else {
-
-                setClub(clubData);
-            }
+            setClub(clubData);
         }
 
-       
-        // HORARIOS
-       
-
-        const {
-            data: horariosData,
-            error: horariosError
-        } = await supabase
+        const { data: horariosData } = await supabase
             .from("horarios_cancha")
             .select("*")
-            .eq("cancha_id", id)
-            .order("dia_semana", {
-                ascending: true
-            });
+            .eq("cancha_id", id);
 
-        if (horariosError) {
+        setHorarios(horariosData || []);
 
-            console.log(horariosError);
-
-        } else {
-
-            setHorarios(horariosData || []);
-        }
-
-        // BLOQUEOS
-
-        const {
-            data: bloqueosData,
-            error: bloqueosError
-        } = await supabase
+        const { data: bloqueosData } = await supabase
             .from("bloqueos_horarios")
             .select("*")
-            .eq("cancha_id", id)
-            .order("fecha", {
-                ascending: false
-            });
+            .eq("cancha_id", id);
 
-        if (bloqueosError) {
+        setBloqueos(bloqueosData || []);
 
-            console.log(bloqueosError);
-
-        } else {
-
-            setBloqueos(bloqueosData || []);
-        }
-
-        // RESERVAS
-
-        const {
-            data: reservasData,
-            error: reservasError
-        } = await supabase
+        const { data: reservasData } = await supabase
             .from("reservas")
             .select("*")
-            .eq("cancha_id", id)
-            .order("fecha", {
-                ascending: false
-            });
+            .eq("cancha_id", id);
 
-        if (reservasError) {
-
-            console.log(reservasError);
-
-        } else {
-
-            setReservas(reservasData || []);
-        }
+        setReservas(reservasData || []);
 
         setLoading(false);
     }
 
-    // ELIMINAR
-
     async function eliminarCancha() {
+        if (!window.confirm("¿Eliminar esta cancha?")) return;
 
-        const confirmar = window.confirm(
-            "¿Eliminar esta cancha?"
-        );
-
-        if (!confirmar) return;
-
-        const { error } = await supabase
+        await supabase
             .from("canchas")
-            .update({
-                habilitacion: "eliminado"
-            })
+            .update({ habilitacion: "eliminado" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarDatos();
+        cargarDatos();
     }
-
-    // RESTAURAR
 
     async function restaurarCancha() {
-
-        const { error } = await supabase
+        await supabase
             .from("canchas")
-            .update({
-                habilitacion: "disponible"
-            })
+            .update({ habilitacion: "disponible" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarDatos();
+        cargarDatos();
     }
 
-    // LOADING
-
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white"
-                }}
-            >
+            <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
                 Cargando cancha...
             </div>
         );
     }
 
-    // NO ENCONTRADA
-
     if (!cancha) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white"
-                }}
-            >
+            <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
                 Cancha no encontrada
             </div>
         );
     }
 
     return (
+        <div className="min-h-screen bg-zinc-950 text-white px-4 pb-8">
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "14px",
-                boxSizing: "border-box"
-            }}
-        >
+            {/* 🔥 CARD ESTILO OPCIÓN 1 */}
+            <div className="relative w-full h-64 rounded-3xl overflow-hidden border border-zinc-800 shadow-lg mt-4">
 
-            {/* BOTON */}
+                {/* IMAGEN */}
+                <img
+                    src={cancha.foto}
+                    alt={cancha.nombre}
+                    className="w-full h-full object-cover"
+                />
 
-            {/* ACCIONES ADMIN */}
+                {/* OVERLAY */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "18px"
-                }}
-            >
+                {/* ESTADO */}
+                <div
+                    className={`absolute top-4 left-4 text-xs px-3 py-1 rounded-full font-semibold
+                    ${cancha.habilitacion === "eliminado"
+                            ? "bg-red-500/80 text-white"
+                            : "bg-green-500/80 text-white"
+                        }`}
+                >
+                    {cancha.habilitacion}
+                </div>
+
+                {/* INFO */}
+                <div className="absolute bottom-0 w-full p-5">
+
+                    <h2 className="text-2xl font-bold">
+                        {cancha.nombre}
+                    </h2>
+
+                    <p className="text-sm text-zinc-300 mt-1">
+                        {club?.nombre || "Sin club"}
+                    </p>
+
+                    <p className="text-xs text-zinc-400 mt-1">
+                        {cancha.direccion}
+                    </p>
+
+                    {/* PRECIO */}
+                    <div className="flex items-center justify-between mt-3">
+
+                        <p className="text-2xl font-bold text-green-400">
+                            ${cancha.precio || "8000"}
+                            <span className="text-sm text-zinc-300"> / hora</span>
+                        </p>
+
+                        <button
+                            onClick={() => navigate(`/admin/cancha/${id}/editar`)}
+                            className="border border-green-500 text-green-400 px-4 py-2 rounded-xl hover:bg-green-500 hover:text-white transition"
+                        >
+                            Ver detalle →
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            {/* 🔥 BOTONES ADMIN */}
+            <div className="mt-5 flex flex-col gap-3">
 
                 <button
-                    onClick={() =>
-                        navigate(`/admin/cancha/${id}/editar`)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#1565c0",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    onClick={() => navigate(`/admin/cancha/${id}/editar`)}
+                    className="bg-white/10 hover:bg-white/20 transition text-white px-4 py-3 rounded-xl"
                 >
                     Editar cancha
                 </button>
 
                 <button
-                    onClick={() =>
-                        navigate(`/admin/cancha/${id}/horarios`)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#5e35b1",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    onClick={() => navigate(`/admin/cancha/${id}/horarios`)}
+                    className="bg-white/10 hover:bg-white/20 transition text-white px-4 py-3 rounded-xl"
                 >
                     Gestionar horarios
                 </button>
 
                 <button
-                    onClick={() =>
-                        navigate(`/admin/bloqueos`)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#ef6c00",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    onClick={() => navigate(`/admin/bloqueos`)}
+                    className="bg-white/10 hover:bg-white/20 transition text-white px-4 py-3 rounded-xl"
                 >
-                    Gestionar bloqueos
+                    Bloqueos
                 </button>
 
                 <button
-                    onClick={() =>
-                        navigate(`/admin/reservas?cancha=${id}`)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#00897b",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    onClick={() => navigate(`/admin/reservas?cancha=${id}`)}
+                    className="bg-white/10 hover:bg-white/20 transition text-white px-4 py-3 rounded-xl"
                 >
-                    Ver reservas completas
+                    Ver reservas
                 </button>
 
                 {cancha.habilitacion === "eliminado" ? (
-
                     <button
                         onClick={restaurarCancha}
-                        style={{
-                            width: "100%",
-                            background: "#2e7d32",
-                            border: "none",
-                            color: "white",
-                            borderRadius: "12px",
-                            padding: "13px",
-                            fontWeight: "700",
-                            cursor: "pointer"
-                        }}
+                        className="bg-green-600 hover:bg-green-500 transition text-white px-4 py-3 rounded-xl"
                     >
                         Restaurar cancha
                     </button>
-
                 ) : (
-
                     <button
                         onClick={eliminarCancha}
-                        style={{
-                            width: "100%",
-                            background: "#b71c1c",
-                            border: "none",
-                            color: "white",
-                            borderRadius: "12px",
-                            padding: "13px",
-                            fontWeight: "700",
-                            cursor: "pointer"
-                        }}
+                        className="bg-red-700 hover:bg-red-600 transition text-white px-4 py-3 rounded-xl"
                     >
                         Eliminar cancha
                     </button>
-
                 )}
-
             </div>
-            {/* HORARIOS */}
 
-            <h2 style={{ fontSize: "18px" }}>
-                Horarios
-            </h2>
+            {/* 🔥 SECCIONES (SIN CAMBIOS) */}
 
-            {horarios.length === 0 ? (
+            <h2 className="text-white text-lg font-bold mt-6 mb-3">Horarios</h2>
 
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "14px",
-                        padding: "14px",
-                        color: "#9e9e9e",
-                        marginBottom: "18px"
-                    }}
-                >
-                    Sin horarios
-                </div>
+            <div className="flex flex-col gap-3">
+                {horarios.length === 0 ? (
+                    <p className="text-zinc-400">Sin horarios</p>
+                ) : (
+                    horarios.map((h) => (
+                        <div key={h.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+                            <p className="font-bold">{h.dia_semana}</p>
+                            <p className="text-zinc-400 text-sm">
+                                {h.hora_inicio} - {h.hora_fin}
+                            </p>
+                        </div>
+                    ))
+                )}
+            </div>
 
-            ) : (
+            <h2 className="text-white text-lg font-bold mt-6 mb-3">Bloqueos</h2>
 
-                horarios.map((h) => (
+            <div className="flex flex-col gap-3">
+                {bloqueos.length === 0 ? (
+                    <p className="text-zinc-400">Sin bloqueos</p>
+                ) : (
+                    bloqueos.map((b) => (
+                        <div key={b.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+                            <p className="font-bold">{b.fecha}</p>
+                            <p className="text-zinc-400 text-sm">
+                                {b.hora_inicio} - {b.hora_fin}
+                            </p>
+                        </div>
+                    ))
+                )}
+            </div>
 
-                    <div
-                        key={h.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "14px",
-                            padding: "14px",
-                            marginBottom: "10px"
-                        }}
-                    >
+            <h2 className="text-white text-lg font-bold mt-6 mb-3">Reservas</h2>
 
-                        <strong>
-                            {h.dia_semana}
-                        </strong>
-
-                        <p
-                            style={{
-                                marginTop: "6px",
-                                color: "#bdbdbd"
-                            }}
-                        >
-                            {h.hora_inicio} - {h.hora_fin}
-                        </p>
-
-                    </div>
-
-                ))
-            )}
-
-            {/* BLOQUEOS */}
-
-            <h2
-                style={{
-                    fontSize: "18px",
-                    marginTop: "24px"
-                }}
-            >
-                Bloqueos
-            </h2>
-
-            {bloqueos.length === 0 ? (
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "14px",
-                        padding: "14px",
-                        color: "#9e9e9e",
-                        marginBottom: "18px"
-                    }}
-                >
-                    Sin bloqueos
-                </div>
-
-            ) : (
-
-                bloqueos.map((b) => (
-
-                    <div
-                        key={b.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "14px",
-                            padding: "14px",
-                            marginBottom: "10px"
-                        }}
-                    >
-
-                        <strong>
-                            {b.fecha}
-                        </strong>
-
-                        <p
-                            style={{
-                                marginTop: "6px",
-                                color: "#bdbdbd"
-                            }}
-                        >
-                            {b.hora_inicio} - {b.hora_fin}
-                        </p>
-
-                    </div>
-
-                ))
-            )}
-
-            {/* RESERVAS */}
-
-            <h2
-                style={{
-                    fontSize: "18px",
-                    marginTop: "24px"
-                }}
-            >
-                Reservas
-            </h2>
-
-            {reservas.length === 0 ? (
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "14px",
-                        padding: "14px",
-                        color: "#9e9e9e"
-                    }}
-                >
-                    Sin reservas
-                </div>
-
-            ) : (
-
-                reservas.map((r) => (
-
-                    <div
-                        key={r.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "14px",
-                            padding: "14px",
-                            marginBottom: "10px"
-                        }}
-                    >
-
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                gap: "10px"
-                            }}
-                        >
-
+            <div className="flex flex-col gap-3">
+                {reservas.length === 0 ? (
+                    <p className="text-zinc-400">Sin reservas</p>
+                ) : (
+                    reservas.map((r) => (
+                        <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex justify-between items-center">
                             <div>
-
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        fontWeight: "700",
-                                        fontSize: "14px"
-                                    }}
-                                >
-                                    {r.fecha}
-                                </p>
-
-                                <p
-                                    style={{
-                                        marginTop: "5px",
-                                        color: "#bdbdbd",
-                                        fontSize: "13px"
-                                    }}
-                                >
+                                <p className="font-bold">{r.fecha}</p>
+                                <p className="text-zinc-400 text-sm">
                                     {r.hora_inicio} - {r.hora_fin}
                                 </p>
-
                             </div>
 
-                            <span
-                                style={{
-                                    background:
-                                        r.estado === "cancelada"
-                                            ? "#4a1f1f"
-                                            : "#173524",
-                                    color:
-                                        r.estado === "cancelada"
-                                            ? "#ff8a80"
-                                            : "#69f0ae",
-                                    padding: "6px 10px",
-                                    borderRadius: "999px",
-                                    fontSize: "11px",
-                                    fontWeight: "700",
-                                    textTransform: "uppercase"
-                                }}
-                            >
+                            <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold 
+                                ${r.estado === "cancelada"
+                                    ? "bg-red-500/20 text-red-300"
+                                    : "bg-green-500/20 text-green-300"
+                                }`}>
                                 {r.estado}
                             </span>
-
                         </div>
-
-                    </div>
-
-                ))
-            )}
+                    ))
+                )}
+            </div>
 
         </div>
     );
