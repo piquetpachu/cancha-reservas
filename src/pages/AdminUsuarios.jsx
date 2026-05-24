@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminUsuarios() {
 
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,174 +54,157 @@ export default function AdminUsuarios() {
         }
     }
 
+    // 🔍 FILTRO
+    const usuariosFiltrados = useMemo(() => {
+
+        return usuarios.filter((u) => {
+
+            const nombre = u.nombre?.toLowerCase() || "";
+            const email = u.email?.toLowerCase() || "";
+
+            const texto = busqueda.toLowerCase();
+
+            return (
+                nombre.includes(texto) ||
+                email.includes(texto)
+            );
+        });
+
+    }, [usuarios, busqueda]);
+
     if (loading) {
         return (
-            <div style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontSize: "20px"
-            }}>
-                Cargando usuarios...
+            <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+                <p className="text-zinc-400 text-lg">Cargando usuarios...</p>
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: "100vh",
-            background: "#121212",
-            color: "white",
-            padding: "20px",
-            boxSizing: "border-box"
-        }}>
 
-            <h1 style={{ marginBottom: "25px", fontSize: "30px" }}>
-                Usuarios
-            </h1>
+        <div className="min-h-screen bg-zinc-950 text-white">
 
-            {usuarios.length === 0 ? (
-                <div style={{
-                    background: "#1e1e1e",
-                    padding: "20px",
-                    borderRadius: "14px"
-                }}>
-                    No hay usuarios
+            {/* NAVBAR */}
+            <NavbarAdmin />
+
+            <div className="px-4 pt-4 pb-28 max-w-5xl mx-auto">
+
+                {/* HEADER */}
+                <div className="mb-6 flex flex-col gap-4">
+
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+
+                        <h1 className="text-3xl font-bold">
+                            Usuarios
+                        </h1>
+
+                        <span className="bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl text-sm text-zinc-400">
+                            Total: {usuariosFiltrados.length}
+                        </span>
+
+                    </div>
+
+                    {/* 🔍 BUSCADOR */}
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre o email..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
+                    />
+
                 </div>
-            ) : (
 
-                usuarios.map((u) => (
+                {usuariosFiltrados.length === 0 ? (
 
-                    <div
-                        key={u.id}
-                        onClick={() => navigate(`/admin/usuarios/${u.id}`)}
-                        style={{
-                            background: "#1e1e1e",
-                            border: "1px solid #333",
-                            borderRadius: "16px",
-                            padding: "18px",
-                            marginBottom: "18px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "14px",
-                            cursor: "pointer"
-                        }}
-                    >
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-zinc-400">
+                        No se encontraron usuarios
+                    </div>
 
-                        {/* INFO PRINCIPAL */}
-                        <div>
-                            <p style={{
-                                margin: 0,
-                                fontSize: "18px",
-                                fontWeight: "bold"
-                            }}>
-                                {u.nombre || "Sin nombre"}
-                            </p>
+                ) : (
 
-                            <p style={{
-                                margin: "8px 0 0 0",
-                                color: "#bdbdbd",
-                                wordBreak: "break-word"
-                            }}>
-                                {u.email}
-                            </p>
-                        </div>
+                    <div className="space-y-5">
 
-                        {/* ROL + BOTONES */}
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
-                            gap: "12px"
-                        }}>
+                        {usuariosFiltrados.map((u) => (
 
-                            <span style={{
-                                background:
-                                    u.rol === "admin"
-                                        ? "#8e24aa"
-                                        : u.rol === "dueno"
-                                            ? "#1565c0"
-                                            : "#2e7d32",
-                                padding: "8px 14px",
-                                borderRadius: "999px",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                textTransform: "uppercase"
-                            }}>
-                                {u.rol}
-                            </span>
+                            <div
+                                key={u.id}
+                                onClick={() => navigate(`/admin/usuarios/${u.id}`)}
+                                className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 cursor-pointer hover:border-zinc-600 transition"
+                            >
 
-                            <div style={{
-                                display: "flex",
-                                gap: "10px",
-                                flexWrap: "wrap"
-                            }}>
+                                {/* INFO */}
+                                <div className="mb-4">
 
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        cambiarRol(u.id, "cliente")
-                                    }}
-                                    style={{
-                                        padding: "10px 14px",
-                                        border: "none",
-                                        borderRadius: "10px",
-                                        cursor: "pointer",
-                                        background: "#2e7d32",
-                                        color: "white",
-                                        fontWeight: "bold"
-                                    }}
-                                >
-                                    Cliente
-                                </button>
+                                    <p className="text-lg font-semibold group-hover:text-blue-400 transition">
+                                        {u.nombre || "Sin nombre"}
+                                    </p>
 
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        cambiarRol(u.id, "dueno")
-                                    }}
-                                    style={{
-                                        padding: "10px 14px",
-                                        border: "none",
-                                        borderRadius: "10px",
-                                        cursor: "pointer",
-                                        background: "#1565c0",
-                                        color: "white",
-                                        fontWeight: "bold"
-                                    }}
-                                >
-                                    Dueño
-                                </button>
+                                    <p className="text-zinc-400 text-sm mt-1 break-all">
+                                        {u.email}
+                                    </p>
 
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        cambiarRol(u.id, "admin")
-                                    }}
-                                    style={{
-                                        padding: "10px 14px",
-                                        border: "none",
-                                        borderRadius: "10px",
-                                        cursor: "pointer",
-                                        background: "#8e24aa",
-                                        color: "white",
-                                        fontWeight: "bold"
-                                    }}
-                                >
-                                    Admin
-                                </button>
+                                </div>
+
+                                {/* ROL + BOTONES */}
+                                <div className="flex items-center justify-between flex-wrap gap-3">
+
+                                    {/* ROL */}
+                                    <span className={`
+                                        px-3 py-1 rounded-full text-xs font-bold uppercase
+                                        ${u.rol === "admin" && "bg-purple-500/20 text-purple-300"}
+                                        ${u.rol === "dueno" && "bg-blue-500/20 text-blue-300"}
+                                        ${u.rol === "cliente" && "bg-green-500/20 text-green-300"}
+                                    `}>
+                                        {u.rol}
+                                    </span>
+
+                                    {/* BOTONES */}
+                                    <div className="flex gap-2 flex-wrap">
+
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                cambiarRol(u.id, "cliente")
+                                            }}
+                                            className="px-3 py-2 rounded-lg text-sm font-semibold bg-green-600 hover:bg-green-500 transition"
+                                        >
+                                            Cliente
+                                        </button>
+
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                cambiarRol(u.id, "dueno")
+                                            }}
+                                            className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-500 transition"
+                                        >
+                                            Dueño
+                                        </button>
+
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                cambiarRol(u.id, "admin")
+                                            }}
+                                            className="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-600 hover:bg-purple-500 transition"
+                                        >
+                                            Admin
+                                        </button>
+
+                                    </div>
+
+                                </div>
 
                             </div>
 
-                        </div>
+                        ))}
 
                     </div>
-                ))
-            )}
+
+                )}
+
+            </div>
 
         </div>
     );

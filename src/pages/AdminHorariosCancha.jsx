@@ -1,133 +1,164 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminHorariosCancha() {
 
+    const { id } = useParams();
     const navigate = useNavigate();
 
-    const { id } = useParams();
-
-    const [horarios, setHorarios] = useState([]);
-
-    const [dia, setDia] = useState("Lunes");
+    const [diasSeleccionados, setDiasSeleccionados] = useState([]);
     const [horaInicio, setHoraInicio] = useState("");
     const [horaFin, setHoraFin] = useState("");
-
-    const [guardando, setGuardando] = useState(false);
+    const [horarios, setHorarios] = useState([]);
+    const [mensaje, setMensaje] = useState("");
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const dias = [
+        "lunes",
+        "martes",
+        "miercoles",
+        "jueves",
+        "viernes",
+        "sabado",
+        "domingo"
+    ];
 
-        cargarHorarios();
-
-    }, [id]);
-
+    // 🔥 CARGAR
     async function cargarHorarios() {
 
         setLoading(true);
 
-        const {
-            data,
-            error
-        } = await supabase
+        const { data, error } = await supabase
             .from("horarios_cancha")
             .select("*")
             .eq("cancha_id", id)
-            .order("dia_semana", {
-                ascending: true
-            });
+            .order("dia_semana", { ascending: true })
+            .order("hora_inicio", { ascending: true });
 
-        if (error) {
-
-            console.log(error);
-
-        } else {
-
+        if (!error) {
             setHorarios(data || []);
         }
 
         setLoading(false);
     }
 
-    async function agregarHorario(e) {
+    useEffect(() => {
+        if (id) cargarHorarios();
+    }, [id]);
 
-        e.preventDefault();
+    // 🔥 TOGGLE DIA
+    function toggleDia(dia) {
+        setDiasSeleccionados(prev =>
+            prev.includes(dia)
+                ? prev.filter(d => d !== dia)
+                : [...prev, dia]
+        );
+    }
 
-        if (!horaInicio || !horaFin) {
+    // 🔥 SELECCIONES RÁPIDAS
+    function seleccionarTodos() {
+        setDiasSeleccionados(dias);
+    }
 
-            alert("Completa los horarios");
+    function seleccionarSemana() {
+        setDiasSeleccionados(dias.slice(0, 5));
+    }
+
+    function seleccionarFinde() {
+        setDiasSeleccionados(["sabado", "domingo"]);
+    }
+
+    // 🔥 NORMALIZAR
+    function normalizarHora(hora) {
+        return hora.slice(0, 2) + ":00";
+    }
+
+    // 🔥 GUARDAR
+    async function guardarHorario() {
+
+        setMensaje("");
+
+        if (!diasSeleccionados.length || !horaInicio || !horaFin) {
+            setMensaje("Completá todos los campos");
             return;
         }
 
-        setGuardando(true);
+        const inicio = normalizarHora(horaInicio);
+        const fin = normalizarHora(horaFin);
 
-        const {
-            error
-        } = await supabase
+        if (inicio >= fin) {
+            setMensaje("La hora final debe ser mayor");
+            return;
+        }
+
+        const duplicado = horarios.some(h =>
+            diasSeleccionados.includes(h.dia_semana) &&
+            h.hora_inicio.slice(0, 5) === inicio &&
+            h.hora_fin.slice(0, 5) === fin
+        );
+
+        if (duplicado) {
+            setMensaje("Ese horario ya existe");
+            return;
+        }
+
+        const solapado = horarios.some(h => {
+            if (!diasSeleccionados.includes(h.dia_semana)) return false;
+
+            return (
+                inicio < h.hora_fin &&
+                fin > h.hora_inicio
+            );
+        });
+
+        if (solapado) {
+            setMensaje("Hay superposición de horarios");
+            return;
+        }
+
+        const datos = diasSeleccionados.map(dia => ({
+            cancha_id: id,
+            dia_semana: dia,
+            hora_inicio: inicio,
+            hora_fin: fin
+        }));
+
+        const { error } = await supabase
             .from("horarios_cancha")
-            .insert([
-                {
-                    cancha_id: id,
-                    dia_semana: dia,
-                    hora_inicio: horaInicio,
-                    hora_fin: horaFin
-                }
-            ]);
-
-        setGuardando(false);
+            .insert(datos);
 
         if (error) {
-
-            console.log(error);
-            alert("Error al agregar horario");
+            setMensaje("Error: " + error.message);
             return;
         }
 
+        setDiasSeleccionados([]);
         setHoraInicio("");
         setHoraFin("");
+
+        setMensaje("Horarios agregados ✅");
 
         cargarHorarios();
     }
 
-    async function eliminarHorario(horarioId) {
+    // 🔥 ELIMINAR
+    async function eliminarHorario(idHorario) {
 
-        const confirmar = window.confirm(
-            "¿Eliminar horario?"
-        );
+        if (!window.confirm("¿Eliminar horario?")) return;
 
-        if (!confirmar) return;
-
-        const {
-            error
-        } = await supabase
+        await supabase
             .from("horarios_cancha")
             .delete()
-            .eq("id", horarioId);
-
-        if (error) {
-
-            console.log(error);
-            return;
-        }
+            .eq("id", idHorario);
 
         cargarHorarios();
     }
 
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white"
-                }}
-            >
+            <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
                 Cargando horarios...
             </div>
         );
@@ -135,255 +166,157 @@ export default function AdminHorariosCancha() {
 
     return (
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "14px",
-                boxSizing: "border-box",
-                paddingBottom: "40px"
-            }}
-        >
+        <div className="min-h-screen bg-zinc-950 text-white">
 
-            {/* HEADER */}
+            <NavbarAdmin />
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "18px"
-                }}
-            >
+            <div className="max-w-xl mx-auto px-4 pt-4 pb-20">
 
+                {/* VOLVER */}
                 <button
-                    onClick={() =>
-                        navigate(-1)
-                    }
-                    style={{
-                        width: "fit-content",
-                        background: "#1f1f1f",
-                        border: "1px solid #2e2e2e",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "9px 14px",
-                        cursor: "pointer"
-                    }}
+                    onClick={() => navigate(-1)}
+                    className="mb-4 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition text-sm"
                 >
                     ← Volver
                 </button>
 
-                <div>
+                <h1 className="text-2xl font-bold mb-4">
+                    Horarios de la cancha
+                </h1>
 
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontSize: "24px"
-                        }}
-                    >
-                        Gestionar horarios
-                    </h1>
+                {/* 🔥 ACCIONES RÁPIDAS */}
+                <div className="flex gap-2 flex-wrap mb-4">
 
-                    <p
-                        style={{
-                            marginTop: "5px",
-                            color: "#9e9e9e",
-                            fontSize: "13px"
-                        }}
+                    <button
+                        onClick={seleccionarTodos}
+                        className="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
                     >
-                        Panel administrativo
-                    </p>
+                        Todos
+                    </button>
+
+                    <button
+                        onClick={seleccionarSemana}
+                        className="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
+                    >
+                        Lun-Vie
+                    </button>
+
+                    <button
+                        onClick={seleccionarFinde}
+                        className="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
+                    >
+                        Finde
+                    </button>
 
                 </div>
 
-            </div>
+                {/* 🔥 DÍAS */}
+                <div className="flex flex-wrap gap-2 mb-4">
 
-            {/* FORM */}
+                    {dias.map(dia => (
 
-            <form
-                onSubmit={agregarHorario}
-                style={{
-                    background: "#1a1a1a",
-                    border: "1px solid #2a2a2a",
-                    borderRadius: "18px",
-                    padding: "16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "14px",
-                    marginBottom: "22px"
-                }}
-            >
+                        <button
+                            key={dia}
+                            onClick={() => toggleDia(dia)}
+                            className={`px-3 py-2 rounded-xl text-sm capitalize transition
+                                ${diasSeleccionados.includes(dia)
+                                    ? "bg-blue-600"
+                                    : "bg-zinc-800 hover:bg-zinc-700"
+                                }`}
+                        >
+                            {dia}
+                        </button>
 
-                <select
-                    value={dia}
-                    onChange={(e) =>
-                        setDia(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#202020",
-                        border: "1px solid #333",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        color: "white",
-                        fontSize: "14px",
-                        outline: "none"
-                    }}
-                >
-                    <option>Lunes</option>
-                    <option>Martes</option>
-                    <option>Miércoles</option>
-                    <option>Jueves</option>
-                    <option>Viernes</option>
-                    <option>Sábado</option>
-                    <option>Domingo</option>
-                </select>
+                    ))}
 
-                <input
-                    type="time"
-                    value={horaInicio}
-                    onChange={(e) =>
-                        setHoraInicio(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#202020",
-                        border: "1px solid #333",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        color: "white",
-                        fontSize: "14px",
-                        outline: "none",
-                        boxSizing: "border-box"
-                    }}
-                />
+                </div>
 
-                <input
-                    type="time"
-                    value={horaFin}
-                    onChange={(e) =>
-                        setHoraFin(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#202020",
-                        border: "1px solid #333",
-                        borderRadius: "12px",
-                        padding: "13px",
-                        color: "white",
-                        fontSize: "14px",
-                        outline: "none",
-                        boxSizing: "border-box"
-                    }}
-                />
+                {/* 🔥 HORAS */}
+                <div className="flex gap-3 mb-4">
 
+                    <select
+                        value={horaInicio}
+                        onChange={(e) => setHoraInicio(e.target.value)}
+                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2"
+                    >
+                        <option value="">Inicio</option>
+                        {Array.from({ length: 24 }).map((_, i) => {
+                            const h = String(i).padStart(2, "0") + ":00";
+                            return <option key={h}>{h}</option>;
+                        })}
+                    </select>
+
+                    <select
+                        value={horaFin}
+                        onChange={(e) => setHoraFin(e.target.value)}
+                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2"
+                    >
+                        <option value="">Fin</option>
+                        {Array.from({ length: 24 }).map((_, i) => {
+                            const h = String(i).padStart(2, "0") + ":00";
+                            return <option key={h}>{h}</option>;
+                        })}
+                    </select>
+
+                </div>
+
+                {/* 🔥 BOTÓN */}
                 <button
-                    type="submit"
-                    disabled={guardando}
-                    style={{
-                        background: "#1565c0",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "14px",
-                        fontWeight: "700",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    onClick={guardarHorario}
+                    className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-semibold mb-3"
                 >
-                    {guardando
-                        ? "Guardando..."
-                        : "Agregar horario"}
+                    Guardar horarios
                 </button>
 
-            </form>
+                {mensaje && (
+                    <p className="text-sm text-zinc-300 mb-4">
+                        {mensaje}
+                    </p>
+                )}
 
-            {/* LISTA */}
+                {/* 🔥 LISTA */}
+                {horarios.length === 0 ? (
 
-            {horarios.length === 0 ? (
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-zinc-400">
+                        No hay horarios
+                    </div>
 
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "14px",
-                        padding: "16px",
-                        color: "#9e9e9e"
-                    }}
-                >
-                    No hay horarios
-                </div>
+                ) : (
 
-            ) : (
+                    <div className="space-y-3">
 
-                horarios.map((h) => (
+                        {horarios.map(h => (
 
-                    <div
-                        key={h.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "14px",
-                            padding: "14px",
-                            marginBottom: "10px"
-                        }}
-                    >
+                            <div
+                                key={h.id}
+                                className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex justify-between items-center"
+                            >
 
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                gap: "10px"
-                            }}
-                        >
+                                <div>
+                                    <p className="font-semibold capitalize">
+                                        {h.dia_semana}
+                                    </p>
 
-                            <div>
+                                    <p className="text-sm text-zinc-400">
+                                        {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
+                                    </p>
+                                </div>
 
-                                <h3
-                                    style={{
-                                        margin: 0,
-                                        fontSize: "15px"
-                                    }}
+                                <button
+                                    onClick={() => eliminarHorario(h.id)}
+                                    className="bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm"
                                 >
-                                    {h.dia_semana}
-                                </h3>
-
-                                <p
-                                    style={{
-                                        marginTop: "6px",
-                                        color: "#bdbdbd",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    {h.hora_inicio} - {h.hora_fin}
-                                </p>
+                                    Eliminar
+                                </button>
 
                             </div>
 
-                            <button
-                                onClick={() =>
-                                    eliminarHorario(h.id)
-                                }
-                                style={{
-                                    background: "#b71c1c",
-                                    border: "none",
-                                    color: "white",
-                                    borderRadius: "10px",
-                                    padding: "9px 12px",
-                                    fontWeight: "700",
-                                    cursor: "pointer"
-                                }}
-                            >
-                                Eliminar
-                            </button>
-
-                        </div>
+                        ))}
 
                     </div>
+                )}
 
-                ))
-            )}
+            </div>
 
         </div>
     );

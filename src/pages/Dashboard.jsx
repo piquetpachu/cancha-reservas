@@ -209,67 +209,7 @@ export default function Dashboard() {
 
             </div>
 
-            {/* TARJETAS RAPIDAS
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-
-              <div
-                className="
-                                    bg-zinc-900
-                                    border
-                                    border-zinc-800
-                                    rounded-3xl
-                                    p-4
-                                "
-              >
-
-                <p className="text-zinc-500 text-xs">
-                  Estado
-                </p>
-
-                <h3
-                  className="
-                                        text-green-400
-                                        text-xl
-                                        font-bold
-                                        mt-2
-                                    "
-                >
-                  Activo
-                </h3>
-
-              </div>
-
-              <div
-                className="
-                                    bg-zinc-900
-                                    border
-                                    border-zinc-800
-                                    rounded-3xl
-                                    p-4
-                                "
-              >
-
-                <p className="text-zinc-500 text-xs">
-                  Cuenta
-                </p>
-
-                <h3
-                  className="
-                                        text-blue-400
-                                        text-xl
-                                        font-bold
-                                        mt-2
-                                    "
-                >
-                  Cliente
-                </h3>
-
-              </div> */}
-
-            {/* </div> */}
-
-            {/* SECCION CLUBES */}
+            
 
             {/* SECCION CLUBES */}
 

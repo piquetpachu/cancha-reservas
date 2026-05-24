@@ -1,116 +1,97 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminReservas() {
+
+    const navigate = useNavigate();
 
     const [reservas, setReservas] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // FILTROS
-
     const [busqueda, setBusqueda] = useState("");
-
     const [filtroEstado, setFiltroEstado] = useState("todos");
-
     const [filtroFecha, setFiltroFecha] = useState("");
-
     const [filtroCancha, setFiltroCancha] = useState("");
-
-    // CARGAR
+    const [filtroClub, setFiltroClub] = useState("");
 
     useEffect(() => {
-
         cargarReservas();
-
     }, []);
 
     async function cargarReservas() {
 
         setLoading(true);
 
-        const {
-            data,
-            error
-        } = await supabase
+        const { data, error } = await supabase
             .from("reservas")
             .select(`
                 *,
                 canchas (
                     id,
                     nombre,
-                    deporte
+                    deporte,
+                    club_id,
+                    clubs (nombre)
                 )
             `)
-            .order("fecha", {
-                ascending: false
-            });
+            .order("fecha", { ascending: false });
 
-        if (error) {
-
-            console.log(error);
-
-        } else {
-
-            setReservas(data || []);
-        }
+        if (!error) setReservas(data || []);
 
         setLoading(false);
     }
 
-    // CANCELAR
-
-    
     async function cancelarReserva(id) {
 
-        const confirmar = window.confirm(
-            "¿Cancelar esta reserva?"
-        );
+        if (!window.confirm("¿Cancelar reserva?")) return;
 
-        if (!confirmar) return;
-
-        const { error } = await supabase
+        await supabase
             .from("reservas")
-            .update({
-                estado: "cancelada"
-            })
+            .update({ estado: "cancelada" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarReservas();
+        cargarReservas();
     }
-
-    // RESTAURAR
 
     async function restaurarReserva(id) {
 
-        const confirmar = window.confirm(
-            "¿Restaurar esta reserva?"
-        );
+        if (!window.confirm("¿Restaurar reserva?")) return;
 
-        if (!confirmar) return;
-
-        const { error } = await supabase
+        await supabase
             .from("reservas")
-            .update({
-                estado: "activa"
-            })
+            .update({ estado: "activa" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarReservas();
+        cargarReservas();
     }
 
-    // FILTRADAS
+    // CLUBES
+    const clubsUnicos = [
+        ...new Map(
+            reservas
+                .filter(r => r.canchas?.clubs)
+                .map(r => [
+                    r.canchas.club_id,
+                    r.canchas.clubs.nombre
+                ])
+        ).entries()
+    ].map(([id, nombre]) => ({ id, nombre }));
+
+    // CANCHAS FILTRADAS POR CLUB
+    const canchasFiltradas = [
+        ...new Set(
+            reservas
+                .filter(r =>
+                    filtroClub === ""
+                        ? true
+                        : r.canchas?.club_id === filtroClub
+                )
+                .map(r => r.canchas?.nombre)
+                .filter(Boolean)
+        )
+    ];
 
     const reservasFiltradas = useMemo(() => {
 
@@ -118,34 +99,20 @@ export default function AdminReservas() {
 
             const texto = busqueda.toLowerCase();
 
-            const coincideBusqueda =
-                r.canchas?.nombre
-                    ?.toLowerCase()
-                    .includes(texto) ||
-                r.fecha
-                    ?.toLowerCase()
-                    .includes(texto);
-
-            const coincideEstado =
-                filtroEstado === "todos"
-                    ? true
-                    : r.estado === filtroEstado;
-
-            const coincideFecha =
-                filtroFecha === ""
-                    ? true
-                    : r.fecha === filtroFecha;
-
-            const coincideCancha =
-                filtroCancha === ""
-                    ? true
-                    : r.canchas?.nombre === filtroCancha;
-
             return (
-                coincideBusqueda &&
-                coincideEstado &&
-                coincideFecha &&
-                coincideCancha
+                (r.canchas?.nombre?.toLowerCase().includes(texto) ||
+                    r.fecha?.includes(texto)) &&
+
+                (filtroEstado === "todos" ||
+                    r.estado === filtroEstado) &&
+
+                (!filtroFecha || r.fecha === filtroFecha) &&
+
+                (!filtroCancha ||
+                    r.canchas?.nombre === filtroCancha) &&
+
+                (!filtroClub ||
+                    r.canchas?.club_id === filtroClub)
             );
         });
 
@@ -154,48 +121,17 @@ export default function AdminReservas() {
         busqueda,
         filtroEstado,
         filtroFecha,
-        filtroCancha
+        filtroCancha,
+        filtroClub
     ]);
 
-    // LISTA CANCHAS
-
-    const canchasUnicas = [
-        ...new Set(
-            reservas
-                .map((r) => r.canchas?.nombre)
-                .filter(Boolean)
-        )
-    ];
-
-    // STATS
-
-    const totalReservas = reservas.length;
-
-    const activas = reservas.filter(
-        (r) => r.estado !== "cancelada"
-    ).length;
-
-    const canceladas = reservas.filter(
-        (r) => r.estado === "cancelada"
-    ).length;
-
-    // LOADING
+    const total = reservas.length;
+    const activas = reservas.filter(r => r.estado !== "cancelada").length;
+    const canceladas = reservas.filter(r => r.estado === "cancelada").length;
 
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white",
-                    fontSize: "15px"
-                }}
-            >
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
                 Cargando reservas...
             </div>
         );
@@ -203,560 +139,182 @@ export default function AdminReservas() {
 
     return (
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "14px",
-                boxSizing: "border-box"
-            }}
-        >
+        <div className="min-h-screen bg-zinc-950 text-white">
 
-            {/* HEADER */}
+            <NavbarAdmin />
 
-            <div
-                style={{
-                    marginBottom: "20px"
-                }}
-            >
+            <div className="p-4 pb-24">
 
-                <h1
-                    style={{
-                        marginTop: 0,
-                        marginBottom: "5px",
-                        fontSize: "28px"
-                    }}
+                {/* VOLVER */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mb-4 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl hover:bg-zinc-800 text-sm"
                 >
+                    ← Volver
+                </button>
+
+                <h1 className="text-2xl font-bold mb-4">
                     Reservas
                 </h1>
 
-                <p
-                    style={{
-                        color: "#9e9e9e",
-                        margin: 0,
-                        fontSize: "14px"
-                    }}
-                >
-                    Panel administrativo global
-                </p>
-
-            </div>
-
-            {/* STATS */}
-
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: "10px",
-                    marginBottom: "18px"
-                }}
-            >
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "16px",
-                        padding: "14px",
-                        textAlign: "center"
-                    }}
-                >
-
-                    <h2
-                        style={{
-                            margin: 0,
-                            fontSize: "22px"
-                        }}
-                    >
-                        {totalReservas}
-                    </h2>
-
-                    <p
-                        style={{
-                            marginTop: "6px",
-                            marginBottom: 0,
-                            color: "#9e9e9e",
-                            fontSize: "11px"
-                        }}
-                    >
-                        TOTAL
-                    </p>
-
+                {/* STATS */}
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                    <Stat title="Total" value={total} />
+                    <Stat title="Activas" value={activas} color="text-green-400" />
+                    <Stat title="Canceladas" value={canceladas} color="text-red-400" />
                 </div>
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "16px",
-                        padding: "14px",
-                        textAlign: "center"
-                    }}
-                >
-
-                    <h2
-                        style={{
-                            margin: 0,
-                            fontSize: "22px",
-                            color: "#69f0ae"
-                        }}
-                    >
-                        {activas}
-                    </h2>
-
-                    <p
-                        style={{
-                            marginTop: "6px",
-                            marginBottom: 0,
-                            color: "#9e9e9e",
-                            fontSize: "11px"
-                        }}
-                    >
-                        ACTIVAS
-                    </p>
-
-                </div>
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "16px",
-                        padding: "14px",
-                        textAlign: "center"
-                    }}
-                >
-
-                    <h2
-                        style={{
-                            margin: 0,
-                            fontSize: "22px",
-                            color: "#ff8a80"
-                        }}
-                    >
-                        {canceladas}
-                    </h2>
-
-                    <p
-                        style={{
-                            marginTop: "6px",
-                            marginBottom: 0,
-                            color: "#9e9e9e",
-                            fontSize: "11px"
-                        }}
-                    >
-                        CANCELADAS
-                    </p>
-
-                </div>
-
-            </div>
-
-            {/* FILTROS */}
-
-            <div
-                style={{
-                    background: "#1a1a1a",
-                    border: "1px solid #2a2a2a",
-                    borderRadius: "18px",
-                    padding: "14px",
-                    marginBottom: "20px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px"
-                }}
-            >
-
-                {/* BUSCADOR */}
-
-                <input
-                    type="text"
-                    placeholder="Buscar por cancha o fecha..."
-                    value={busqueda}
-                    onChange={(e) =>
-                        setBusqueda(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#202020",
-                        border: "1px solid #303030",
-                        borderRadius: "12px",
-                        padding: "12px",
-                        color: "white",
-                        outline: "none",
-                        fontSize: "14px",
-                        boxSizing: "border-box"
-                    }}
-                />
 
                 {/* FILTROS */}
-
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "10px"
-                    }}
-                >
-
-                    <select
-                        value={filtroEstado}
-                        onChange={(e) =>
-                            setFiltroEstado(e.target.value)
-                        }
-                        style={{
-                            background: "#202020",
-                            border: "1px solid #303030",
-                            borderRadius: "12px",
-                            padding: "12px",
-                            color: "white",
-                            fontSize: "13px"
-                        }}
-                    >
-
-                        <option value="todos">
-                            Todos los estados
-                        </option>
-
-                        <option value="activa">
-                            Activas
-                        </option>
-
-                        <option value="cancelada">
-                            Canceladas
-                        </option>
-
-                    </select>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-5 space-y-3">
 
                     <input
-                        type="date"
-                        value={filtroFecha}
-                        onChange={(e) =>
-                            setFiltroFecha(e.target.value)
-                        }
-                        style={{
-                            background: "#202020",
-                            border: "1px solid #303030",
-                            borderRadius: "12px",
-                            padding: "12px",
-                            color: "white",
-                            fontSize: "13px"
-                        }}
+                        type="text"
+                        placeholder="Buscar..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm"
                     />
 
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
 
-                <select
-                    value={filtroCancha}
-                    onChange={(e) =>
-                        setFiltroCancha(e.target.value)
-                    }
-                    style={{
-                        background: "#202020",
-                        border: "1px solid #303030",
-                        borderRadius: "12px",
-                        padding: "12px",
-                        color: "white",
-                        fontSize: "13px"
-                    }}
-                >
-
-                    <option value="">
-                        Todas las canchas
-                    </option>
-
-                    {canchasUnicas.map((nombre) => (
-
-                        <option
-                            key={nombre}
-                            value={nombre}
+                        <select
+                            value={filtroEstado}
+                            onChange={(e) => setFiltroEstado(e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm"
                         >
-                            {nombre}
-                        </option>
+                            <option value="todos">Estados</option>
+                            <option value="activa">Activas</option>
+                            <option value="cancelada">Canceladas</option>
+                        </select>
 
-                    ))}
-
-                </select>
-
-            </div>
-
-            {/* RESULTADOS */}
-
-            <div
-                style={{
-                    marginBottom: "14px"
-                }}
-            >
-
-                <p
-                    style={{
-                        margin: 0,
-                        color: "#9e9e9e",
-                        fontSize: "13px"
-                    }}
-                >
-                    {reservasFiltradas.length} reservas encontradas
-                </p>
-
-            </div>
-
-            {/* LISTA */}
-
-            {reservasFiltradas.length === 0 ? (
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "16px",
-                        padding: "20px",
-                        color: "#9e9e9e",
-                        textAlign: "center"
-                    }}
-                >
-                    No se encontraron reservas
-                </div>
-
-            ) : (
-
-                reservasFiltradas.map((r) => (
-
-                    <div
-                        key={r.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "18px",
-                            padding: "16px",
-                            marginBottom: "14px"
-                        }}
-                    >
-
-                        {/* HEADER */}
-
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start",
-                                gap: "12px",
-                                marginBottom: "14px"
-                            }}
-                        >
-
-                            <div>
-
-                                <h3
-                                    style={{
-                                        margin: 0,
-                                        fontSize: "17px"
-                                    }}
-                                >
-                                    {r.canchas?.nombre || "Cancha"}
-                                </h3>
-
-                                <p
-                                    style={{
-                                        marginTop: "6px",
-                                        marginBottom: 0,
-                                        color: "#9e9e9e",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    {r.canchas?.deporte || "Sin deporte"}
-                                </p>
-
-                            </div>
-
-                            <span
-                                style={{
-                                    background:
-                                        r.estado === "cancelada"
-                                            ? "#4a1f1f"
-                                            : "#173524",
-                                    color:
-                                        r.estado === "cancelada"
-                                            ? "#ff8a80"
-                                            : "#69f0ae",
-                                    padding: "7px 12px",
-                                    borderRadius: "999px",
-                                    fontSize: "11px",
-                                    fontWeight: "700",
-                                    textTransform: "uppercase",
-                                    flexShrink: 0
-                                }}
-                            >
-                                {r.estado}
-                            </span>
-
-                        </div>
-
-                        {/* INFO */}
-
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: "10px",
-                                marginBottom: "16px"
-                            }}
-                        >
-
-                            <div
-                                style={{
-                                    background: "#202020",
-                                    borderRadius: "12px",
-                                    padding: "12px"
-                                }}
-                            >
-
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        color: "#9e9e9e",
-                                        fontSize: "11px"
-                                    }}
-                                >
-                                    FECHA
-                                </p>
-
-                                <h4
-                                    style={{
-                                        marginTop: "6px",
-                                        marginBottom: 0,
-                                        fontSize: "14px"
-                                    }}
-                                >
-                                    {r.fecha}
-                                </h4>
-
-                            </div>
-
-                            <div
-                                style={{
-                                    background: "#202020",
-                                    borderRadius: "12px",
-                                    padding: "12px"
-                                }}
-                            >
-
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        color: "#9e9e9e",
-                                        fontSize: "11px"
-                                    }}
-                                >
-                                    HORARIO
-                                </p>
-
-                                <h4
-                                    style={{
-                                        marginTop: "6px",
-                                        marginBottom: 0,
-                                        fontSize: "14px"
-                                    }}
-                                >
-                                    {r.hora_inicio} - {r.hora_fin}
-                                </h4>
-
-                            </div>
-
-                        </div>
-
-                        {/* ID */}
-
-                        <div
-                            style={{
-                                marginBottom: "16px"
-                            }}
-                        >
-
-                            <p
-                                style={{
-                                    margin: 0,
-                                    color: "#8e8e8e",
-                                    fontSize: "11px"
-                                }}
-                            >
-                                ID RESERVA
-                            </p>
-
-                            <p
-                                style={{
-                                    marginTop: "5px",
-                                    marginBottom: 0,
-                                    color: "#d0d0d0",
-                                    fontSize: "12px",
-                                    wordBreak: "break-word"
-                                }}
-                            >
-                                {r.id}
-                            </p>
-
-                        </div>
-
-                        {/* ACCIONES */}
-
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "10px"
-                            }}
-                        >
-
-                            {r.estado !== "cancelada" ? (
-
-                                <button
-                                    onClick={() =>
-                                        cancelarReserva(r.id)
-                                    }
-                                    style={{
-                                        flex: 1,
-                                        background: "#b71c1c",
-                                        border: "none",
-                                        color: "white",
-                                        borderRadius: "12px",
-                                        padding: "12px",
-                                        fontWeight: "700",
-                                        cursor: "pointer",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Cancelar reserva
-                                </button>
-
-                            ) : (
-
-                                <button
-                                    onClick={() =>
-                                        restaurarReserva(r.id)
-                                    }
-                                    style={{
-                                        flex: 1,
-                                        background: "#2e7d32",
-                                        border: "none",
-                                        color: "white",
-                                        borderRadius: "12px",
-                                        padding: "12px",
-                                        fontWeight: "700",
-                                        cursor: "pointer",
-                                        fontSize: "13px"
-                                    }}
-                                >
-                                    Restaurar reserva
-                                </button>
-
+                        {/* 📅 CALENDARIO FIX */}
+                        <div className="relative">
+                            <input
+                                type="date"
+                                value={filtroFecha}
+                                onChange={(e) => setFiltroFecha(e.target.value)}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white appearance-none"
+                            />
+                            {!filtroFecha && (
+                                <span className="absolute left-4 top-3 text-zinc-400 text-sm pointer-events-none">
+                                    📅 Calendario
+                                </span>
                             )}
-
                         </div>
 
                     </div>
 
-                ))
-            )}
+                    <select
+                        value={filtroClub}
+                        onChange={(e) => {
+                            setFiltroClub(e.target.value);
+                            setFiltroCancha("");
+                        }}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm"
+                    >
+                        <option value="">Todos los clubes</option>
+                        {clubsUnicos.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.nombre}
+                            </option>
+                        ))}
+                    </select>
 
+                    <select
+                        value={filtroCancha}
+                        onChange={(e) => setFiltroCancha(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm"
+                    >
+                        <option value="">Todas las canchas</option>
+                        {canchasFiltradas.map(c => (
+                            <option key={c}>{c}</option>
+                        ))}
+                    </select>
+
+                </div>
+
+                {/* LISTA */}
+                {reservasFiltradas.length === 0 ? (
+                    <Empty text="No hay reservas" />
+                ) : (
+                    <div className="space-y-4">
+                        {reservasFiltradas.map((r) => (
+                            <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+
+                                <div className="flex justify-between mb-3">
+                                    <div>
+                                        <h3 className="font-semibold">
+                                            {r.canchas?.nombre}
+                                        </h3>
+                                        <p className="text-zinc-400 text-xs">
+                                            {r.canchas?.clubs?.nombre}
+                                        </p>
+                                    </div>
+
+                                    <Estado estado={r.estado} />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-sm text-zinc-300 mb-3">
+                                    <p>📅 {r.fecha}</p>
+                                    <p>🕒 {r.hora_inicio} - {r.hora_fin}</p>
+                                </div>
+
+                                {r.estado !== "cancelada" ? (
+                                    <button
+                                        onClick={() => cancelarReserva(r.id)}
+                                        className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-xl text-sm font-bold"
+                                    >
+                                        Cancelar
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => restaurarReserva(r.id)}
+                                        className="w-full bg-green-700 hover:bg-green-600 py-2 rounded-xl text-sm font-bold"
+                                    >
+                                        Restaurar
+                                    </button>
+                                )}
+
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+            </div>
+
+        </div>
+    );
+}
+
+/* COMPONENTES */
+
+function Stat({ title, value, color }) {
+    return (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
+            <p className={`text-lg font-bold ${color || ""}`}>
+                {value}
+            </p>
+            <p className="text-xs text-zinc-400">{title}</p>
+        </div>
+    );
+}
+
+function Estado({ estado }) {
+    return (
+        <span className={`
+            px-3 py-1 rounded-full text-xs font-bold uppercase
+            ${estado === "cancelada" && "bg-red-500/20 text-red-300"}
+            ${estado === "activa" && "bg-green-500/20 text-green-300"}
+        `}>
+            {estado}
+        </span>
+    );
+}
+
+function Empty({ text }) {
+    return (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-center text-zinc-400">
+            {text}
         </div>
     );
 }

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminBloqueos() {
+
+    const navigate = useNavigate();
 
     const [bloqueos, setBloqueos] = useState([]);
     const [canchas, setCanchas] = useState([]);
@@ -10,12 +14,10 @@ export default function AdminBloqueos() {
     const [loading, setLoading] = useState(true);
 
     // filtros
-
     const [busqueda, setBusqueda] = useState("");
     const [fechaFiltro, setFechaFiltro] = useState("");
 
-    // crear bloqueo
-
+    // crear
     const [clubId, setClubId] = useState("");
     const [canchaId, setCanchaId] = useState("");
     const [fecha, setFecha] = useState("");
@@ -24,21 +26,14 @@ export default function AdminBloqueos() {
     const [motivo, setMotivo] = useState("");
 
     useEffect(() => {
-
         cargarDatos();
-
     }, []);
 
     async function cargarDatos() {
 
         setLoading(true);
 
-        // BLOQUEOS
-
-        const {
-            data: bloqueosData,
-            error: bloqueosError
-        } = await supabase
+        const { data: bloqueosData } = await supabase
             .from("bloqueos_horarios")
             .select(`
                 *,
@@ -46,104 +41,84 @@ export default function AdminBloqueos() {
                     id,
                     nombre,
                     club_id,
-                    clubs (
-                        nombre
-                    )
+                    clubs (nombre)
                 )
             `)
-            .order("fecha", {
-                ascending: false
-            });
+            .order("fecha", { ascending: false });
 
-        if (bloqueosError) {
+        setBloqueos(bloqueosData || []);
 
-            console.log(bloqueosError);
-
-        } else {
-
-            setBloqueos(bloqueosData || []);
-        }
-
-        // CLUBS
-
-        const {
-            data: clubsData,
-            error: clubsError
-        } = await supabase
+        const { data: clubsData } = await supabase
             .from("clubs")
             .select("*")
             .neq("habilitacion", "eliminado")
             .order("nombre");
 
-        if (clubsError) {
+        setClubs(clubsData || []);
 
-            console.log(clubsError);
-
-        } else {
-
-            setClubs(clubsData || []);
-        }
-
-        // CANCHAS
-
-        const {
-            data: canchasData,
-            error: canchasError
-        } = await supabase
+        const { data: canchasData } = await supabase
             .from("canchas")
-            .select(`
-                *,
-                clubs (
-                    nombre
-                )
-            `)
+            .select("*")
             .neq("habilitacion", "eliminado")
             .order("nombre");
 
-        if (canchasError) {
-
-            console.log(canchasError);
-
-        } else {
-
-            setCanchas(canchasData || []);
-        }
+        setCanchas(canchasData || []);
 
         setLoading(false);
     }
 
+    // 🔥 NORMALIZAR
+    function normalizarHora(hora) {
+        return hora.slice(0, 2) + ":00";
+    }
+
+    // 🔥 CREAR BLOQUEO (LOGICA DUEÑO)
     async function crearBloqueo(e) {
 
         e.preventDefault();
 
-        if (
-            !clubId ||
-            !canchaId ||
-            !fecha ||
-            !horaInicio ||
-            !horaFin
-        ) {
-
-            alert("Completa todos los campos");
+        if (!canchaId || !horaInicio || !horaFin) {
+            alert("Completá los campos obligatorios");
             return;
         }
 
-        const {
-            error
-        } = await supabase
+        const inicio = normalizarHora(horaInicio);
+        const fin = normalizarHora(horaFin);
+
+        if (inicio >= fin) {
+            alert("La hora final debe ser mayor");
+            return;
+        }
+
+        // 🚨 VALIDAR SUPERPOSICIÓN
+        const solapado = bloqueos.some(b => {
+
+            if (b.cancha_id !== canchaId) return false;
+
+            if (fecha && b.fecha !== fecha) return false;
+
+            return (
+                inicio < b.hora_fin &&
+                fin > b.hora_inicio
+            );
+        });
+
+        if (solapado) {
+            alert("Hay superposición de bloqueos");
+            return;
+        }
+
+        const { error } = await supabase
             .from("bloqueos_horarios")
-            .insert([
-                {
-                    cancha_id: canchaId,
-                    fecha,
-                    hora_inicio: horaInicio,
-                    hora_fin: horaFin,
-                    motivo
-                }
-            ]);
+            .insert([{
+                cancha_id: canchaId,
+                fecha: fecha || null,
+                hora_inicio: inicio,
+                hora_fin: fin,
+                motivo
+            }]);
 
         if (error) {
-
             console.log(error);
             alert("Error al crear bloqueo");
             return;
@@ -156,369 +131,245 @@ export default function AdminBloqueos() {
         setHoraFin("");
         setMotivo("");
 
-        await cargarDatos();
-
-        alert("Bloqueo creado");
+        cargarDatos();
     }
 
     async function eliminarBloqueo(id) {
 
-        const confirmar = window.confirm(
-            "¿Eliminar bloqueo?"
-        );
+        if (!window.confirm("¿Eliminar bloqueo?")) return;
 
-        if (!confirmar) return;
-
-        const {
-            error
-        } = await supabase
+        await supabase
             .from("bloqueos_horarios")
             .delete()
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarDatos();
+        cargarDatos();
     }
 
-    // FILTRO DE CANCHAS POR CLUB
+    // 🔥 FILTROS
+    const canchasFiltradas = clubId
+        ? canchas.filter(c => c.club_id === clubId)
+        : canchas;
 
-    const canchasFiltradasPorClub = canchas.filter((c) => {
+    const bloqueosFiltrados = bloqueos.filter(b => {
 
-        return c.club_id === clubId;
-    });
-
-    // FILTROS BLOQUEOS
-
-    const bloqueosFiltrados = bloqueos.filter((b) => {
-
-        const coincideCancha =
-            b.canchas?.nombre
-                ?.toLowerCase()
-                .includes(
-                    busqueda.toLowerCase()
-                );
+        const coincideBusqueda =
+            b.canchas?.nombre?.toLowerCase()
+                .includes(busqueda.toLowerCase());
 
         const coincideFecha =
-            fechaFiltro === ""
-                ? true
-                : b.fecha === fechaFiltro;
+            !fechaFiltro || b.fecha === fechaFiltro;
 
-        return coincideCancha && coincideFecha;
+        return coincideBusqueda && coincideFecha;
     });
 
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white"
-                }}
-            >
+            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-400">
                 Cargando bloqueos...
             </div>
         );
     }
 
     return (
+        <div className="min-h-screen bg-black text-white pb-24">
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "14px",
-                boxSizing: "border-box"
-            }}
-        >
+            {/* 🔥 NAVBAR REAL */}
+            <NavbarAdmin />
 
-            <h1
-                style={{
-                    marginTop: 0
-                }}
-            >
-                Bloqueos
-            </h1>
-
-            {/* CREAR */}
-
-            <form
-                onSubmit={crearBloqueo}
-                style={{
-                    background: "#1a1a1a",
-                    borderRadius: "16px",
-                    padding: "16px",
-                    marginBottom: "20px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px"
-                }}
-            >
-
-                {/* CLUB */}
-
-                <select
-                    value={clubId}
-                    onChange={(e) => {
-
-                        setClubId(e.target.value);
-                        setCanchaId("");
-
-                    }}
-                    style={inputStyle}
-                >
-
-                    <option value="">
-                        Seleccionar club
-                    </option>
-
-                    {clubs.map((club) => (
-
-                        <option
-                            key={club.id}
-                            value={club.id}
-                        >
-                            {club.nombre}
-                        </option>
-
-                    ))}
-
-                </select>
-
-                {/* CANCHA */}
-
-                <select
-                    value={canchaId}
-                    onChange={(e) =>
-                        setCanchaId(e.target.value)
-                    }
-                    style={inputStyle}
-                    disabled={!clubId}
-                >
-
-                    <option value="">
-                        Seleccionar cancha
-                    </option>
-
-                    {canchasFiltradasPorClub.map((c) => (
-
-                        <option
-                            key={c.id}
-                            value={c.id}
-                        >
-                            {c.nombre}
-                        </option>
-
-                    ))}
-
-                </select>
-
-                {/* FECHA */}
-
-                <input
-                    type="date"
-                    value={fecha}
-                    onChange={(e) =>
-                        setFecha(e.target.value)
-                    }
-                    style={inputStyle}
-                />
-
-                {/* HORA INICIO */}
-
-                <input
-                    type="time"
-                    value={horaInicio}
-                    onChange={(e) =>
-                        setHoraInicio(e.target.value)
-                    }
-                    style={inputStyle}
-                />
-
-                {/* HORA FIN */}
-
-                <input
-                    type="time"
-                    value={horaFin}
-                    onChange={(e) =>
-                        setHoraFin(e.target.value)
-                    }
-                    style={inputStyle}
-                />
-
-                {/* MOTIVO */}
-
-                <textarea
-                    placeholder="Motivo"
-                    value={motivo}
-                    onChange={(e) =>
-                        setMotivo(e.target.value)
-                    }
-                    rows={3}
-                    style={{
-                        ...inputStyle,
-                        resize: "none"
-                    }}
-                />
-
-                {/* BOTON */}
+            {/* HEADER */}
+            <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-xl border-b border-zinc-900 px-4 py-4">
 
                 <button
-                    type="submit"
-                    style={{
-                        background: "#ef6c00",
-                        border: "none",
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "14px",
-                        fontWeight: "700",
-                        cursor: "pointer"
-                    }}
+                    onClick={() => navigate(-1)}
+                    className="text-xs font-semibold px-3 py-2 rounded-full bg-zinc-900 border border-zinc-800 active:scale-95"
                 >
-                    Crear bloqueo
+                    ← Volver
                 </button>
 
-            </form>
+                <h1 className="text-2xl font-bold mt-3">
+                    Bloqueos
+                </h1>
 
-            {/* FILTROS */}
-
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "20px"
-                }}
-            >
-
-                <input
-                    type="text"
-                    placeholder="Buscar cancha..."
-                    value={busqueda}
-                    onChange={(e) =>
-                        setBusqueda(e.target.value)
-                    }
-                    style={inputStyle}
-                />
-
-                <input
-                    type="date"
-                    value={fechaFiltro}
-                    onChange={(e) =>
-                        setFechaFiltro(e.target.value)
-                    }
-                    style={inputStyle}
-                />
+                <p className="text-sm text-zinc-400 mt-1">
+                    Gestión de bloqueos de canchas
+                </p>
 
             </div>
 
-            {/* LISTA */}
+            <div className="px-4 mt-4 space-y-6">
 
-            {bloqueosFiltrados.length === 0 ? (
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        borderRadius: "14px",
-                        padding: "16px",
-                        color: "#9e9e9e"
-                    }}
+                {/* CREAR */}
+                <form
+                    onSubmit={crearBloqueo}
+                    className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-4"
                 >
-                    No hay bloqueos
-                </div>
 
-            ) : (
-
-                bloqueosFiltrados.map((b) => (
-
-                    <div
-                        key={b.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "16px",
-                            padding: "14px",
-                            marginBottom: "12px"
+                    <select
+                        value={clubId}
+                        onChange={(e) => {
+                            setClubId(e.target.value);
+                            setCanchaId("");
                         }}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3"
                     >
+                        <option value="">Seleccionar club</option>
+                        {clubs.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.nombre}
+                            </option>
+                        ))}
+                    </select>
 
-                        <h3
-                            style={{
-                                marginTop: 0,
-                                marginBottom: "6px"
-                            }}
-                        >
-                            {b.canchas?.nombre}
-                        </h3>
+                    <select
+                        value={canchaId}
+                        onChange={(e) => setCanchaId(e.target.value)}
+                        disabled={!clubId}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                    >
+                        <option value="">Seleccionar cancha</option>
+                        {canchasFiltradas.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.nombre}
+                            </option>
+                        ))}
+                    </select>
 
-                        <p
-                            style={{
-                                color: "#9e9e9e",
-                                marginTop: 0
-                            }}
-                        >
-                            {b.canchas?.clubs?.nombre}
-                        </p>
+                    {/* FECHA */}
+                    <div className="relative">
 
-                        <p>
-                            {b.fecha}
-                        </p>
+                        {!fecha && (
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+                                Calendario
+                            </span>
+                        )}
 
-                        <p>
-                            {b.hora_inicio} - {b.hora_fin}
-                        </p>
-
-                        <p
-                            style={{
-                                color: "#bdbdbd"
-                            }}
-                        >
-                            {b.motivo || "Sin motivo"}
-                        </p>
-
-                        <button
-                            onClick={() =>
-                                eliminarBloqueo(b.id)
-                            }
-                            style={{
-                                background: "#b71c1c",
-                                border: "none",
-                                color: "white",
-                                borderRadius: "10px",
-                                padding: "10px 14px",
-                                fontWeight: "700",
-                                cursor: "pointer"
-                            }}
-                        >
-                            Eliminar
-                        </button>
+                        <input
+                            type="date"
+                            value={fecha}
+                            onChange={(e) => setFecha(e.target.value)}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white"
+                        />
 
                     </div>
 
-                ))
-            )}
+                    {/* HORAS */}
+                    <div className="grid grid-cols-2 gap-3">
+
+                        <select
+                            value={horaInicio}
+                            onChange={(e) => setHoraInicio(e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                        >
+                            <option value="">Inicio</option>
+                            {Array.from({ length: 24 }).map((_, i) => {
+                                const h = String(i).padStart(2, "0") + ":00";
+                                return <option key={h}>{h}</option>;
+                            })}
+                        </select>
+
+                        <select
+                            value={horaFin}
+                            onChange={(e) => setHoraFin(e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                        >
+                            <option value="">Fin</option>
+                            {Array.from({ length: 24 }).map((_, i) => {
+                                const h = String(i).padStart(2, "0") + ":00";
+                                return <option key={h}>{h}</option>;
+                            })}
+                        </select>
+
+                    </div>
+
+                    <textarea
+                        placeholder="Motivo"
+                        value={motivo}
+                        onChange={(e) => setMotivo(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                    />
+
+                    <button className="w-full bg-orange-500 hover:bg-orange-600 rounded-xl p-3 font-bold">
+                        Crear bloqueo
+                    </button>
+
+                </form>
+
+                {/* FILTROS */}
+                <div className="space-y-3">
+
+                    <input
+                        type="text"
+                        placeholder="Buscar cancha..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                    />
+
+                    <input
+                        type="date"
+                        value={fechaFiltro}
+                        onChange={(e) => setFechaFiltro(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3"
+                    />
+
+                </div>
+
+                {/* LISTA */}
+                {bloqueosFiltrados.length === 0 ? (
+
+                    <div className="text-center py-6 text-zinc-500 text-sm border border-zinc-800 rounded-xl">
+                        No hay bloqueos
+                    </div>
+
+                ) : (
+
+                    <div className="space-y-3">
+
+                        {bloqueosFiltrados.map(b => (
+
+                            <div
+                                key={b.id}
+                                className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"
+                            >
+
+                                <h3 className="font-semibold">
+                                    {b.canchas?.nombre}
+                                </h3>
+
+                                <p className="text-zinc-400 text-sm">
+                                    {b.canchas?.clubs?.nombre}
+                                </p>
+
+                                <p className="text-sm mt-2">
+                                    📅 {b.fecha || "Sin fecha"}
+                                </p>
+
+                                <p className="text-sm">
+                                    🕒 {b.hora_inicio.slice(0, 5)} - {b.hora_fin.slice(0, 5)}
+                                </p>
+
+                                <p className="text-zinc-300 text-sm mt-2">
+                                    {b.motivo || "Sin motivo"}
+                                </p>
+
+                                <button
+                                    onClick={() => eliminarBloqueo(b.id)}
+                                    className="mt-3 bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm"
+                                >
+                                    Eliminar
+                                </button>
+
+                            </div>
+
+                        ))}
+
+                    </div>
+
+                )}
+
+            </div>
 
         </div>
     );
 }
-
-const inputStyle = {
-    width: "100%",
-    background: "#202020",
-    border: "1px solid #333",
-    borderRadius: "12px",
-    padding: "13px",
-    color: "white",
-    boxSizing: "border-box",
-    fontSize: "14px"
-};

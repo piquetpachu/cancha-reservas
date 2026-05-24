@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminEditarCancha() {
 
     const navigate = useNavigate();
-
     const { id } = useParams();
 
     const [loading, setLoading] = useState(true);
@@ -19,26 +19,19 @@ export default function AdminEditarCancha() {
     const [habilitacion, setHabilitacion] = useState("disponible");
 
     useEffect(() => {
-
         cargarCancha();
-
     }, [id]);
 
     async function cargarCancha() {
-
         setLoading(true);
 
-        const {
-            data,
-            error
-        } = await supabase
+        const { data, error } = await supabase
             .from("canchas")
             .select("*")
             .eq("id", id)
             .single();
 
         if (error) {
-
             console.log(error);
             setLoading(false);
             return;
@@ -55,30 +48,23 @@ export default function AdminEditarCancha() {
     }
 
     async function guardarCambios(e) {
-
         e.preventDefault();
 
         setGuardando(true);
 
-        // VALIDACIONES
-
         if (!nombre.trim()) {
-
             alert("El nombre es obligatorio");
             setGuardando(false);
             return;
         }
 
         if (precio && Number(precio) < 0) {
-
             alert("El precio no puede ser negativo");
             setGuardando(false);
             return;
         }
 
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from("canchas")
             .update({
                 nombre,
@@ -96,7 +82,6 @@ export default function AdminEditarCancha() {
         setGuardando(false);
 
         if (error) {
-
             console.log(error);
             alert("Error al guardar");
             return;
@@ -107,171 +92,60 @@ export default function AdminEditarCancha() {
         navigate(`/admin/cancha/${id}`);
     }
 
-    // LOADING
-
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white"
-                }}
-            >
-                Cargando cancha...
+            <div className="min-h-screen bg-black text-white flex items-center justify-center">
+                <p className="text-zinc-400">
+                    Cargando cancha...
+                </p>
             </div>
         );
     }
 
     return (
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "14px",
-                paddingBottom: "40px",
-                boxSizing: "border-box"
-            }}
-        >
+        <div className="min-h-screen bg-black text-white">
 
-            {/* HEADER */}
+            <NavbarAdmin />
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "18px"
-                }}
-            >
+            <div className="px-4 pt-4 pb-28">
 
-                <button
-                    onClick={() =>
-                        navigate(-1)
-                    }
-                    style={{
-                        width: "fit-content",
-                        background: "#1f1f1f",
-                        border: "1px solid #2e2e2e",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "9px 14px",
-                        cursor: "pointer",
-                        fontWeight: "600"
-                    }}
-                >
-                    ← Volver
-                </button>
+                {/* HEADER */}
+                <div className="flex flex-col gap-3 mb-5">
 
-                <div>
-
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontSize: "24px",
-                            fontWeight: "700"
-                        }}
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-fit bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl hover:bg-zinc-800 transition font-semibold text-sm"
                     >
-                        Editar cancha
-                    </h1>
+                        ← Volver
+                    </button>
 
-                    <p
-                        style={{
-                            marginTop: "5px",
-                            color: "#9e9e9e",
-                            fontSize: "13px"
-                        }}
-                    >
-                        Panel administrativo
-                    </p>
+                    <div>
+                        <h1 className="text-2xl font-bold">
+                            Editar cancha
+                        </h1>
+
+                        <p className="text-zinc-400 text-sm mt-1">
+                            Panel administrativo
+                        </p>
+                    </div>
 
                 </div>
 
-            </div>
-
-            {/* FORMULARIO */}
-
-            <form
-                onSubmit={guardarCambios}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "16px"
-                }}
-            >
-
                 {/* FOTO */}
-
-                <div
-                    style={{
-                        width: "100%",
-                        height: "220px",
-                        borderRadius: "18px",
-                        overflow: "hidden",
-                        background: "#1d1d1d",
-                        border: "1px solid #2a2a2a",
-                        position: "relative"
-                    }}
-                >
+                <div className="w-full h-56 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 mb-5">
 
                     {foto ? (
 
-                        <>
-                            <img
-                                src={foto}
-                                alt="cancha"
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover"
-                                }}
-                            />
-
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    bottom: 0,
-                                    left: 0,
-                                    width: "100%",
-                                    background:
-                                        "linear-gradient(transparent, rgba(0,0,0,0.85))",
-                                    padding: "18px 14px",
-                                    boxSizing: "border-box"
-                                }}
-                            >
-
-                                <h2
-                                    style={{
-                                        margin: 0,
-                                        fontSize: "18px",
-                                        fontWeight: "700"
-                                    }}
-                                >
-                                    {nombre || "Nombre de cancha"}
-                                </h2>
-
-                            </div>
-                        </>
+                        <img
+                            src={foto}
+                            alt="cancha"
+                            className="w-full h-full object-cover"
+                        />
 
                     ) : (
 
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                color: "#666"
-                            }}
-                        >
+                        <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
                             Sin imagen
                         </div>
 
@@ -279,34 +153,18 @@ export default function AdminEditarCancha() {
 
                 </div>
 
-                {/* CARD */}
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "18px",
-                        padding: "16px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px"
-                    }}
+                {/* FORMULARIO */}
+                <form
+                    onSubmit={guardarCambios}
+                    className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-5"
                 >
 
                     {/* NOMBRE */}
-
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             NOMBRE
-                        </p>
+                        </label>
 
                         <input
                             type="text"
@@ -315,36 +173,17 @@ export default function AdminEditarCancha() {
                                 setNombre(e.target.value)
                             }
                             required
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                minHeight: "48px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                     </div>
 
                     {/* DEPORTE */}
-
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             DEPORTE
-                        </p>
+                        </label>
 
                         <input
                             type="text"
@@ -352,36 +191,17 @@ export default function AdminEditarCancha() {
                             onChange={(e) =>
                                 setDeporte(e.target.value)
                             }
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                minHeight: "48px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                     </div>
 
                     {/* PRECIO */}
-
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             PRECIO POR HORA
-                        </p>
+                        </label>
 
                         <input
                             type="number"
@@ -389,36 +209,17 @@ export default function AdminEditarCancha() {
                             onChange={(e) =>
                                 setPrecio(e.target.value)
                             }
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                minHeight: "48px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                     </div>
 
-                    {/* FOTO URL */}
-
+                    {/* FOTO */}
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             URL FOTO
-                        </p>
+                        </label>
 
                         <input
                             type="text"
@@ -426,54 +227,24 @@ export default function AdminEditarCancha() {
                             onChange={(e) =>
                                 setFoto(e.target.value)
                             }
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                minHeight: "48px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                     </div>
 
-                    {/* ESTADO */}
-
+                    {/* HABILITACIÓN */}
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             HABILITACIÓN
-                        </p>
+                        </label>
 
                         <select
                             value={habilitacion}
                             onChange={(e) =>
                                 setHabilitacion(e.target.value)
                             }
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                minHeight: "48px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="disponible">
                                 Disponible
@@ -486,25 +257,16 @@ export default function AdminEditarCancha() {
                             <option value="eliminado">
                                 Eliminado
                             </option>
-
                         </select>
 
                     </div>
 
-                    {/* DESCRIPCION */}
-
+                    {/* DESCRIPCIÓN */}
                     <div>
 
-                        <p
-                            style={{
-                                marginBottom: "8px",
-                                fontSize: "12px",
-                                color: "#9e9e9e",
-                                fontWeight: "600"
-                            }}
-                        >
+                        <label className="block text-xs font-semibold text-zinc-400 mb-2">
                             DESCRIPCIÓN
-                        </p>
+                        </label>
 
                         <textarea
                             value={descripcion}
@@ -512,48 +274,22 @@ export default function AdminEditarCancha() {
                                 setDescripcion(e.target.value)
                             }
                             rows={5}
-                            style={{
-                                width: "100%",
-                                background: "#202020",
-                                border: "1px solid #333",
-                                borderRadius: "12px",
-                                padding: "13px",
-                                color: "white",
-                                boxSizing: "border-box",
-                                fontSize: "14px",
-                                resize: "none",
-                                outline: "none"
-                            }}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-3 text-sm text-white resize-none outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                     </div>
 
                     {/* BOTONES */}
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "10px"
-                        }}
-                    >
+                    <div className="flex flex-col gap-3 pt-2">
 
                         <button
                             type="submit"
                             disabled={guardando}
-                            style={{
-                                width: "100%",
-                                background: guardando
-                                    ? "#444"
-                                    : "#1565c0",
-                                border: "none",
-                                color: "white",
-                                borderRadius: "12px",
-                                padding: "14px",
-                                fontWeight: "700",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                            }}
+                            className={`w-full py-3 rounded-xl font-bold text-sm transition
+                            ${guardando
+                                    ? "bg-zinc-700 cursor-not-allowed"
+                                    : "bg-blue-600 hover:bg-blue-500"
+                                }`}
                         >
                             {guardando
                                 ? "Guardando..."
@@ -565,26 +301,16 @@ export default function AdminEditarCancha() {
                             onClick={() =>
                                 navigate(`/admin/cancha/${id}`)
                             }
-                            style={{
-                                width: "100%",
-                                background: "#2a2a2a",
-                                border: "1px solid #3a3a3a",
-                                color: "white",
-                                borderRadius: "12px",
-                                padding: "14px",
-                                fontWeight: "700",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                            }}
+                            className="w-full py-3 rounded-xl font-bold text-sm bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition"
                         >
                             Cancelar
                         </button>
 
                     </div>
 
-                </div>
+                </form>
 
-            </form>
+            </div>
 
         </div>
     );

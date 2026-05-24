@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminClubes() {
 
@@ -13,24 +14,18 @@ export default function AdminClubes() {
     const [filtroEstado, setFiltroEstado] = useState("todos");
 
     useEffect(() => {
-
         cargarClubes();
-
     }, []);
 
     async function cargarClubes() {
-
         setLoading(true);
 
         const { data, error } = await supabase
             .from("clubs")
             .select("*")
-            .order("created_at", {
-                ascending: false
-            });
+            .order("created_at", { ascending: false });
 
         if (error) {
-
             console.log(error);
             setLoading(false);
             return;
@@ -40,60 +35,29 @@ export default function AdminClubes() {
         setLoading(false);
     }
 
-    // ELIMINAR
-
     async function eliminarClub(id) {
+        if (!window.confirm("¿Eliminar este club?")) return;
 
-        const confirmar = window.confirm(
-            "¿Eliminar este club?"
-        );
-
-        if (!confirmar) return;
-
-        const { error } = await supabase
+        await supabase
             .from("clubs")
-            .update({
-                habilitacion: "eliminado"
-            })
+            .update({ habilitacion: "eliminado" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarClubes();
+        cargarClubes();
     }
-
-    // RESTAURAR
 
     async function restaurarClub(id) {
-
-        const { error } = await supabase
+        await supabase
             .from("clubs")
-            .update({
-                habilitacion: "disponible"
-            })
+            .update({ habilitacion: "disponible" })
             .eq("id", id);
 
-        if (error) {
-
-            console.log(error);
-            return;
-        }
-
-        await cargarClubes();
+        cargarClubes();
     }
 
-    // FILTROS
-
     const clubsFiltrados = clubs.filter((club) => {
-
         const coincideBusqueda =
-            club.nombre
-                ?.toLowerCase()
-                .includes(busqueda.toLowerCase());
+            club.nombre?.toLowerCase().includes(busqueda.toLowerCase());
 
         const coincideEstado =
             filtroEstado === "todos"
@@ -103,399 +67,171 @@ export default function AdminClubes() {
         return coincideBusqueda && coincideEstado;
     });
 
-    // LOADING
-
     if (loading) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#121212",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    color: "white",
-                    fontSize: "15px"
-                }}
-            >
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white text-sm">
                 Cargando clubes...
             </div>
         );
     }
 
     return (
+        <div className="min-h-screen bg-zinc-950 text-white">
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "12px",
-                boxSizing: "border-box"
-            }}
-        >
+            <NavbarAdmin />
 
-            {/* HEADER */}
+            <div className="px-3 py-4">
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginBottom: "14px"
-                }}
-            >
+                {/* HEADER */}
+                <div className="flex flex-col gap-3 mb-4">
 
-                <button
-                    onClick={() =>
-                        navigate("/admin")
-                    }
-                    style={{
-                        width: "fit-content",
-                        background: "#1f1f1f",
-                        border: "1px solid #2e2e2e",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "8px 12px",
-                        fontSize: "13px",
-                        cursor: "pointer"
-                    }}
-                >
-                    ← Volver
-                </button>
-
-                <div>
-
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontSize: "22px",
-                            fontWeight: "700"
-                        }}
+                    <button
+                        onClick={() => navigate("/admin")}
+                        className="w-fit bg-zinc-900 border border-zinc-700 px-3 py-2 rounded-xl text-sm hover:bg-zinc-800 transition"
                     >
-                        Clubes
-                    </h1>
+                        ← Volver
+                    </button>
 
-                    <p
-                        style={{
-                            marginTop: "3px",
-                            color: "#9e9e9e",
-                            fontSize: "13px"
-                        }}
-                    >
-                        Panel administrativo
-                    </p>
+                    <div>
+                        <h1 className="text-xl font-bold">Clubes</h1>
+                        <p className="text-zinc-400 text-xs">
+                            Panel administrativo
+                        </p>
+                    </div>
 
                 </div>
 
-            </div>
+                {/* FILTROS */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 mb-4 flex flex-col gap-2">
 
-            {/* FILTROS */}
+                    <input
+                        type="text"
+                        placeholder="Buscar club..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
+                    />
 
-            <div
-                style={{
-                    background: "#1a1a1a",
-                    border: "1px solid #2a2a2a",
-                    borderRadius: "14px",
-                    padding: "10px",
-                    marginBottom: "14px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px"
-                }}
-            >
+                    <select
+                        value={filtroEstado}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-3 py-2 text-sm outline-none"
+                    >
+                        <option value="todos">Todos</option>
+                        <option value="disponible">Disponibles</option>
+                        <option value="eliminado">Eliminados</option>
+                    </select>
 
-                <input
-                    type="text"
-                    placeholder="Buscar club..."
-                    value={busqueda}
-                    onChange={(e) =>
-                        setBusqueda(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#262626",
-                        border: "1px solid #333",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "10px",
-                        fontSize: "13px",
-                        outline: "none",
-                        boxSizing: "border-box"
-                    }}
-                />
-
-                <select
-                    value={filtroEstado}
-                    onChange={(e) =>
-                        setFiltroEstado(e.target.value)
-                    }
-                    style={{
-                        width: "100%",
-                        background: "#262626",
-                        border: "1px solid #333",
-                        color: "white",
-                        borderRadius: "10px",
-                        padding: "10px",
-                        fontSize: "13px",
-                        outline: "none"
-                    }}
-                >
-
-                    <option value="todos">
-                        Todos
-                    </option>
-
-                    <option value="disponible">
-                        Disponibles
-                    </option>
-
-                    <option value="eliminado">
-                        Eliminados
-                    </option>
-
-                </select>
-
-            </div>
-
-            {/* CONTADOR */}
-
-            <p
-                style={{
-                    color: "#8e8e8e",
-                    fontSize: "12px",
-                    marginBottom: "10px"
-                }}
-            >
-                {clubsFiltrados.length} clubes
-            </p>
-
-            {/* LISTA */}
-
-            {clubsFiltrados.length === 0 ? (
-
-                <div
-                    style={{
-                        background: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "14px",
-                        padding: "18px",
-                        textAlign: "center",
-                        color: "#9e9e9e",
-                        fontSize: "13px"
-                    }}
-                >
-                    No hay clubes
                 </div>
 
-            ) : (
+                {/* CONTADOR */}
+                <p className="text-zinc-500 text-xs mb-3">
+                    {clubsFiltrados.length} clubes
+                </p>
 
-                clubsFiltrados.map(club => (
+                {/* LISTA */}
+                {clubsFiltrados.length === 0 ? (
 
-                    <div
-                        key={club.id}
-                        style={{
-                            background: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "16px",
-                            overflow: "hidden",
-                            marginBottom: "12px"
-                        }}
-                    >
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center text-zinc-400 text-sm">
+                        No hay clubes
+                    </div>
 
-                        {/* FOTO */}
+                ) : (
 
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "120px",
-                                background: "#222"
-                            }}
-                        >
+                    <div className="flex flex-col gap-4 pb-28">
 
-                            {club.foto ? (
+                        {clubsFiltrados.map((club) => (
 
-                                <img
-                                    src={club.foto}
-                                    alt={club.nombre}
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover"
-                                    }}
-                                />
+                            <div
+                                key={club.id}
+                                className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+                            >
 
-                            ) : (
-
-                                <div
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        color: "#666",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    Sin imagen
+                                {/* IMAGEN */}
+                                <div className="w-full h-32 bg-zinc-800">
+                                    {club.foto ? (
+                                        <img
+                                            src={club.foto}
+                                            alt={club.nombre}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs">
+                                            Sin imagen
+                                        </div>
+                                    )}
                                 </div>
 
-                            )}
+                                {/* CONTENIDO */}
+                                <div className="p-3">
 
-                        </div>
+                                    {/* NOMBRE + ESTADO */}
+                                    <div className="flex justify-between items-center gap-2 mb-2">
 
-                        {/* CONTENIDO */}
+                                        <h2 className="text-sm font-bold truncate">
+                                            {club.nombre}
+                                        </h2>
 
-                        <div
-                            style={{
-                                padding: "12px"
-                            }}
-                        >
+                                        <span
+                                            className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase
+                                            ${club.habilitacion === "eliminado"
+                                                    ? "bg-red-500/20 text-red-300"
+                                                    : "bg-green-500/20 text-green-300"
+                                                }`}
+                                        >
+                                            {club.habilitacion}
+                                        </span>
 
-                            {/* NOMBRE + ESTADO */}
+                                    </div>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    marginBottom: "8px"
-                                }}
-                            >
+                                    {/* DIRECCION */}
+                                    <p className="text-zinc-400 text-xs mb-3">
+                                        {club.direccion || "Sin dirección"}
+                                    </p>
 
-                                <h2
-                                    style={{
-                                        margin: 0,
-                                        fontSize: "16px",
-                                        fontWeight: "700",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                >
-                                    {club.nombre}
-                                </h2>
+                                    {/* BOTONES */}
+                                    <div className="flex gap-2">
 
-                                <span
-                                    style={{
-                                        background:
-                                            club.habilitacion === "eliminado"
-                                                ? "#4a1f1f"
-                                                : "#173524",
-                                        color:
-                                            club.habilitacion === "eliminado"
-                                                ? "#ff8a80"
-                                                : "#69f0ae",
-                                        padding: "4px 8px",
-                                        borderRadius: "999px",
-                                        fontSize: "10px",
-                                        fontWeight: "700",
-                                        textTransform: "uppercase",
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    {club.habilitacion}
-                                </span>
+                                        <button
+                                            onClick={() =>
+                                                navigate(`/admin/club/${club.id}`)
+                                            }
+                                            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-2 text-xs font-semibold transition"
+                                        >
+                                            Ver detalle
+                                        </button>
 
-                            </div>
+                                        {club.habilitacion === "disponible" ? (
 
-                            {/* DIRECCION */}
+                                            <button
+                                                onClick={() => eliminarClub(club.id)}
+                                                className="flex-1 bg-red-700 hover:bg-red-600 text-white rounded-xl py-2 text-xs font-semibold transition"
+                                            >
+                                                Eliminar
+                                            </button>
 
-                            <p
-                                style={{
-                                    margin: 0,
-                                    color: "#bdbdbd",
-                                    fontSize: "12px",
-                                    lineHeight: "1.4",
-                                    marginBottom: "12px"
-                                }}
-                            >
-                                {club.direccion || "Sin dirección"}
-                            </p>
+                                        ) : (
 
-                            {/* BOTONES */}
+                                            <button
+                                                onClick={() => restaurarClub(club.id)}
+                                                className="flex-1 bg-green-600 hover:bg-green-500 text-white rounded-xl py-2 text-xs font-semibold transition"
+                                            >
+                                                Restaurar
+                                            </button>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: "8px"
-                                }}
-                            >
+                                        )}
 
-                                <button
-                                    onClick={() =>
-                                        navigate(`/admin/club/${club.id}`)
-                                    }
-                                    style={{
-                                        flex: 1,
-                                        background: "#1565c0",
-                                        color: "white",
-                                        border: "none",
-                                        borderRadius: "10px",
-                                        padding: "10px",
-                                        fontSize: "12px",
-                                        fontWeight: "600",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    Ver detalle
-                                </button>
+                                    </div>
 
-                                {club.habilitacion === "disponible" ? (
-
-                                    <button
-                                        onClick={() =>
-                                            eliminarClub(club.id)
-                                        }
-                                        style={{
-                                            flex: 1,
-                                            background: "#b71c1c",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "10px",
-                                            padding: "10px",
-                                            fontSize: "12px",
-                                            fontWeight: "600",
-                                            cursor: "pointer"
-                                        }}
-                                    >
-                                        Eliminar
-                                    </button>
-
-                                ) : (
-
-                                    <button
-                                        onClick={() =>
-                                            restaurarClub(club.id)
-                                        }
-                                        style={{
-                                            flex: 1,
-                                            background: "#2e7d32",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "10px",
-                                            padding: "10px",
-                                            fontSize: "12px",
-                                            fontWeight: "600",
-                                            cursor: "pointer"
-                                        }}
-                                    >
-                                        Restaurar
-                                    </button>
-
-                                )}
+                                </div>
 
                             </div>
-
-                        </div>
+                        ))}
 
                     </div>
-                ))
-            )}
+                )}
+
+            </div>
 
         </div>
     );

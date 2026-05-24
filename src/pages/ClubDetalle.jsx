@@ -29,126 +29,108 @@ export default function ClubDetalle() {
     );
 
     return (
-        <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+        <div className="min-h-screen bg-zinc-950 text-white px-4 py-6 max-w-2xl mx-auto">
 
+            {/* 🔙 VOLVER */}
             <button
                 onClick={() => navigate(-1)}
-                style={{
-                    marginBottom: "15px",
-                    padding: "6px 12px",
-                    border: "none",
-                    background: "#ccc",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                }}
+                className="mb-5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
             >
                 ← Volver
             </button>
 
-            <h2 style={{ marginBottom: "15px" }}>Canchas del club</h2>
+            {/* 🏟️ TITULO */}
+            <h2 className="text-2xl font-bold mb-4">
+                Canchas del club
+            </h2>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+            {/* 🎯 FILTROS */}
+            <div className="flex gap-3 mb-6">
                 <button
                     onClick={() => setDeporteSeleccionado("futbol")}
-                    style={{
-                        padding: "8px 15px",
-                        background:
-                            deporteSeleccionado === "futbol"
-                                ? "#007bff"
-                                : "#e0e0e0",
-                        color:
-                            deporteSeleccionado === "futbol"
-                                ? "white"
-                                : "black",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition
+                        ${deporteSeleccionado === "futbol"
+                            ? "bg-green-500 text-white"
+                            : "bg-white/10 text-zinc-300 hover:bg-white/20"
+                        }`}
                 >
                     Fútbol
                 </button>
 
                 <button
                     onClick={() => setDeporteSeleccionado("padel")}
-                    style={{
-                        padding: "8px 15px",
-                        background:
-                            deporteSeleccionado === "padel"
-                                ? "#007bff"
-                                : "#e0e0e0",
-                        color:
-                            deporteSeleccionado === "padel"
-                                ? "white"
-                                : "black",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition
+                        ${deporteSeleccionado === "padel"
+                            ? "bg-green-500 text-white"
+                            : "bg-white/10 text-zinc-300 hover:bg-white/20"
+                        }`}
                 >
                     Pádel
                 </button>
             </div>
 
+            {/* 📭 SIN CANCHAS */}
             {canchasFiltradas.length === 0 ? (
-                <p>No hay canchas</p>
+                <p className="text-zinc-400">No hay canchas</p>
             ) : (
-                canchasFiltradas.map((cancha) => (
-                    <div
-                        key={cancha.id}
-                        style={{
-                            border: "1px solid #ccc",
-                            borderRadius: "8px",
-                            marginBottom: "15px",
-                            overflow: "hidden",
-                        }}
-                    >
-                        <img
-                            src={cancha.foto}
-                            alt={cancha.nombre}
-                            style={{
-                                width: "100%",
-                                height: "150px",
-                                objectFit: "cover",
-                            }}
-                        />
 
-                        <div style={{ padding: "10px" }}>
-                            <h3 style={{ margin: "0 0 5px 0" }}>
-                                {cancha.nombre}
-                            </h3>
+                <div className="flex flex-col gap-5">
 
-                            <p style={{ margin: "0 0 10px 0", fontSize: "14px" }}>
-                                {cancha.descripcion}
-                            </p>
+                    {canchasFiltradas.map((cancha) => (
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <span style={{ fontSize: "13px", color: "green" }}>
-                                    {cancha.deporte} • Disponible
-                                </span>
+                        <div
+                            key={cancha.id}
+                            className="relative h-56 rounded-3xl overflow-hidden border border-zinc-800 shadow-lg group cursor-pointer"
+                        >
 
-                                <button
-                                    onClick={() => navigate(`/reserva/${cancha.id}`)}
-                                    style={{
-                                        padding: "5px 10px",
-                                        border: "none",
-                                        background: "#28a745",
-                                        color: "white",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    Reservar
-                                </button>
+                            {/* 🖼️ IMAGEN */}
+                            <img
+                                src={cancha.foto}
+                                alt={cancha.nombre}
+                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                            />
+
+                            {/* 🌑 OVERLAY */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+
+                            {/* 🟢 BADGE */}
+                            <div className="absolute top-4 left-4 bg-green-500/80 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                Disponible
+                            </div>
+
+                            {/* 📄 INFO */}
+                            <div className="absolute bottom-0 w-full p-4">
+
+                                <h3 className="text-xl font-bold">
+                                    {cancha.nombre}
+                                </h3>
+
+                                <p className="text-sm text-zinc-300 mt-1">
+                                    {cancha.descripcion}
+                                </p>
+
+                                <div className="flex items-center justify-between mt-3">
+
+                                    {/* 💰 PRECIO */}
+                                    <p className="text-xl font-bold text-green-400">
+                                        ${cancha.precio || "8000"}
+                                        <span className="text-sm text-zinc-300"> / hora</span>
+                                    </p>
+
+                                    {/* 🎯 BOTÓN */}
+                                    <button
+                                        onClick={() => navigate(`/reserva/${cancha.id}`)}
+                                        className="border border-green-500 text-green-400 px-4 py-2 rounded-xl hover:bg-green-500 hover:text-white transition"
+                                    >
+                                        Reservar →
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
-                ))
+                    ))}
+
+                </div>
             )}
         </div>
     );

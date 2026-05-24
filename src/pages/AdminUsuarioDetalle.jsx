@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useParams, useNavigate } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminUsuarioDetalle() {
 
@@ -12,7 +13,6 @@ export default function AdminUsuarioDetalle() {
     const [reservas, setReservas] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 🔎 filtros reservas
     const [busquedaReserva, setBusquedaReserva] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("todas");
 
@@ -24,65 +24,36 @@ export default function AdminUsuarioDetalle() {
 
         setLoading(true);
 
-        // 👤 USUARIO
-        const { data: userData, error: userError } = await supabase
+        const { data: userData } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", id)
             .single();
 
-        if (userError) {
-
-            console.log("ERROR USUARIO:", userError);
-
-            setLoading(false);
-            return;
-        }
-
         setUsuario(userData);
 
-        // 🏟️ CLUBES DEL USUARIO
-        const { data: clubsData, error: clubsError } = await supabase
+        const { data: clubsData } = await supabase
             .from("clubs")
             .select("*")
             .eq("owner_id", id);
 
-        if (clubsError) {
-            console.log("ERROR CLUBS:", clubsError);
-        }
-
         setClubs(clubsData || []);
 
-        // 📅 RESERVAS DEL USUARIO
-        const {
-            data: reservasData,
-            error: reservasError
-        } = await supabase
+        const { data: reservasData } = await supabase
             .from("reservas")
             .select(`
                 *,
-                canchas (
-                    nombre
-                )
+                canchas (nombre)
             `)
             .eq("usuario_id", userData.id)
             .order("created_at", { ascending: false });
-
-        console.log("ID USUARIO:", userData.id);
-        console.log("RESERVAS:", reservasData);
-
-        if (reservasError) {
-            console.log("ERROR RESERVAS:", reservasError);
-        }
 
         setReservas(reservasData || []);
 
         setLoading(false);
     }
 
-    // 🔎 FILTRADO RESERVAS
     const reservasFiltradas = useMemo(() => {
-
         return reservas.filter((r) => {
 
             const nombreCancha =
@@ -100,24 +71,11 @@ export default function AdminUsuarioDetalle() {
 
             return coincideBusqueda && coincideEstado;
         });
-
     }, [reservas, busquedaReserva, filtroEstado]);
 
     if (loading || !usuario) {
-
         return (
-
-            <div
-                style={{
-                    minHeight: "100vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "#121212",
-                    color: "white",
-                    fontSize: "20px"
-                }}
-            >
+            <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
                 Cargando...
             </div>
         );
@@ -125,563 +83,199 @@ export default function AdminUsuarioDetalle() {
 
     return (
 
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#121212",
-                color: "white",
-                padding: "18px",
-                boxSizing: "border-box"
-            }}
-        >
+        <div className="min-h-screen bg-zinc-950 text-white">
 
-            {/* 🔙 BOTON */}
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    padding: "10px 16px",
-                    borderRadius: "10px",
-                    border: "none",
-                    cursor: "pointer",
-                    marginBottom: "20px",
-                    fontWeight: "bold"
-                }}
-            >
-                ← Volver
-            </button>
+            {/* NAVBAR ADMIN (HAMBURGUESA) */}
+            <NavbarAdmin />
 
-            {/* 🧑 HEADER */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "15px",
-                    marginBottom: "18px",
-                    flexWrap: "wrap"
-                }}
-            >
+            <div className="px-4 pt-4 pb-28 max-w-6xl mx-auto">
 
-                <div>
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontSize: "28px"
-                        }}
-                    >
-                        Detalle de Usuario
+                {/* VOLVER */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mb-6 bg-white/5 border border-white/10 px-4 py-2 rounded-xl hover:bg-white/10 transition text-sm"
+                >
+                    ← Volver
+                </button>
+
+                {/* HEADER */}
+                <div className="mb-8">
+
+                    <h1 className="text-3xl font-bold">
+                        {usuario.nombre || "Usuario"}
                     </h1>
 
-                    <p
-                        style={{
-                            marginTop: "6px",
-                            color: "#9e9e9e",
-                            fontSize: "14px"
-                        }}
-                    >
-                        Información completa del usuario
-                    </p>
-                </div>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
 
-                <div
-                    style={{
-                        background:
-                            usuario.rol === "admin"
-                                ? "#8e24aa"
-                                : usuario.rol === "dueno"
-                                    ? "#1565c0"
-                                    : "#2e7d32",
-                        padding: "10px 18px",
-                        borderRadius: "999px",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                        fontSize: "13px",
-                        whiteSpace: "nowrap"
-                    }}
-                >
-                    {usuario.rol}
-                </div>
-
-            </div>
-
-            {/* 👤 TARJETA COMPACTA */}
-            <div
-                style={{
-                    background: "#1e1e1e",
-                    border: "1px solid #333",
-                    borderRadius: "16px",
-                    padding: "18px",
-                    marginBottom: "28px"
-                }}
-            >
-
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fit, minmax(220px, 1fr))",
-                        gap: "16px"
-                    }}
-                >
-
-                    {/* NOMBRE */}
-                    <div
-                        style={{
-                            background: "#252525",
-                            borderRadius: "12px",
-                            padding: "14px"
-                        }}
-                    >
-                        <p
-                            style={{
-                                margin: 0,
-                                color: "#9e9e9e",
-                                fontSize: "12px",
-                                marginBottom: "6px",
-                                textTransform: "uppercase",
-                                letterSpacing: "1px"
-                            }}
-                        >
-                            Nombre
+                        <p className="text-zinc-400 text-sm">
+                            {usuario.email}
                         </p>
 
-                        <p
-                            style={{
-                                margin: 0,
-                                fontSize: "18px",
-                                fontWeight: "bold"
-                            }}
-                        >
-                            {usuario.nombre || "Sin nombre"}
-                        </p>
-                    </div>
+                        <span className={`
+                            px-3 py-1 rounded-full text-xs font-bold uppercase
+                            ${usuario.rol === "admin" && "bg-purple-500/20 text-purple-300"}
+                            ${usuario.rol === "dueno" && "bg-blue-500/20 text-blue-300"}
+                            ${usuario.rol === "usuario" && "bg-green-500/20 text-green-300"}
+                        `}>
+                            {usuario.rol}
+                        </span>
 
-                    {/* EMAIL */}
-                    <div
-                        style={{
-                            background: "#252525",
-                            borderRadius: "12px",
-                            padding: "14px"
-                        }}
-                    >
-                        <p
-                            style={{
-                                margin: 0,
-                                color: "#9e9e9e",
-                                fontSize: "12px",
-                                marginBottom: "6px",
-                                textTransform: "uppercase",
-                                letterSpacing: "1px"
-                            }}
-                        >
-                            Email
-                        </p>
-
-                        <p
-                            style={{
-                                margin: 0,
-                                fontSize: "15px",
-                                wordBreak: "break-word"
-                            }}
-                        >
-                            {usuario.email || "Sin email"}
-                        </p>
-                    </div>
-
-                    {/* TELEFONO */}
-                    <div
-                        style={{
-                            background: "#252525",
-                            borderRadius: "12px",
-                            padding: "14px"
-                        }}
-                    >
-                        <p
-                            style={{
-                                margin: 0,
-                                color: "#9e9e9e",
-                                fontSize: "12px",
-                                marginBottom: "6px",
-                                textTransform: "uppercase",
-                                letterSpacing: "1px"
-                            }}
-                        >
-                            Teléfono
-                        </p>
-
-                        <p
-                            style={{
-                                margin: 0,
-                                fontSize: "16px"
-                            }}
-                        >
-                            {usuario.telefono || "Sin teléfono"}
-                        </p>
-                    </div>
-
-                    {/* ID */}
-                    <div
-                        style={{
-                            background: "#252525",
-                            borderRadius: "12px",
-                            padding: "14px"
-                        }}
-                    >
-                        <p
-                            style={{
-                                margin: 0,
-                                color: "#9e9e9e",
-                                fontSize: "12px",
-                                marginBottom: "6px",
-                                textTransform: "uppercase",
-                                letterSpacing: "1px"
-                            }}
-                        >
-                            ID
-                        </p>
-
-                        <p
-                            style={{
-                                margin: 0,
-                                fontSize: "12px",
-                                wordBreak: "break-word",
-                                color: "#d6d6d6"
-                            }}
-                        >
-                            {usuario.id}
-                        </p>
                     </div>
 
                 </div>
 
-            </div>
+                {/* INFO */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
 
-            {/* 🏟️ CLUBES */}
-            <div
-                style={{
-                    marginBottom: "35px"
-                }}
-            >
+                    <Card label="Nombre" value={usuario.nombre || "Sin nombre"} />
+                    <Card label="Email" value={usuario.email || "Sin email"} />
+                    <Card label="Teléfono" value={usuario.telefono || "Sin teléfono"} />
+                    <Card label="ID" value={usuario.id} small />
 
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "15px",
-                        flexWrap: "wrap",
-                        gap: "10px"
-                    }}
-                >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
-                        Clubes creados
-                    </h2>
-
-                    <div
-                        style={{
-                            background: "#252525",
-                            padding: "8px 14px",
-                            borderRadius: "999px",
-                            fontSize: "13px",
-                            color: "#cfcfcf"
-                        }}
-                    >
-                        Total: {clubs.length}
-                    </div>
                 </div>
+
+                {/* CLUBES */}
+                <Section title="Clubes" count={clubs.length} />
 
                 {clubs.length === 0 ? (
-
-                    <div
-                        style={{
-                            background: "#1e1e1e",
-                            padding: "18px",
-                            borderRadius: "14px",
-                            border: "1px solid #333"
-                        }}
-                    >
-                        Este usuario no tiene clubes
-                    </div>
-
+                    <Empty text="Este usuario no tiene clubes" />
                 ) : (
-
-                    clubs.map((club) => (
-
-                        <div
-                            key={club.id}
-                            style={{
-                                background: "#1e1e1e",
-                                padding: "18px",
-                                borderRadius: "14px",
-                                marginBottom: "12px",
-                                border: "1px solid #333"
-                            }}
-                        >
-
+                    <div className="grid gap-4 mb-10">
+                        {clubs.map((club) => (
                             <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    flexWrap: "wrap"
-                                }}
+                                key={club.id}
+                                className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-600 transition"
                             >
+                                <div className="flex justify-between items-center flex-wrap gap-3">
 
-                                <div>
-                                    <h3
-                                        style={{
-                                            marginTop: 0,
-                                            marginBottom: "8px"
-                                        }}
-                                    >
-                                        {club.nombre}
-                                    </h3>
+                                    <div>
+                                        <h3 className="text-lg font-semibold">
+                                            {club.nombre}
+                                        </h3>
+                                        <p className="text-zinc-400 text-sm">
+                                            {club.direccion}
+                                        </p>
+                                    </div>
 
-                                    <p
-                                        style={{
-                                            margin: 0,
-                                            color: "#bdbdbd"
-                                        }}
-                                    >
-                                        {club.direccion}
-                                    </p>
+                                    <span className={`
+                                        px-3 py-1 rounded-full text-xs font-bold uppercase
+                                        ${club.habilitacion === "eliminado"
+                                            ? "bg-red-500/20 text-red-300"
+                                            : "bg-green-500/20 text-green-300"}
+                                    `}>
+                                        {club.habilitacion}
+                                    </span>
+
                                 </div>
-
-                                <div
-                                    style={{
-                                        background:
-                                            club.habilitacion === "eliminado"
-                                                ? "rgba(244,67,54,0.15)"
-                                                : "rgba(76,175,80,0.15)",
-                                        color:
-                                            club.habilitacion === "eliminado"
-                                                ? "#ff5252"
-                                                : "#69f0ae",
-                                        padding: "8px 14px",
-                                        borderRadius: "999px",
-                                        fontWeight: "bold",
-                                        textTransform: "uppercase",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    {club.habilitacion}
-                                </div>
-
                             </div>
-
-                        </div>
-                    ))
+                        ))}
+                    </div>
                 )}
 
-            </div>
+                {/* RESERVAS */}
+                <Section title="Reservas" count={reservasFiltradas.length} />
 
-            {/* 📅 RESERVAS */}
-            <div>
-
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "15px",
-                        flexWrap: "wrap",
-                        marginBottom: "18px"
-                    }}
-                >
-
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
-                        Reservas realizadas
-                    </h2>
-
-                    <div
-                        style={{
-                            background: "#252525",
-                            padding: "8px 14px",
-                            borderRadius: "999px",
-                            fontSize: "13px",
-                            color: "#cfcfcf"
-                        }}
-                    >
-                        Total: {reservasFiltradas.length}
-                    </div>
-
-                </div>
-
-                {/* 🔎 FILTROS */}
-                <div
-                    style={{
-                        display: "flex",
-                        gap: "12px",
-                        marginBottom: "18px",
-                        flexWrap: "wrap"
-                    }}
-                >
+                {/* FILTROS */}
+                <div className="flex flex-wrap gap-3 mb-6">
 
                     <input
                         type="text"
                         placeholder="Buscar cancha..."
                         value={busquedaReserva}
-                        onChange={(e) =>
-                            setBusquedaReserva(e.target.value)
-                        }
-                        style={{
-                            flex: 1,
-                            minWidth: "220px",
-                            background: "#1e1e1e",
-                            border: "1px solid #333",
-                            borderRadius: "12px",
-                            padding: "12px",
-                            color: "white",
-                            outline: "none"
-                        }}
+                        onChange={(e) => setBusquedaReserva(e.target.value)}
+                        className="flex-1 min-w-[200px] bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
                     />
 
                     <select
                         value={filtroEstado}
-                        onChange={(e) =>
-                            setFiltroEstado(e.target.value)
-                        }
-                        style={{
-                            background: "#1e1e1e",
-                            border: "1px solid #333",
-                            borderRadius: "12px",
-                            padding: "12px",
-                            color: "white",
-                            minWidth: "170px",
-                            outline: "none"
-                        }}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                        className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm outline-none"
                     >
-                        <option value="todas">
-                            Todas
-                        </option>
-
-                        <option value="confirmada">
-                            Confirmadas
-                        </option>
-
-                        <option value="cancelada">
-                            Canceladas
-                        </option>
-
-                        <option value="pendiente">
-                            Pendientes
-                        </option>
+                        <option value="todas">Todas</option>
+                        <option value="confirmada">Confirmadas</option>
+                        <option value="cancelada">Canceladas</option>
+                        <option value="pendiente">Pendientes</option>
                     </select>
 
                 </div>
 
+                {/* LISTA */}
                 {reservasFiltradas.length === 0 ? (
-
-                    <div
-                        style={{
-                            background: "#1e1e1e",
-                            padding: "18px",
-                            borderRadius: "14px",
-                            border: "1px solid #333"
-                        }}
-                    >
-                        No se encontraron reservas
-                    </div>
-
+                    <Empty text="No se encontraron reservas" />
                 ) : (
-
-                    reservasFiltradas.map((r) => (
-
-                        <div
-                            key={r.id}
-                            style={{
-                                background: "#1e1e1e",
-                                padding: "18px",
-                                borderRadius: "14px",
-                                marginBottom: "12px",
-                                border: "1px solid #333"
-                            }}
-                        >
-
+                    <div className="space-y-4">
+                        {reservasFiltradas.map((r) => (
                             <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "flex-start",
-                                    gap: "15px",
-                                    flexWrap: "wrap"
-                                }}
+                                key={r.id}
+                                className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-600 transition"
                             >
+                                <div className="flex justify-between items-start flex-wrap gap-3">
 
-                                <div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            {r.canchas?.nombre || r.cancha_id}
+                                        </h3>
 
-                                    <h3
-                                        style={{
-                                            marginTop: 0,
-                                            marginBottom: "10px",
-                                            fontSize: "18px"
-                                        }}
-                                    >
-                                        {r.canchas?.nombre || r.cancha_id}
-                                    </h3>
+                                        <p className="text-zinc-400 text-sm">
+                                            📅 {r.fecha}
+                                        </p>
 
-                                    <p
-                                        style={{
-                                            margin: "0 0 8px 0",
-                                            color: "#cfcfcf"
-                                        }}
-                                    >
-                                        📅 {r.fecha}
-                                    </p>
+                                        <p className="text-zinc-400 text-sm">
+                                            🕒 {r.hora_inicio} - {r.hora_fin}
+                                        </p>
+                                    </div>
 
-                                    <p
-                                        style={{
-                                            margin: 0,
-                                            color: "#cfcfcf"
-                                        }}
-                                    >
-                                        🕒 {r.hora_inicio} - {r.hora_fin}
-                                    </p>
+                                    <span className={`
+                                        px-3 py-1 rounded-full text-xs font-bold uppercase
+                                        ${r.estado === "confirmada" && "bg-green-500/20 text-green-300"}
+                                        ${r.estado === "cancelada" && "bg-red-500/20 text-red-300"}
+                                        ${r.estado === "pendiente" && "bg-yellow-500/20 text-yellow-300"}
+                                    `}>
+                                        {r.estado}
+                                    </span>
 
                                 </div>
-
-                                <div
-                                    style={{
-                                        background:
-                                            r.estado === "confirmada"
-                                                ? "rgba(76,175,80,0.15)"
-                                                : r.estado === "cancelada"
-                                                    ? "rgba(244,67,54,0.15)"
-                                                    : "rgba(255,193,7,0.15)",
-                                        color:
-                                            r.estado === "confirmada"
-                                                ? "#69f0ae"
-                                                : r.estado === "cancelada"
-                                                    ? "#ff5252"
-                                                    : "#ffd54f",
-                                        padding: "8px 14px",
-                                        borderRadius: "999px",
-                                        fontWeight: "bold",
-                                        textTransform: "uppercase",
-                                        fontSize: "12px",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                >
-                                    {r.estado}
-                                </div>
-
                             </div>
-
-                        </div>
-                    ))
+                        ))}
+                    </div>
                 )}
 
             </div>
 
+        </div>
+    );
+}
+
+/* COMPONENTES */
+
+function Card({ label, value, small }) {
+    return (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 hover:border-zinc-600 transition">
+            <p className="text-xs text-zinc-400 mb-1 uppercase tracking-wide">
+                {label}
+            </p>
+            <p className={`${small ? "text-xs break-all" : "text-base font-semibold"}`}>
+                {value}
+            </p>
+        </div>
+    );
+}
+
+function Section({ title, count }) {
+    return (
+        <div className="flex justify-between items-center mb-4 mt-6 flex-wrap gap-2">
+            <h2 className="text-xl font-bold">{title}</h2>
+            <span className="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full text-xs text-zinc-300">
+                {count}
+            </span>
+        </div>
+    );
+}
+
+function Empty({ text }) {
+    return (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-zinc-400">
+            {text}
         </div>
     );
 }

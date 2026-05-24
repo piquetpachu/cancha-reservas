@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
 
 export default function AdminClubDetalle() {
 
@@ -56,6 +57,8 @@ export default function AdminClubDetalle() {
     return (
         <div className="min-h-screen bg-black text-white pb-24">
 
+            <NavbarAdmin />
+
             {/* HEADER */}
             <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-xl border-b border-zinc-900 px-4 py-4">
 
@@ -84,6 +87,7 @@ export default function AdminClubDetalle() {
                     {club.foto ? (
                         <img
                             src={club.foto}
+                            alt={club.nombre}
                             className="w-full h-full object-cover"
                         />
                     ) : (
@@ -116,12 +120,14 @@ export default function AdminClubDetalle() {
 
                         </div>
 
-                        <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border
-                            ${club.habilitacion === "eliminado"
-                                ? "text-red-400 border-red-500/30 bg-red-500/10"
-                                : "text-green-400 border-green-500/30 bg-green-500/10"
-                            }
-                        `}>
+                        <span
+                            className={`text-[11px] font-semibold px-3 py-1 rounded-full border
+                                ${club.habilitacion === "eliminado"
+                                    ? "text-red-400 border-red-500/30 bg-red-500/10"
+                                    : "text-green-400 border-green-500/30 bg-green-500/10"
+                                }
+                            `}
+                        >
                             {club.habilitacion}
                         </span>
 
@@ -131,31 +137,6 @@ export default function AdminClubDetalle() {
 
                 {/* STATS VISUALES */}
                 <div className="grid grid-cols-2 gap-3">
-
-                    <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/10 border border-blue-500/20 rounded-2xl p-4">
-
-                        <p className="text-xs text-blue-300 uppercase tracking-wider">
-                            Canchas
-                        </p>
-
-                        <p className="text-3xl font-extrabold mt-1">
-                            {canchas.length}
-                        </p>
-
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/10 border border-green-500/20 rounded-2xl p-4">
-
-                        <p className="text-xs text-green-300 uppercase tracking-wider">
-                            Estado
-                        </p>
-
-                        <p className="text-lg font-bold text-green-400 mt-2">
-                            Activo
-                        </p>
-
-                    </div>
-
                 </div>
 
                 {/* DESCRIPCIÓN */}
@@ -166,7 +147,8 @@ export default function AdminClubDetalle() {
                     </p>
 
                     <p className="text-sm text-zinc-300 mt-2 leading-relaxed">
-                        {club.descripcion || "Club deportivo con instalaciones disponibles para reservas y actividades deportivas."}
+                        {club.descripcion ||
+                            "Club deportivo con instalaciones disponibles para reservas y actividades deportivas."}
                     </p>
 
                 </div>
@@ -180,7 +162,6 @@ export default function AdminClubDetalle() {
                 </h2>
             </div>
 
-            {/* LISTA CANCHAS */}
             {/* LISTA CANCHAS */}
             <div className="px-4 space-y-4">
 
@@ -198,16 +179,16 @@ export default function AdminClubDetalle() {
                             key={c.id}
                             onClick={() => navigate(`/admin/cancha/${c.id}`)}
                             className="
-                    relative
-                    w-full
-                    rounded-3xl
-                    overflow-hidden
-                    cursor-pointer
-                    shadow-lg
-                    border border-zinc-800
-                    active:scale-[0.98]
-                    transition
-                "
+                                relative
+                                w-full
+                                rounded-3xl
+                                overflow-hidden
+                                cursor-pointer
+                                shadow-lg
+                                border border-zinc-800
+                                active:scale-[0.98]
+                                transition
+                            "
                         >
 
                             {/* IMAGEN */}
@@ -223,12 +204,12 @@ export default function AdminClubDetalle() {
                             {/* ESTADO */}
                             <div
                                 className={`
-                        absolute top-3 right-3 text-xs px-3 py-1 rounded-full border
-                        ${c.habilitacion === "eliminado"
+                                    absolute top-3 right-3 text-xs px-3 py-1 rounded-full border
+                                    ${c.habilitacion === "eliminado"
                                         ? "bg-red-500/20 text-red-300 border-red-500/30"
                                         : "bg-green-500/20 text-green-300 border-green-500/30"
                                     }
-                    `}
+                                `}
                             >
                                 {c.habilitacion || "activo"}
                             </div>
