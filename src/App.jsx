@@ -30,6 +30,12 @@ import HorariosCancha from "./pages/HorariosCancha";
 import BloqueosHorarios from "./pages/BloqueosHorarios";
 import ReservasDueno from "./pages/ReservasDueno";
 
+import Torneos from './pages/torneos/Torneos'
+import TorneoDetalle from './pages/torneos/TorneoDetalle'
+import DashboardTorneos from './pages/torneos/DashboardTorneos'
+import CrearTorneo from './pages/torneos/CrearTorneo'
+import EditarTorneo from './pages/torneos/EditarTorneo'
+
 import './App.css'
 
 function App() {
@@ -80,6 +86,33 @@ function App() {
         <Route path="/admin/bloqueos" element={<AdminBloqueos />}/>
         
         <Route  path="/admin/estadisticas"  element={ <AdminRoute><AdminEstadisticas /> </AdminRoute>} />
+
+        {/* TORNEOS */}
+        <Route
+    path="/torneos"
+    element={<Torneos />}
+/>
+
+<Route
+    path="/torneos/:id"
+    element={<TorneoDetalle />}
+/>
+
+<Route
+    path="/dashboard/torneos"
+    element={<DashboardTorneos />}
+/>
+
+<Route
+    path="/dashboard/torneos/nuevo"
+    element={<CrearTorneo />}
+/>
+
+<Route
+    path="/dashboard/torneos/:id/editar"
+    element={<EditarTorneo />}
+/>
+
           
 
       </Routes>
