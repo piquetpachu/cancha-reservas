@@ -1,131 +1,118 @@
-import { useNavigate } from 'react-router-dom'
-import { logout } from '../services/authService'
-import { useEffect, useState } from 'react'
-import { supabase } from '../supabaseClient'
+import { useNavigate } from "react-router-dom";
+import { logout } from "../services/authService";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
 
 export default function Navbar() {
 
-  const navigate = useNavigate()
-
-  const [rol, setRol] = useState(null)
+  const navigate = useNavigate();
+  const [rol, setRol] = useState(null);
 
   useEffect(() => {
 
     async function getRol() {
 
-      const {
-        data: userData
-      } = await supabase.auth.getUser()
+      const { data: userData } =
+        await supabase.auth.getUser();
 
-      const user = userData.user
+      const user = userData.user;
 
-      if (!user) return
+      if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("rol")
         .eq("id", user.id)
-        .single()
-
-      console.log("DATA:", data)
-      console.log("ERROR:", error)
+        .single();
 
       if (data?.rol) {
-
-        const rolDB =
-          data.rol.toLowerCase()
-
-        console.log("ROL FINAL:", rolDB)
-
-        setRol(rolDB)
+        setRol(data.rol.toLowerCase());
       }
     }
 
-    getRol()
+    getRol();
 
-  }, [])
+  }, []);
 
   async function handleLogout() {
-
-    await logout()
-
-    navigate('/login')
+    await logout();
+    navigate("/login");
   }
 
   return (
 
-    <nav
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '10px 20px',
-        background: '#222',
-        color: '#fff',
-        flexWrap: 'wrap',
-        gap: '10px'
-      }}
-    >
+    <nav className="fixed bottom-0 left-0 w-full bg-zinc-950 border-t border-zinc-800 text-white z-50">
 
-      {/* IZQUIERDA */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          flexWrap: 'wrap'
-        }}
-      >
+      <div className="flex justify-around items-center py-2">
 
+        {/* INICIO */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
+          className="flex flex-col items-center text-xs text-zinc-300 hover:text-white"
         >
+          <span className="text-lg">🏠</span>
           Inicio
         </button>
 
+        {/* PERFIL */}
         <button
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate("/profile")}
+          className="flex flex-col items-center text-xs text-zinc-300 hover:text-white"
         >
+          <span className="text-lg">👤</span>
           Perfil
         </button>
 
-        {/* SOLO DUEÑO O ADMIN */}
+        {/* DUEÑO / ADMIN */}
         {(rol === "dueno" ||
           rol === "dueño" ||
           rol === "admin") && (
 
-            <>
-              <button
-                onClick={() => navigate('/crear-club')}
-              >
-                Crear Club
-              </button>
-
-              <button
-                onClick={() => navigate('/crear-cancha')}
-              >
-                Crear Cancha
-              </button>
-            </>
+            <button
+              onClick={() => navigate("/crear-club")}
+              className="flex flex-col items-center text-xs text-zinc-300 hover:text-white"
+            >
+              <span className="text-lg">🏢</span>
+              Club
+            </button>
           )}
 
-        {/* SOLO ADMIN */}
+        {(rol === "dueno" ||
+          rol === "dueño" ||
+          rol === "admin") && (
+
+            <button
+              onClick={() => navigate("/crear-cancha")}
+              className="flex flex-col items-center text-xs text-zinc-300 hover:text-white"
+            >
+              <span className="text-lg">⚽</span>
+              Cancha
+            </button>
+          )}
+
+        {/* ADMIN */}
         {rol === "admin" && (
 
           <button
-            onClick={() =>
-              navigate('/admin')
-            }
+            onClick={() => navigate("/admin")}
+            className="flex flex-col items-center text-xs text-zinc-300 hover:text-white"
           >
-            Panel Admin
+            <span className="text-lg">🛠️</span>
+            Admin
           </button>
         )}
 
+        {/* LOGOUT */}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center text-xs text-red-400 hover:text-red-300"
+        >
+          <span className="text-lg">🚪</span>
+          Salir
+        </button>
+
       </div>
 
-      {/* DERECHA */}
-      <button onClick={handleLogout}>
-        Cerrar sesión
-      </button>
-
     </nav>
-  )
+  );
 }
