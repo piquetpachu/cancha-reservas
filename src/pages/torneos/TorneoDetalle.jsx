@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
+import TournamentJoinButton from '../../components/torneos/TournamentJoinButton'
 
+import TournamentParticipants from '../../components/torneos/TournamentParticipants'
+import TournamentParticipantsAdmin from '../../components/torneos/TournamentParticipantsAdmin'
+import TournamentMatches from '../../components/torneos/TournamentMatches'
+import TournamentBracket from '../../components/torneos/TournamentBracket'
+import CreateMatchForm from '../../components/torneos/CreateMatchForm'
 import {
     Link,
     useNavigate,
@@ -121,7 +127,30 @@ export default function TorneoDetalle() {
                 >
                     Eliminar
                 </button>
+                <div className="mt-8">
+    <TournamentJoinButton
+        torneoId={torneo.id}
+    />
+</div>
+
+
+<TournamentParticipants
+    torneoId={torneo.id}
+/>
+<TournamentParticipantsAdmin
+    torneoId={torneo.id}
+/>
+<CreateMatchForm
+    torneoId={torneo.id}
+/>
+
+<TournamentMatches
+    torneoId={torneo.id}
+/>
             </div>
+            <TournamentBracket
+    torneoId={torneo.id}
+/>
         </div>
     )
 }
