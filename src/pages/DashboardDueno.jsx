@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar";
+import NavbarDueno from "../components/NavbarDueno";
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -215,7 +215,7 @@ export default function DashboardDueno() {
             }}
         >
 
-            <Navbar />
+            <NavbarDueno />
 
             <h1
                 style={{

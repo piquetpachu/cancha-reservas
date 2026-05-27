@@ -5,16 +5,25 @@ import { getUser } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
+
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [solicitud, setSolicitud] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const [editando, setEditando] = useState(false)
+  const [nombre, setNombre] = useState('')
+  const [telefono, setTelefono] = useState('')
+  const [guardando, setGuardando] = useState(false)
+
   const navigate = useNavigate()
 
   useEffect(() => {
+
     async function loadProfile() {
+
       try {
+
         const u = await getUser()
 
         if (!u) {
@@ -24,7 +33,6 @@ export default function Profile() {
 
         setUser(u)
 
-        // 👤 PERFIL
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
@@ -34,13 +42,14 @@ export default function Profile() {
         let finalProfile = profileData
 
         if (!profileData) {
+
           const { data: newProfile } = await supabase
             .from('profiles')
             .insert({
               id: u.id,
               nombre: '',
               telefono: '',
-              email: u.email, 
+              email: u.email,
               rol: 'cliente'
             })
             .select()
@@ -50,14 +59,15 @@ export default function Profile() {
         }
 
         setProfile(finalProfile)
+        setNombre(finalProfile.nombre || '')
+        setTelefono(finalProfile.telefono || '')
 
-        // 🏟️ SOLICITUD
         const { data: solicitudData } = await supabase
           .from('solicitudes_dueno')
           .select('*')
           .eq('user_id', u.id)
 
-        if (solicitudData && solicitudData.length > 0) {
+        if (solicitudData?.length > 0) {
           setSolicitud(solicitudData[0])
         }
 
@@ -69,10 +79,12 @@ export default function Profile() {
     }
 
     loadProfile()
+
   }, [])
 
   // 📸 SUBIR AVATAR
   async function handleUpload(e) {
+
     const file = e.target.files[0]
     if (!file) return
 
@@ -102,8 +114,38 @@ export default function Profile() {
     }))
   }
 
-  // 🏟️ SOLICITAR SER DUEÑO
+  // 💾 GUARDAR PERFIL
+  async function guardarPerfil() {
+
+    setGuardando(true)
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        nombre,
+        telefono
+      })
+      .eq('id', user.id)
+
+    setGuardando(false)
+
+    if (error) {
+      alert("Error al guardar")
+      return
+    }
+
+    setProfile(prev => ({
+      ...prev,
+      nombre,
+      telefono
+    }))
+
+    setEditando(false)
+  }
+
+  // 🏟️ SOLICITUD
   async function handleSolicitud() {
+
     const { data: existente } = await supabase
       .from('solicitudes_dueno')
       .select('*')
@@ -111,25 +153,22 @@ export default function Profile() {
 
     const solicitud = existente?.[0]
 
-    // 🚫 bloquear si ya hay pendiente
     if (solicitud && solicitud.estado === 'pendiente') {
       alert('Ya tenés una solicitud pendiente')
       return
     }
 
-    // 🔁 reenviar si fue rechazada
     if (solicitud && solicitud.estado === 'rechazado') {
+
       await supabase
         .from('solicitudes_dueno')
         .update({ estado: 'pendiente' })
         .eq('id', solicitud.id)
 
-      alert('Solicitud reenviada')
       setSolicitud({ ...solicitud, estado: 'pendiente' })
       return
     }
 
-    // 🆕 crear nueva
     const { error } = await supabase
       .from('solicitudes_dueno')
       .insert({
@@ -137,74 +176,180 @@ export default function Profile() {
         estado: 'pendiente'
       })
 
-    if (error) {
-      alert('Error al enviar solicitud')
-    } else {
-      alert('Solicitud enviada')
+    if (!error) {
       setSolicitud({ estado: 'pendiente' })
     }
   }
 
-  if (loading) return <p>Cargando perfil...</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+        Cargando perfil...
+      </div>
+    )
+  }
 
   return (
-    <>
+
+    <div className="min-h-screen bg-zinc-950 text-white pb-24">
+
       <Navbar />
 
-      <div style={{ padding: '20px' }}>
-        <h1>Perfil</h1>
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
 
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Nombre:</strong> {profile?.nombre || 'Sin nombre'}</p>
-        <p><strong>Teléfono:</strong> {profile?.telefono || 'Sin teléfono'}</p>
-        <p><strong>Rol:</strong> {profile?.rol}</p>
+        {/* CARD PERFIL */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
 
-        {profile?.avatar_url && (
-          <img
-            src={profile.avatar_url}
-            alt="avatar"
-            width="150"
-          />
-        )}
+          {/* AVATAR */}
+          <div className="flex flex-col items-center">
 
-        <br /><br />
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                className="w-28 h-28 rounded-full object-cover border-4 border-zinc-700 shadow-lg"
+              />
+            ) : (
+              <div className="w-28 h-28 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-sm">
+                Sin foto
+              </div>
+            )}
 
-        <input type="file" onChange={handleUpload} />
+            <label className="mt-3 text-sm text-blue-400 cursor-pointer hover:underline">
+              Cambiar foto
+              <input type="file" onChange={handleUpload} className="hidden" />
+            </label>
 
-        <br /><br />
+          </div>
 
-        {/* 🏟️ SOLICITUD */}
+          {/* INFO */}
+          <div className="mt-6 space-y-4">
 
+            {/* EMAIL */}
+            <div className="bg-zinc-800 p-3 rounded-xl">
+              <p className="text-xs text-zinc-400">Email</p>
+              <p className="font-semibold">{user.email}</p>
+            </div>
+
+            {/* NOMBRE */}
+            <div className="bg-zinc-800 p-3 rounded-xl">
+              <p className="text-xs text-zinc-400">Nombre</p>
+
+              {editando ? (
+                <input
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className="w-full mt-1 bg-zinc-700 rounded-lg p-2 outline-none"
+                />
+              ) : (
+                <p className="font-semibold">
+                  {profile?.nombre || 'Sin nombre'}
+                </p>
+              )}
+            </div>
+
+            {/* TELEFONO */}
+            <div className="bg-zinc-800 p-3 rounded-xl">
+              <p className="text-xs text-zinc-400">Teléfono</p>
+
+              {editando ? (
+                <input
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  className="w-full mt-1 bg-zinc-700 rounded-lg p-2 outline-none"
+                />
+              ) : (
+                <p className="font-semibold">
+                  {profile?.telefono || 'Sin teléfono'}
+                </p>
+              )}
+            </div>
+
+            {/* ROL */}
+            <div className="bg-zinc-800 p-3 rounded-xl">
+              <p className="text-xs text-zinc-400">Rol</p>
+              <p className="font-semibold capitalize">
+                {profile?.rol}
+              </p>
+            </div>
+
+          </div>
+
+          {/* BOTONES */}
+          <div className="mt-6 flex gap-3">
+
+            {!editando ? (
+              <button
+                onClick={() => setEditando(true)}
+                className="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-semibold transition"
+              >
+                Editar perfil
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={guardarPerfil}
+                  className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-xl font-semibold"
+                >
+                  {guardando ? "Guardando..." : "Guardar"}
+                </button>
+
+                <button
+                  onClick={() => setEditando(false)}
+                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl font-semibold"
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
+
+          </div>
+
+        </div>
+
+        {/* SOLICITUD */}
         {profile?.rol === 'cliente' && (
-          <>
-            {/* BOTÓN DINÁMICO */}
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-center">
+
+            <h3 className="font-semibold mb-3">
+              Convertirse en dueño
+            </h3>
+
             {(!solicitud || solicitud.estado === 'rechazado') && (
-              <button onClick={handleSolicitud}>
-                {solicitud?.estado === 'rechazado'
-                  ? 'Volver a solicitar'
-                  : 'Solicitar ser dueño'}
+              <button
+                onClick={handleSolicitud}
+                className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-semibold"
+              >
+                Solicitar ser dueño
               </button>
             )}
 
             {solicitud?.estado === 'pendiente' && (
-              <>
-                <button disabled>
-                  Solicitud enviada
-                </button>
-                <p>Solicitud pendiente ⏳</p>
-              </>
+              <p className="text-yellow-400">
+                Solicitud pendiente ⏳
+              </p>
             )}
 
             {solicitud?.estado === 'rechazado' && (
-              <p>Solicitud rechazada ❌</p>
+              <p className="text-red-400">
+                Solicitud rechazada ❌
+              </p>
             )}
-          </>
+
+          </div>
+
         )}
 
         {profile?.rol === 'dueno' && (
-          <p>Ya sos dueño 🏟️</p>
+          <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 text-center">
+            <p className="text-green-400 font-semibold">
+              Ya sos dueño 🏟️
+            </p>
+          </div>
         )}
+
       </div>
-    </>
+
+    </div>
   )
 }

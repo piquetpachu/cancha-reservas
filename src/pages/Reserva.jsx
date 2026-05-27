@@ -14,35 +14,20 @@ export default function Reserva() {
     const [club, setClub] = useState(null);
 
     const [fecha, setFecha] = useState(new Date());
-
     const [horasSeleccionadas, setHorasSeleccionadas] = useState([]);
-
     const [mensaje, setMensaje] = useState("");
 
     const [horarios, setHorarios] = useState([]);
     const [reservas, setReservas] = useState([]);
     const [bloqueos, setBloqueos] = useState([]);
 
-
-    // FECHA FORMATO
-
     function formatearFecha(date) {
-
         const offset = date.getTimezoneOffset();
-
-        const localDate = new Date(
-            date.getTime() - offset * 60000
-        );
-
-        return localDate
-            .toISOString()
-            .split("T")[0];
+        const localDate = new Date(date.getTime() - offset * 60000);
+        return localDate.toISOString().split("T")[0];
     }
 
-
-    // DIA SEMANA
     function normalizarDia(date) {
-
         const raw = date.toLocaleDateString("es-ES", {
             weekday: "long"
         }).toLowerCase();
@@ -57,36 +42,20 @@ export default function Reserva() {
         return mapa[raw] || raw;
     }
 
-
-    // CALCULAR FIN
-
     function calcularFin(inicio, horas) {
-
         const [h] = inicio.split(":").map(Number);
-
         const fin = h + Number(horas);
-
         return `${String(fin).padStart(2, "0")}:00`;
     }
 
-
-    // SELECCIONAR HORAS
-
     function toggleHora(hora) {
-
         setHorasSeleccionadas(prev => {
-
             if (prev.includes(hora)) {
-
                 return prev.filter(h => h !== hora);
             }
-
             return [...prev, hora].sort();
         });
     }
-
-
-    // CARGA DATOS
 
     useEffect(() => {
 
@@ -129,7 +98,13 @@ export default function Reserva() {
 
     }, [id]);
 
-    if (!cancha) return <p>Cargando...</p>;
+    if (!cancha) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+                Cargando...
+            </div>
+        );
+    }
 
     const diaSeleccionado = normalizarDia(fecha);
 
@@ -137,18 +112,10 @@ export default function Reserva() {
         h => h.dia_semana === diaSeleccionado
     );
 
-
-    // RESERVADO
-
     function estaReservado(fechaStr, hora) {
-
         return reservas.some(r => {
-
             const fechaReserva = String(r.fecha).split("T")[0];
-
-            if (fechaReserva !== fechaStr) {
-                return false;
-            }
+            if (fechaReserva !== fechaStr) return false;
 
             const inicio = r.hora_inicio.slice(0, 5);
             const fin = r.hora_fin.slice(0, 5);
@@ -157,18 +124,10 @@ export default function Reserva() {
         });
     }
 
-
-    // BLOQUEADO
-
     function estaBloqueado(fechaStr, hora) {
-
         return bloqueos.some(b => {
-
             const fechaBloqueo = String(b.fecha).split("T")[0];
-
-            if (fechaBloqueo !== fechaStr) {
-                return false;
-            }
+            if (fechaBloqueo !== fechaStr) return false;
 
             const inicio = b.hora_inicio.slice(0, 5);
             const fin = b.hora_fin.slice(0, 5);
@@ -177,33 +136,22 @@ export default function Reserva() {
         });
     }
 
-
-    // RESERVA
-
     async function reservar() {
 
         const { data: userData } = await supabase.auth.getUser();
-
         const user = userData.user;
 
         if (!user) {
-
             setMensaje("Tenés que iniciar sesión");
-
             return;
         }
 
         if (horasSeleccionadas.length === 0) {
-
             setMensaje("Seleccioná al menos un horario");
-
             return;
         }
 
         const fechaStr = formatearFecha(fecha);
-
-
-        // VALIDAR SI ESTA OCUPADA
 
         for (const hora of horasSeleccionadas) {
 
@@ -211,12 +159,9 @@ export default function Reserva() {
 
             const ocupado = reservas.some(r => {
 
-                if (formatearFecha(new Date(r.fecha)) !== fechaStr) {
-                    return false;
-                }
+                if (formatearFecha(new Date(r.fecha)) !== fechaStr) return false;
 
                 const inicioReserva = r.hora_inicio?.slice(0, 5);
-
                 const finReserva = r.hora_fin?.slice(0, 5);
 
                 return (
@@ -226,18 +171,12 @@ export default function Reserva() {
             });
 
             if (ocupado) {
-
                 setMensaje(`El horario ${hora} ya está reservado ❌`);
-
                 return;
             }
         }
 
-
-        // ARMAR RESERVAS
-
         const reservasInsertar = horasSeleccionadas.map(hora => {
-
             const horaFin = calcularFin(hora, 1);
 
             return {
@@ -250,140 +189,193 @@ export default function Reserva() {
             };
         });
 
-
-        // INSERTAR
-
         const { error } = await supabase
             .from("reservas")
             .insert(reservasInsertar);
 
         if (error) {
-
             setMensaje("Error: " + error.message);
-
             return;
         }
 
-
-        // ACTUALIZAR STATE
-
-        setReservas(prev => [
-
-            ...prev,
-
-            ...reservasInsertar
-        ]);
-
-
-        // LIMPIAR
-
+        setReservas(prev => [...prev, ...reservasInsertar]);
         setHorasSeleccionadas([]);
-
         setMensaje("Reserva confirmada ✅");
     }
 
-
     return (
 
-        <div style={{ padding: "20px", textAlign: "center" }}>
+        <div className="min-h-screen bg-zinc-950 text-white px-4 py-6">
 
-            <button onClick={() => navigate(-1)}>
-                ⬅ Volver
+            {/* VOLVER */}
+            <button
+                onClick={() => navigate(-1)}
+                className="mb-4 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition"
+            >
+                ← Volver
             </button>
 
-            <h2>{club?.nombre}</h2>
+            {/* 🔥 IMAGEN + NOMBRE ENCIMA */}
+            <div className="relative mb-4">
 
-            <h3>{cancha.nombre}</h3>
+                <div className="h-52 rounded-2xl overflow-hidden border border-zinc-800">
 
-            <Calendar
-                onChange={setFecha}
-                value={fecha}
-                className="calendario"
-            />
+                    {cancha.foto ? (
+                        <img
+                            src={cancha.foto}
+                            alt={cancha.nombre}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-zinc-500">
+                            Sin imagen
+                        </div>
+                    )}
 
-            <h4>Elegí horarios</h4>
+                </div>
 
-            {horariosDelDia.map(h => {
+                {/* OVERLAY */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent rounded-2xl" />
 
-                const inicio = h.hora_inicio.slice(0, 5);
+                {/* TEXTO SOBRE IMAGEN */}
+                <div className="absolute bottom-4 left-4">
+                    {/* <h2 className="text-sm text-zinc-300">{club?.nombre}</h2> */}
+                    <h1 className="text-2xl font-bold">{cancha.nombre}</h1>
+                </div>
 
-                const fin = h.hora_fin.slice(0, 5);
+            </div>
 
-                const horas = [];
+            {/* 🔥 DESCRIPCIÓN */}
+            <p className="text-zinc-400 text-sm mb-6">
+                {cancha.descripcion || "Sin descripción"}
+            </p>
 
-                let start = parseInt(inicio.split(":")[0]);
+            {/* CALENDARIO */}
+            <div className="flex justify-center mb-6">
+                <Calendar
+                    onChange={setFecha}
+                    value={fecha}
+                    className="calendario"
+                />
+            </div>
 
-                const end = parseInt(fin.split(":")[0]);
+            {/* RESTO IGUAL ↓↓↓ */}
 
-                const fechaStr = formatearFecha(fecha);
+            <div className="flex justify-center gap-4 mb-4 text-xs flex-wrap">
 
-                while (start < end) {
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-zinc-700 rounded"></div>
+                    Disponible
+                </div>
 
-                    const hora = `${String(start).padStart(2, "0")}:00`;
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-green-600 rounded"></div>
+                    Seleccionado
+                </div>
 
-                    const reservado = estaReservado(fechaStr, hora);
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+                    Reservado
+                </div>
 
-                    const bloqueado = estaBloqueado(fechaStr, hora);
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-red-600 rounded"></div>
+                    Bloqueado
+                </div>
 
-                    const noDisponible = reservado || bloqueado;
+            </div>
 
-                    horas.push(
+            <h3 className="text-center font-semibold mb-4">
+                Elegí horarios
+            </h3>
 
-                        <button
-                            key={hora}
-                            disabled={noDisponible}
-                            onClick={() => toggleHora(hora)}
-                            style={{
-                                margin: "5px",
-                                padding: "10px",
-                                background: noDisponible
-                                    ? "#777"
-                                    : horasSeleccionadas.includes(hora)
-                                        ? "green"
-                                        : "#444",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "6px",
-                                cursor: noDisponible
-                                    ? "not-allowed"
-                                    : "pointer"
-                            }}
-                        >
-                            {hora}
-                        </button>
-                    );
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
 
-                    start++;
-                }
+                {horariosDelDia.map(h => {
 
-                return horas;
-            })}
+                    const inicio = h.hora_inicio.slice(0, 5);
+                    const fin = h.hora_fin.slice(0, 5);
 
+                    let start = parseInt(inicio.split(":")[0]);
+                    const end = parseInt(fin.split(":")[0]);
 
-            <div style={{ marginTop: "20px" }}>
+                    const fechaStr = formatearFecha(fecha);
 
-                <p>
-                    Horarios seleccionados:
+                    const botones = [];
+
+                    while (start < end) {
+
+                        const hora = `${String(start).padStart(2, "0")}:00`;
+
+                        const reservado = estaReservado(fechaStr, hora);
+                        const bloqueado = estaBloqueado(fechaStr, hora);
+                        const seleccionado = horasSeleccionadas.includes(hora);
+
+                        let estilo = "";
+                        let label = "";
+
+                        if (bloqueado) {
+                            estilo = "bg-red-700/80 text-red-200 cursor-not-allowed";
+                            label = "Bloqueado";
+                        }
+                        else if (reservado) {
+                            estilo = "bg-yellow-600/80 text-yellow-100 cursor-not-allowed";
+                            label = "Reservado";
+                        }
+                        else if (seleccionado) {
+                            estilo = "bg-green-600 text-white scale-105 shadow-lg";
+                        }
+                        else {
+                            estilo = "bg-zinc-800 hover:bg-zinc-700";
+                        }
+
+                        botones.push(
+                            <button
+                                key={hora}
+                                disabled={bloqueado || reservado}
+                                onClick={() => toggleHora(hora)}
+                                className={`px-4 py-3 rounded-xl text-sm font-semibold transition ${estilo}`}
+                            >
+                                {hora}
+                                {label && (
+                                    <span className="block text-[10px] opacity-80">
+                                        {label}
+                                    </span>
+                                )}
+                            </button>
+                        );
+
+                        start++;
+                    }
+
+                    return botones;
+                })}
+
+            </div>
+
+            <div className="text-center mb-6">
+                <p className="text-zinc-400 text-sm">
+                    Horarios seleccionados
                 </p>
-
-                <p>
-                    {horasSeleccionadas.length > 0
+                <p className="font-semibold mt-2">
+                    {horasSeleccionadas.length
                         ? horasSeleccionadas.join(", ")
                         : "Ninguno"}
                 </p>
-
             </div>
 
+            <button
+                onClick={reservar}
+                className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold"
+            >
+                Confirmar Reserva
+            </button>
 
-            <div style={{ marginTop: "20px" }}>
-
-                <button onClick={reservar}>
-                    Confirmar Reserva
-                </button>
-
-            </div>
-
-            <p>{mensaje}</p>
+            {mensaje && (
+                <p className="mt-4 text-center text-sm text-zinc-300">
+                    {mensaje}
+                </p>
+            )}
 
         </div>
     );
