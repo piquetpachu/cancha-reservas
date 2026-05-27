@@ -1,25 +1,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 
 function CrearCancha() {
+
+    const navigate = useNavigate();
 
     const [nombre, setNombre] = useState("");
     const [tipo, setTipo] = useState("");
     const [descripcion, setDescripcion] = useState("");
-
     const [imagen, setImagen] = useState(null);
 
-    // CLUBS DEL DUEÑO
     const [clubs, setClubs] = useState([]);
     const [clubSeleccionado, setClubSeleccionado] = useState("");
 
     const [mensaje, setMensaje] = useState("");
 
-    // CARGAR CLUBS DEL DUEÑO
-
     useEffect(() => {
-
         async function cargarClubs() {
 
             const { data: userData } =
@@ -35,10 +33,7 @@ function CrearCancha() {
                 .eq("owner_id", user.id);
 
             if (!error) {
-
                 setClubs(data || []);
-
-                // seleccionar automáticamente el primero
 
                 if (data && data.length > 0) {
                     setClubSeleccionado(data[0].id);
@@ -47,35 +42,27 @@ function CrearCancha() {
         }
 
         cargarClubs();
-
     }, []);
-
-    // CREAR CANCHA
 
     const crearCancha = async (e) => {
 
         e.preventDefault();
 
-        // USUARIO
         const { data: userData } =
             await supabase.auth.getUser();
 
         const user = userData.user;
 
-        console.log("USER ID:", user?.id);
-
         if (!user) {
-            setMensaje("Usuario no autenticado");
+            setMensaje("❌ Usuario no autenticado");
             return;
         }
 
-        // VALIDAR CLUB
         if (!clubSeleccionado) {
-            setMensaje("Seleccioná un club");
+            setMensaje("❌ Seleccioná un club");
             return;
         }
 
-        // SUBIR IMAGEN
         let urlImagen = null;
 
         if (imagen) {
@@ -84,7 +71,9 @@ function CrearCancha() {
                 imagen.name.split(".").pop();
 
             const nombreArchivo =
-                `${Date.now()}.${extension}`;
+                `${Date.now()}-${Math.random()
+                    .toString(36)
+                    .substring(2)}.${extension}`;
 
             const { error: errorUpload } =
                 await supabase.storage
@@ -92,12 +81,7 @@ function CrearCancha() {
                     .upload(nombreArchivo, imagen);
 
             if (errorUpload) {
-
-                setMensaje(
-                    "Error subiendo imagen: " +
-                    errorUpload.message
-                );
-
+                setMensaje("❌ Error subiendo imagen");
                 return;
             }
 
@@ -109,30 +93,22 @@ function CrearCancha() {
             urlImagen = data.publicUrl;
         }
 
-        // GUARDAR
         const { error } = await supabase
             .from("canchas")
             .insert([
                 {
-                    nombre: nombre,
+                    nombre,
                     deporte: tipo,
-                    descripcion: descripcion,
+                    descripcion,
                     foto: urlImagen,
                     club_id: clubSeleccionado
                 },
             ]);
 
         if (error) {
-
-            setMensaje(
-                "Error: " + error.message
-            );
-
+            setMensaje("❌ " + error.message);
         } else {
-
-            setMensaje(
-                "Cancha creada correctamente ✅"
-            );
+            setMensaje("✅ Cancha creada correctamente");
 
             setNombre("");
             setTipo("");
@@ -145,179 +121,224 @@ function CrearCancha() {
         <>
             <Navbar />
 
-            <div
-                style={{
-                    maxWidth: "450px",
-                    margin: "20px auto",
-                    background: "#1e1e1e",
-                    padding: "20px",
-                    borderRadius: "10px",
-                    color: "white"
-                }}
-            >
+            <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white pb-24">
 
-                <h1
-                    style={{
-                        marginBottom: "20px",
-                        textAlign: "center"
-                    }}
-                >
-                    Crear Cancha
-                </h1>
+                {/* 🔙 BOTÓN VOLVER */}
+                <div className="px-6 pt-6">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="text-sm text-zinc-400 hover:text-white transition"
+                    >
+                        ← Volver
+                    </button>
+                </div>
 
-                <form
-                    onSubmit={crearCancha}
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "12px"
-                    }}
-                >
+                {/* HEADER */}
+                <div className="px-6 pt-4 pb-4">
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Crear Cancha
+                    </h1>
+                    <p className="text-zinc-400 text-sm mt-1">
+                        Agregá una nueva cancha a tu club
+                    </p>
+                </div>
 
-                    {/* CLUB */}
-                    <select
-                        value={clubSeleccionado}
-                        onChange={(e) =>
-                            setClubSeleccionado(
-                                e.target.value
-                            )
-                        }
-                        required
-                        style={{
-                            padding: "10px",
-                            borderRadius: "8px",
-                            border: "1px solid #444",
-                            background: "#2c2c2c",
-                            color: "white"
-                        }}
+                {/* FORM */}
+                <div className="px-6">
+
+                    <form
+                        onSubmit={crearCancha}
+                        className="flex flex-col gap-5"
                     >
 
-                        {clubs.length === 0 ? (
+                        {/* CLUB */}
+                        <div>
+                            <label className="text-sm text-zinc-400 mb-1 block">
+                                Club
+                            </label>
 
-                            <option value="">
-                                No tenés clubes
-                            </option>
+                            <select
+                                value={clubSeleccionado}
+                                onChange={(e) =>
+                                    setClubSeleccionado(e.target.value)
+                                }
+                                className="
+                                    w-full
+                                    bg-zinc-800
+                                    border border-zinc-700
+                                    px-4 py-3
+                                    rounded-xl
+                                    focus:outline-none
+                                    focus:border-blue-500
+                                    transition
+                                "
+                            >
+                                {clubs.length === 0 ? (
+                                    <option value="">
+                                        No tenés clubes
+                                    </option>
+                                ) : (
+                                    clubs.map((club) => (
+                                        <option
+                                            key={club.id}
+                                            value={club.id}
+                                        >
+                                            {club.nombre}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
+                        </div>
 
-                        ) : (
+                        {/* NOMBRE */}
+                        <div>
+                            <label className="text-sm text-zinc-400 mb-1 block">
+                                Nombre de la cancha
+                            </label>
 
-                            clubs.map((club) => (
+                            <input
+                                type="text"
+                                value={nombre}
+                                onChange={(e) =>
+                                    setNombre(e.target.value)
+                                }
+                                required
+                                className="
+                                    w-full
+                                    bg-zinc-800
+                                    border border-zinc-700
+                                    px-4 py-3
+                                    rounded-xl
+                                    focus:outline-none
+                                    focus:border-blue-500
+                                    transition
+                                "
+                            />
+                        </div>
 
-                                <option
-                                    key={club.id}
-                                    value={club.id}
-                                >
-                                    {club.nombre}
+                        {/* DEPORTE */}
+                        <div>
+                            <label className="text-sm text-zinc-400 mb-1 block">
+                                Deporte
+                            </label>
+
+                            <select
+                                value={tipo}
+                                onChange={(e) =>
+                                    setTipo(e.target.value)
+                                }
+                                required
+                                className="
+                                    w-full
+                                    bg-zinc-800
+                                    border border-zinc-700
+                                    px-4 py-3
+                                    rounded-xl
+                                    focus:outline-none
+                                    focus:border-blue-500
+                                    transition
+                                "
+                            >
+                                <option value="">
+                                    Seleccionar deporte
                                 </option>
+                                <option value="futbol">
+                                    Fútbol
+                                </option>
+                                <option value="padel">
+                                    Pádel
+                                </option>
+                            </select>
+                        </div>
 
-                            ))
+                        {/* DESCRIPCIÓN */}
+                        <div>
+                            <label className="text-sm text-zinc-400 mb-1 block">
+                                Descripción
+                            </label>
+
+                            <textarea
+                                value={descripcion}
+                                onChange={(e) =>
+                                    setDescripcion(e.target.value)
+                                }
+                                rows="3"
+                                className="
+                                    w-full
+                                    bg-zinc-800
+                                    border border-zinc-700
+                                    px-4 py-3
+                                    rounded-xl
+                                    focus:outline-none
+                                    focus:border-blue-500
+                                    transition
+                                "
+                            />
+                        </div>
+
+                        {/* IMAGEN */}
+                        <div>
+                            <label className="text-sm text-zinc-400 mb-2 block">
+                                Imagen de la cancha
+                            </label>
+
+                            <label className="
+                                flex
+                                items-center
+                                justify-center
+                                h-32
+                                border-2
+                                border-dashed
+                                border-zinc-700
+                                rounded-xl
+                                cursor-pointer
+                                hover:border-blue-500
+                                transition
+                            ">
+                                <span className="text-zinc-400 text-sm">
+                                    {imagen ? imagen.name : "Seleccionar imagen"}
+                                </span>
+
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                        setImagen(e.target.files[0])
+                                    }
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+
+                        {/* BOTÓN */}
+                        <button
+                            type="submit"
+                            className="
+                                mt-4
+                                bg-blue-600
+                                hover:bg-blue-700
+                                py-3
+                                rounded-xl
+                                font-semibold
+                                text-lg
+                                transition
+                                shadow-lg
+                                shadow-blue-900/30
+                            "
+                        >
+                            Crear Cancha
+                        </button>
+
+                        {/* MENSAJE */}
+                        {mensaje && (
+                            <p className="text-center text-sm text-zinc-300 mt-2">
+                                {mensaje}
+                            </p>
                         )}
 
-                    </select>
+                    </form>
 
-                    {/* NOMBRE */}
-                    <input
-                        type="text"
-                        placeholder="Nombre de la cancha"
-                        value={nombre}
-                        onChange={(e) =>
-                            setNombre(e.target.value)
-                        }
-                        required
-                        style={{
-                            padding: "10px",
-                            borderRadius: "8px",
-                            border: "1px solid #444",
-                            background: "#2c2c2c",
-                            color: "white"
-                        }}
-                    />
-
-                    {/* DEPORTE */}
-                    <select
-                        value={tipo}
-                        onChange={(e) =>
-                            setTipo(e.target.value)
-                        }
-                        required
-                        style={{
-                            padding: "10px",
-                            borderRadius: "8px",
-                            border: "1px solid #444",
-                            background: "#2c2c2c",
-                            color: "white"
-                        }}
-                    >
-                        <option value="">
-                            Seleccionar deporte
-                        </option>
-
-                        <option value="futbol">
-                            Fútbol
-                        </option>
-
-                        <option value="padel">
-                            Pádel
-                        </option>
-                    </select>
-
-                    {/* DESCRIPCIÓN */}
-                    <input
-                        type="text"
-                        placeholder="Descripción"
-                        value={descripcion}
-                        onChange={(e) =>
-                            setDescripcion(
-                                e.target.value
-                            )
-                        }
-                        style={{
-                            padding: "10px",
-                            borderRadius: "8px",
-                            border: "1px solid #444",
-                            background: "#2c2c2c",
-                            color: "white"
-                        }}
-                    />
-
-                    {/* IMAGEN */}
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                            setImagen(
-                                e.target.files[0]
-                            )
-                        }
-                        style={{
-                            color: "white"
-                        }}
-                    />
-
-                    {/* BOTÓN */}
-                    <button
-                        type="submit"
-                        style={{
-                            padding: "12px",
-                            background: "#007bff",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Crear cancha
-                    </button>
-
-                </form>
-
-                <p
-                    style={{
-                        marginTop: "15px",
-                        textAlign: "center"
-                    }}
-                >
-                    {mensaje}
-                </p>
+                </div>
 
             </div>
         </>

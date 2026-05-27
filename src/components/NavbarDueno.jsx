@@ -46,9 +46,9 @@ export default function NavbarDueno() {
 
             <div className="flex justify-around items-center py-2">
 
-                {/* INICIO */}
+                {/* ✅ INICIO (CORREGIDO) */}
                 <button
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate("/dashboard-dueno")}
                     className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

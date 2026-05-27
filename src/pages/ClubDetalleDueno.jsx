@@ -62,16 +62,22 @@ export default function ClubDetalleDueno() {
     }
 
     function abrirEditor(cancha) {
-        setEditandoCancha(cancha.id);
+        setEditandoCancha(cancha);
         setNombreEditado(cancha.nombre || "");
         setDescripcionEditada(cancha.descripcion || "");
         setImagenNueva(null);
     }
 
-    async function guardarCambiosCancha(cancha) {
+    function cerrarEditor() {
+        setEditandoCancha(null);
+    }
+
+    async function guardarCambiosCancha() {
+        if (!editandoCancha) return;
+
         setGuardandoCancha(true);
 
-        let urlImagen = cancha.foto;
+        let urlImagen = editandoCancha.foto;
 
         if (imagenNueva) {
             const ext = imagenNueva.name.split(".").pop();
@@ -97,13 +103,11 @@ export default function ClubDetalleDueno() {
                 descripcion: descripcionEditada,
                 foto: urlImagen
             })
-            .eq("id", cancha.id);
-
-        setGuardandoCancha(false);
+            .eq("id", editandoCancha.id);
 
         setCanchas(prev =>
             prev.map(c =>
-                c.id === cancha.id
+                c.id === editandoCancha.id
                     ? {
                         ...c,
                         nombre: nombreEditado,
@@ -114,7 +118,8 @@ export default function ClubDetalleDueno() {
             )
         );
 
-        setEditandoCancha(null);
+        setGuardandoCancha(false);
+        cerrarEditor();
         alert("Cancha actualizada ✅");
     }
 
@@ -154,172 +159,166 @@ export default function ClubDetalleDueno() {
                 <div className="flex gap-3 mb-6">
                     <button
                         onClick={() => setDeporteSeleccionado("futbol")}
-                        className={`px-4 py-2 rounded-xl transition ${deporteSeleccionado === "futbol"
-                                ? "bg-green-500"
-                                : "bg-white/10"
-                            }`}
+                        className={`px-4 py-2 rounded-xl ${deporteSeleccionado === "futbol" ? "bg-green-500" : "bg-white/10"}`}
                     >
                         ⚽ Fútbol
                     </button>
 
                     <button
                         onClick={() => setDeporteSeleccionado("padel")}
-                        className={`px-4 py-2 rounded-xl transition ${deporteSeleccionado === "padel"
-                                ? "bg-green-500"
-                                : "bg-white/10"
-                            }`}
+                        className={`px-4 py-2 rounded-xl ${deporteSeleccionado === "padel" ? "bg-green-500" : "bg-white/10"}`}
                     >
                         🎾 Pádel
                     </button>
                 </div>
 
-                {canchasFiltradas.length === 0 ? (
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
-                        <h3 className="text-xl font-bold mb-2">
-                            No hay canchas
-                        </h3>
-                        <p className="text-zinc-400">
-                            Agregá canchas de {deporteSeleccionado}
-                        </p>
-                    </div>
-                ) : (
+                {/* LISTA */}
+                <div className="flex flex-col gap-6">
 
-                    <div className="flex flex-col gap-6">
+                    {canchasFiltradas.map((cancha) => (
 
-                        {canchasFiltradas.map((cancha) => (
+                        <div
+                            key={cancha.id}
+                            className="relative h-64 rounded-3xl overflow-hidden border border-zinc-800 group"
+                        >
 
-                            <div
-                                key={cancha.id}
-                                className="relative h-64 rounded-3xl overflow-hidden border border-zinc-800 group"
-                            >
+                            <img
+                                src={cancha.foto}
+                                className="w-full h-full object-cover group-hover:scale-105 transition"
+                            />
 
-                                {/* IMG */}
-                                <img
-                                    src={cancha.foto}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition"
-                                />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
 
-                                {/* OVERLAY */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+                            <div className="absolute bottom-0 w-full p-5">
 
-                                {/* CONTENIDO */}
-                                <div className="absolute bottom-0 w-full p-5">
+                                <h3 className="text-xl font-bold">
+                                    {cancha.nombre}
+                                </h3>
 
-                                    <h3 className="text-xl font-bold">
-                                        {cancha.nombre}
-                                    </h3>
+                                <p className="text-sm text-zinc-300">
+                                    {cancha.descripcion}
+                                </p>
 
-                                    <p className="text-sm text-zinc-300">
-                                        {cancha.descripcion}
-                                    </p>
+                                <p className="text-green-400 font-bold text-xl mt-2">
+                                    ${cancha.precio_por_hora || "0"} / hora
+                                </p>
 
-                                    {/* PRECIO */}
-                                    <p className="text-green-400 font-bold text-xl mt-2">
-                                        ${cancha.precio_por_hora || "0"} / hora
-                                    </p>
-
-                                    {/* BOTONES */}
-                                    <div className="flex flex-wrap gap-2 mt-3">
-
-                                        <button
-                                            onClick={() => abrirEditor(cancha)}
-                                            className="bg-white/10 px-3 py-2 rounded-xl text-sm"
-                                        >
-                                            Editar
-                                        </button>
-
-                                        <button
-                                            onClick={() => navigate(`/horarios/${cancha.id}`)}
-                                            className="bg-blue-600 px-3 py-2 rounded-xl text-sm"
-                                        >
-                                            Horarios
-                                        </button>
-
-                                        <button
-                                            onClick={() => navigate(`/bloqueos/${cancha.id}`)}
-                                            className="bg-red-600 px-3 py-2 rounded-xl text-sm"
-                                        >
-                                            Bloqueos
-                                        </button>
-
-                                        <button
-                                            onClick={() => navigate(`/reservas-dueno/${cancha.id}`)}
-                                            className="bg-zinc-700 px-3 py-2 rounded-xl text-sm"
-                                        >
-                                            Reservas
-                                        </button>
-
-                                        <button
-                                            onClick={() => eliminarCancha(cancha.id)}
-                                            className="bg-red-700 px-3 py-2 rounded-xl text-sm"
-                                        >
-                                            Eliminar
-                                        </button>
-
-                                    </div>
-                                </div>
-
-                                {/* PANEL EDICIÓN */}
-                                {editandoCancha === cancha.id && (
-                                    <div className="bg-zinc-900 p-4 border-t border-zinc-800 space-y-3">
-
-                                        <input
-                                            value={nombreEditado}
-                                            onChange={(e) => setNombreEditado(e.target.value)}
-                                            className="w-full p-2 rounded bg-zinc-800"
-                                        />
-
-                                        <textarea
-                                            value={descripcionEditada}
-                                            onChange={(e) => setDescripcionEditada(e.target.value)}
-                                            className="w-full p-2 rounded bg-zinc-800"
-                                        />
-
-                                        <input
-                                            type="file"
-                                            onChange={(e) => setImagenNueva(e.target.files[0])}
-                                        />
-
-                                        <button
-                                            onClick={() => guardarCambiosCancha(cancha)}
-                                            className="bg-green-600 px-4 py-2 rounded"
-                                        >
-                                            Guardar cambios
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* PRECIO EDIT */}
-                                <div className="bg-zinc-900 border-t border-zinc-800 p-4 flex gap-2">
-
-                                    <input
-                                        type="number"
-                                        value={precioEditando[cancha.id] ?? cancha.precio_por_hora ?? ""}
-                                        onChange={(e) =>
-                                            setPrecioEditando(prev => ({
-                                                ...prev,
-                                                [cancha.id]: e.target.value
-                                            }))
-                                        }
-                                        className="flex-1 p-2 rounded bg-zinc-800"
-                                    />
+                                <div className="flex flex-wrap gap-2 mt-3">
 
                                     <button
-                                        onClick={() => guardarPrecio(cancha.id)}
-                                        className="bg-green-600 px-4 rounded"
+                                        onClick={() => abrirEditor(cancha)}
+                                        className="bg-white/10 px-3 py-2 rounded-xl text-sm"
                                     >
-                                        Guardar
+                                        Editar
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate(`/horarios/${cancha.id}`)}
+                                        className="bg-blue-600 px-3 py-2 rounded-xl text-sm"
+                                    >
+                                        Horarios
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate(`/bloqueos/${cancha.id}`)}
+                                        className="bg-red-600 px-3 py-2 rounded-xl text-sm"
+                                    >
+                                        Bloqueos
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate(`/reservas-dueno/${cancha.id}`)}
+                                        className="bg-zinc-700 px-3 py-2 rounded-xl text-sm"
+                                    >
+                                        Reservas
+                                    </button>
+
+                                    <button
+                                        onClick={() => eliminarCancha(cancha.id)}
+                                        className="bg-red-700 px-3 py-2 rounded-xl text-sm"
+                                    >
+                                        Eliminar
                                     </button>
 
                                 </div>
-
                             </div>
-                        ))}
+
+                            {/* PRECIO */}
+                            <div className="bg-zinc-900 border-t border-zinc-800 p-4 flex gap-2">
+                                <input
+                                    type="number"
+                                    value={precioEditando[cancha.id] ?? cancha.precio_por_hora ?? ""}
+                                    onChange={(e) =>
+                                        setPrecioEditando(prev => ({
+                                            ...prev,
+                                            [cancha.id]: e.target.value
+                                        }))
+                                    }
+                                    className="flex-1 p-2 rounded bg-zinc-800"
+                                />
+
+                                <button
+                                    onClick={() => guardarPrecio(cancha.id)}
+                                    className="bg-green-600 px-4 rounded"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+
+                        </div>
+                    ))}
+
+                </div>
+            </div>
+
+            {/* 🔥 MODAL EDITAR */}
+            {editandoCancha && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+
+                    <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-md space-y-4">
+
+                        <h3 className="text-xl font-bold">
+                            Editar cancha
+                        </h3>
+
+                        <input
+                            value={nombreEditado}
+                            onChange={(e) => setNombreEditado(e.target.value)}
+                            className="w-full p-3 rounded bg-zinc-800"
+                        />
+
+                        <textarea
+                            value={descripcionEditada}
+                            onChange={(e) => setDescripcionEditada(e.target.value)}
+                            className="w-full p-3 rounded bg-zinc-800"
+                        />
+
+                        <input
+                            type="file"
+                            onChange={(e) => setImagenNueva(e.target.files[0])}
+                        />
+
+                        <div className="flex gap-3">
+
+                            <button
+                                onClick={guardarCambiosCancha}
+                                className="bg-green-600 px-4 py-2 rounded-xl flex-1"
+                            >
+                                Guardar
+                            </button>
+
+                            <button
+                                onClick={cerrarEditor}
+                                className="bg-zinc-700 px-4 py-2 rounded-xl flex-1"
+                            >
+                                Cancelar
+                            </button>
+
+                        </div>
 
                     </div>
-                )}
-
-            </div>
+                </div>
+            )}
         </div>
     );
 }

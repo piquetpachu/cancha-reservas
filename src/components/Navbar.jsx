@@ -3,6 +3,10 @@ import { logout } from "../services/authService";
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
+// 👇 IMPORTS NUEVOS (CLAVE)
+import NavbarAdmin from "./NavbarAdmin";
+import NavbarDueno from "./NavbarDueno";
+
 export default function Navbar() {
 
   const navigate = useNavigate();
@@ -37,6 +41,16 @@ export default function Navbar() {
     navigate("/login");
   }
 
+  // 🔥🔥🔥 CLAVE: CAMBIO DE NAVBAR SEGÚN ROL
+  if (rol === "admin") {
+    return <NavbarAdmin />;
+  }
+
+  if (rol === "dueno" || rol === "dueño") {
+    return <NavbarDueno />;
+  }
+
+  // 👇 NAVBAR CLIENTE (EL TUYO, NO SE TOCA)
   return (
 
     <nav className="fixed bottom-0 left-0 w-full bg-zinc-950 border-t border-zinc-800 text-white z-50">
@@ -56,7 +70,7 @@ export default function Navbar() {
           Inicio
         </button>
 
-        {/* RESERVAS (NUEVO) */}
+        {/* RESERVAS */}
         <button
           onClick={() => navigate("/reservas")}
           className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"
@@ -69,7 +83,7 @@ export default function Navbar() {
           Reservas
         </button>
 
-        {/* TORNEOS (NUEVO) */}
+        {/* TORNEOS */}
         <button
           onClick={() => navigate("/torneos")}
           className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"
@@ -95,9 +109,8 @@ export default function Navbar() {
           Perfil
         </button>
 
-        {/* DUEÑO / ADMIN */}
+        {/* DUEÑO / ADMIN BOTONES EXTRA */}
         {(rol === "dueno" || rol === "dueño" || rol === "admin") && (
-
           <button
             onClick={() => navigate("/crear-club")}
             className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"
@@ -112,7 +125,6 @@ export default function Navbar() {
         )}
 
         {(rol === "dueno" || rol === "dueño" || rol === "admin") && (
-
           <button
             onClick={() => navigate("/crear-cancha")}
             className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"
@@ -128,7 +140,6 @@ export default function Navbar() {
 
         {/* ADMIN */}
         {rol === "admin" && (
-
           <button
             onClick={() => navigate("/admin")}
             className="flex flex-col items-center text-[11px] text-zinc-400 hover:text-white transition"

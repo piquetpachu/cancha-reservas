@@ -14,19 +14,11 @@ export default function HorariosCancha() {
     const [mensaje, setMensaje] = useState("");
 
     const dias = [
-        "lunes",
-        "martes",
-        "miercoles",
-        "jueves",
-        "viernes",
-        "sabado",
-        "domingo"
+        "lunes", "martes", "miercoles",
+        "jueves", "viernes", "sabado", "domingo"
     ];
 
-    // CARGAR HORARIOS
-
     async function cargarHorarios() {
-
         const { data, error } = await supabase
             .from("horarios_cancha")
             .select("*")
@@ -34,92 +26,42 @@ export default function HorariosCancha() {
             .order("dia_semana", { ascending: true })
             .order("hora_inicio", { ascending: true });
 
-        if (error) {
-            console.log(error);
-            return;
-        }
-
-        setHorarios(data || []);
+        if (!error) setHorarios(data || []);
     }
 
     useEffect(() => {
-
-        if (!id) return;
-
-        cargarHorarios();
-
+        if (id) cargarHorarios();
     }, [id]);
 
-    // TOGGLE DÍA
-
     function toggleDia(dia) {
-
-        setDiasSeleccionados(prev => {
-
-            if (prev.includes(dia)) {
-                return prev.filter(d => d !== dia);
-            }
-            return [...prev, dia];
-        });
+        setDiasSeleccionados(prev =>
+            prev.includes(dia)
+                ? prev.filter(d => d !== dia)
+                : [...prev, dia]
+        );
     }
 
-    // SELECCIONES RÁPIDAS
-    
-
     function seleccionarTodos() {
-
-        setDiasSeleccionados([
-            "lunes",
-            "martes",
-            "miercoles",
-            "jueves",
-            "viernes",
-            "sabado",
-            "domingo"
-        ]);
+        setDiasSeleccionados(dias);
     }
 
     function seleccionarSemana() {
-
-        setDiasSeleccionados([
-            "lunes",
-            "martes",
-            "miercoles",
-            "jueves",
-            "viernes"
-        ]);
+        setDiasSeleccionados(dias.slice(0, 5));
     }
 
     function seleccionarFinde() {
-
-        setDiasSeleccionados([
-            "sabado",
-            "domingo"
-        ]);
+        setDiasSeleccionados(dias.slice(5));
     }
-
-   
-    // NORMALIZAR HORAS
-    
 
     function normalizarHora(hora) {
-
         return hora.slice(0, 2) + ":00";
     }
-
-   
-    // GUARDAR HORARIO
-   
 
     async function guardarHorario() {
 
         setMensaje("");
 
-        if (
-            !diasSeleccionados.length ||
-            !horaInicio ||
-            !horaFin
-        ) {
+        if (!diasSeleccionados.length || !horaInicio || !horaFin) {
             setMensaje("Completá todos los campos");
             return;
         }
@@ -127,66 +69,31 @@ export default function HorariosCancha() {
         const inicio = normalizarHora(horaInicio);
         const fin = normalizarHora(horaFin);
 
-        // VALIDAR HORAS
-
         if (inicio >= fin) {
-
-            setMensaje(
-                "La hora final debe ser mayor"
-            );
-
+            setMensaje("La hora final debe ser mayor");
             return;
         }
 
-        // VALIDAR DUPLICADOS
-
-        const existeDuplicado = horarios.some(h => {
-
-            return (
-                diasSeleccionados.includes(h.dia_semana) &&
-                h.hora_inicio.slice(0, 5) === inicio &&
-                h.hora_fin.slice(0, 5) === fin
-            );
-        });
+        const existeDuplicado = horarios.some(h =>
+            diasSeleccionados.includes(h.dia_semana) &&
+            h.hora_inicio.slice(0, 5) === inicio &&
+            h.hora_fin.slice(0, 5) === fin
+        );
 
         if (existeDuplicado) {
-
-            setMensaje(
-                "Ese horario ya existe"
-            );
-
+            setMensaje("Ese horario ya existe");
             return;
         }
 
-        // VALIDAR SUPERPOSICIÓN
-
         const existeSolapamiento = horarios.some(h => {
-
-            const mismoDia =
-                diasSeleccionados.includes(
-                    h.dia_semana
-                );
-
-            if (!mismoDia) {
-                return false;
-            }
-
-            return (
-                inicio < h.hora_fin &&
-                fin > h.hora_inicio
-            );
+            if (!diasSeleccionados.includes(h.dia_semana)) return false;
+            return inicio < h.hora_fin && fin > h.hora_inicio;
         });
 
         if (existeSolapamiento) {
-
-            setMensaje(
-                "Ya existe un horario que se superpone"
-            );
-
+            setMensaje("Ya existe un horario que se superpone");
             return;
         }
-
-        // CREAR DATOS
 
         const datos = diasSeleccionados.map(dia => ({
             cancha_id: id,
@@ -195,261 +102,173 @@ export default function HorariosCancha() {
             hora_fin: fin
         }));
 
-        // INSERTAR
-
         const { error } = await supabase
             .from("horarios_cancha")
             .insert(datos);
 
         if (error) {
-
-            console.log(error);
-
-            setMensaje(
-                "Error: " + error.message
-            );
-
+            setMensaje("Error: " + error.message);
             return;
         }
-
-        // LIMPIAR
 
         setDiasSeleccionados([]);
         setHoraInicio("");
         setHoraFin("");
-
-        setMensaje(
-            "Horarios agregados ✅"
-        );
-
-        // RECARGAR
+        setMensaje("Horarios agregados ✅");
 
         await cargarHorarios();
     }
-
-   
-    // ELIMINAR HORARIO
-   
 
     async function eliminarHorario(horarioId) {
-
-        const { error } = await supabase
+        await supabase
             .from("horarios_cancha")
             .delete()
-            .match({
-                id: horarioId
-            });
-
-        if (error) {
-
-            console.log(error);
-
-            setMensaje(
-                "Error eliminando horario"
-            );
-
-            return;
-        }
+            .match({ id: horarioId });
 
         await cargarHorarios();
     }
 
-   
-
-
     return (
+        <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white pb-24">
 
-        <div
-            style={{
-                padding: "20px",
-                maxWidth: "600px",
-                margin: "0 auto"
-            }}
-        >
-
-            <button onClick={() => navigate(-1)}>
-                ← Volver
-            </button>
-
-            <h2>Horarios de la cancha</h2>
-
-            {/* BOTONES RÁPIDOS */}
-            <div
-                style={{
-                    display: "flex",
-                    gap: "10px",
-                    flexWrap: "wrap"
-                }}
-            >
-
-                <button onClick={seleccionarTodos}>
-                    Todos
-                </button>
-
-                <button onClick={seleccionarSemana}>
-                    Lun-Vie
-                </button>
-
-                <button onClick={seleccionarFinde}>
-                    Finde
-                </button>
-
-            </div>
-
-            {/* DÍAS */}
-            <div style={{ marginTop: "10px" }}>
-
-                {dias.map(dia => (
-
-                    <label
-                        key={dia}
-                        style={{ marginRight: "10px" }}
-                    >
-
-                        <input
-                            type="checkbox"
-                            checked={
-                                diasSeleccionados.includes(dia)
-                            }
-                            onChange={() => toggleDia(dia)}
-                        />
-
-                        {dia}
-
-                    </label>
-                ))}
-
-            </div>
-
-            {/* HORAS */}
-            <div
-                style={{
-                    marginTop: "10px",
-                    display: "flex",
-                    gap: "10px"
-                }}
-            >
-
-                <select
-                    value={horaInicio}
-                    onChange={(e) =>
-                        setHoraInicio(e.target.value)
-                    }
-                    style={{
-                        padding: "8px"
-                    }}
+            {/* HEADER */}
+            <div className="px-6 pt-8 pb-4">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="text-sm text-zinc-400 hover:text-white mb-4"
                 >
+                    ← Volver
+                </button>
 
-                    <option value="">
-                        Hora inicio
-                    </option>
+                <h2 className="text-3xl font-bold">
+                    Horarios de la cancha
+                </h2>
 
-                    {Array.from({ length: 24 }).map((_, i) => {
-
-                        const hora =
-                            String(i).padStart(2, "0") + ":00";
-
-                        return (
-                            <option
-                                key={hora}
-                                value={hora}
-                            >
-                                {hora}
-                            </option>
-                        );
-                    })}
-
-                </select>
-
-                <select
-                    value={horaFin}
-                    onChange={(e) =>
-                        setHoraFin(e.target.value)
-                    }
-                    style={{
-                        padding: "8px"
-                    }}
-                >
-
-                    <option value="">
-                        Hora de cierre
-                    </option>
-
-                    {Array.from({ length: 24 }).map((_, i) => {
-
-                        const hora =
-                            String(i).padStart(2, "0") + ":00";
-
-                        return (
-                            <option
-                                key={hora}
-                                value={hora}
-                            >
-                                {hora}
-                            </option>
-                        );
-                    })}
-
-                </select>
-
+                <p className="text-zinc-400 text-sm mt-1">
+                    Definí los horarios disponibles
+                </p>
             </div>
 
-            <button
-                onClick={guardarHorario}
-                style={{ marginTop: "10px" }}
-            >
-                Guardar horarios
-            </button>
+            <div className="px-6 flex flex-col gap-6">
 
-            <p>{mensaje}</p>
-
-            {/* LISTA */}
-            <h3>Horarios cargados</h3>
-
-            {horarios.length === 0 ? (
-
-                <p>No hay horarios</p>
-
-            ) : (
-
-                horarios.map(h => (
-
-                    <div
-                        key={h.id}
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginBottom: "8px",
-                            border: "1px solid #ccc",
-                            padding: "10px",
-                            borderRadius: "8px"
-                        }}
+                {/* BOTONES RÁPIDOS */}
+                <div className="flex gap-3 flex-wrap">
+                    <button
+                        onClick={seleccionarTodos}
+                        className="px-4 py-2 bg-zinc-800 rounded-xl hover:bg-blue-600 transition"
                     >
+                        Todos
+                    </button>
 
-                        <span>
+                    <button
+                        onClick={seleccionarSemana}
+                        className="px-4 py-2 bg-zinc-800 rounded-xl hover:bg-blue-600 transition"
+                    >
+                        Lun - Vie
+                    </button>
 
-                            {h.dia_semana}{" "}
+                    <button
+                        onClick={seleccionarFinde}
+                        className="px-4 py-2 bg-zinc-800 rounded-xl hover:bg-blue-600 transition"
+                    >
+                        Finde
+                    </button>
+                </div>
 
-                            {h.hora_inicio.slice(0, 5)}
-
-                            {" - "}
-
-                            {h.hora_fin.slice(0, 5)}
-
-                        </span>
-
+                {/* DÍAS */}
+                <div className="flex flex-wrap gap-3">
+                    {dias.map(dia => (
                         <button
-                            onClick={() =>
-                                eliminarHorario(h.id)
-                            }
+                            key={dia}
+                            onClick={() => toggleDia(dia)}
+                            className={`px-4 py-2 rounded-xl text-sm transition
+                                ${diasSeleccionados.includes(dia)
+                                    ? "bg-blue-600"
+                                    : "bg-zinc-800 hover:bg-zinc-700"
+                                }`}
                         >
-                            X
+                            {dia}
                         </button>
+                    ))}
+                </div>
 
-                    </div>
-                ))
-            )}
+                {/* HORAS */}
+                <div className="flex gap-4">
 
+                    <select
+                        value={horaInicio}
+                        onChange={(e) => setHoraInicio(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3"
+                    >
+                        <option value="">Hora inicio</option>
+                        {Array.from({ length: 24 }).map((_, i) => {
+                            const hora = String(i).padStart(2, "0") + ":00";
+                            return <option key={hora} value={hora}>{hora}</option>;
+                        })}
+                    </select>
+
+                    <select
+                        value={horaFin}
+                        onChange={(e) => setHoraFin(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3"
+                    >
+                        <option value="">Hora fin</option>
+                        {Array.from({ length: 24 }).map((_, i) => {
+                            const hora = String(i).padStart(2, "0") + ":00";
+                            return <option key={hora} value={hora}>{hora}</option>;
+                        })}
+                    </select>
+
+                </div>
+
+                {/* BOTÓN */}
+                <button
+                    onClick={guardarHorario}
+                    className="bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold text-lg transition shadow-lg shadow-blue-900/30"
+                >
+                    Guardar horarios
+                </button>
+
+                {/* MENSAJE */}
+                {mensaje && (
+                    <p className="text-sm text-zinc-300">
+                        {mensaje}
+                    </p>
+                )}
+
+                {/* LISTA */}
+                <div className="mt-6 flex flex-col gap-3">
+
+                    <h3 className="text-xl font-semibold">
+                        Horarios cargados
+                    </h3>
+
+                    {horarios.length === 0 ? (
+                        <p className="text-zinc-400">
+                            No hay horarios
+                        </p>
+                    ) : (
+                        horarios.map(h => (
+                            <div
+                                key={h.id}
+                                className="flex justify-between items-center bg-zinc-800 border border-zinc-700 px-4 py-3 rounded-xl"
+                            >
+                                <span className="text-sm">
+                                    {h.dia_semana} {h.hora_inicio.slice(0, 5)} - {h.hora_fin.slice(0, 5)}
+                                </span>
+
+                                <button
+                                    onClick={() => eliminarHorario(h.id)}
+                                    className="text-red-400 hover:text-red-300"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+            </div>
         </div>
     );
 }

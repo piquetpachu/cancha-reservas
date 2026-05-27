@@ -167,12 +167,12 @@ export default function AdminBloqueos() {
             {/* NAV */}
             <div className="flex justify-between items-center mb-6">
 
-                <button
+                {/* <button
                     onClick={() => setMenuOpen(!menuOpen)}
                     className="text-2xl"
                 >
                     ☰
-                </button>
+                </button> */}
 
                 <button
                     onClick={() => navigate(-1)}
