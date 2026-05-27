@@ -8,6 +8,12 @@ import {
     obtenerParticipantes
 } from '../../services/inscripcionService'
 
+import { supabase } from '../../supabaseClient'
+
+import {
+    crearReservaPartido
+} from '../../services/matchReservationService'
+
 export default function CreateMatchForm({
     torneoId,
     onCreated
@@ -15,14 +21,23 @@ export default function CreateMatchForm({
     const [participantes, setParticipantes] =
         useState([])
 
+    const [canchas, setCanchas] =
+        useState([])
+
     const [form, setForm] = useState({
         jugador1_id: '',
         jugador2_id: '',
-        ronda: 1
+        ronda: 1,
+        cancha_id: '',
+        fecha: '',
+        hora_inicio: '',
+        hora_fin: ''
     })
 
     useEffect(() => {
         cargarParticipantes()
+
+        cargarCanchas()
     }, [])
 
     async function cargarParticipantes() {
@@ -45,6 +60,23 @@ export default function CreateMatchForm({
         }
     }
 
+    async function cargarCanchas() {
+        try {
+            const { data, error } =
+                await supabase
+                    .from('canchas')
+                    .select('*')
+
+            if (error) {
+                throw error
+            }
+
+            setCanchas(data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     function handleChange(e) {
         setForm({
             ...form,
@@ -56,20 +88,53 @@ export default function CreateMatchForm({
         e.preventDefault()
 
         try {
+            const reserva =
+                await crearReservaPartido({
+                    cancha_id:
+                        form.cancha_id,
+                    fecha: form.fecha,
+                    hora_inicio:
+                        form.hora_inicio,
+                    hora_fin:
+                        form.hora_fin,
+                    torneo_id: torneoId
+                })
+
             await crearPartido({
                 torneo_id: torneoId,
-                ...form
+
+                jugador1_id:
+                    form.jugador1_id,
+
+                jugador2_id:
+                    form.jugador2_id,
+
+                ronda: form.ronda,
+
+                cancha_id:
+                    form.cancha_id,
+
+                reserva_id:
+                    reserva.id
             })
 
             setForm({
                 jugador1_id: '',
                 jugador2_id: '',
-                ronda: 1
+                ronda: 1,
+                cancha_id: '',
+                fecha: '',
+                hora_inicio: '',
+                hora_fin: ''
             })
 
             if (onCreated) {
                 onCreated()
             }
+
+            alert(
+                'Partido creado correctamente'
+            )
         } catch (error) {
             console.error(error)
 
@@ -153,6 +218,52 @@ export default function CreateMatchForm({
                     )
                 }
             </select>
+
+            <select
+                name="cancha_id"
+                value={form.cancha_id}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+            >
+                <option value="">
+                    Seleccionar cancha
+                </option>
+
+                {
+                    canchas.map((cancha) => (
+                        <option
+                            key={cancha.id}
+                            value={cancha.id}
+                        >
+                            {cancha.nombre}
+                        </option>
+                    ))
+                }
+            </select>
+
+            <input
+                type="date"
+                name="fecha"
+                value={form.fecha}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+            />
+
+            <input
+                type="time"
+                name="hora_inicio"
+                value={form.hora_inicio}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+            />
+
+            <input
+                type="time"
+                name="hora_fin"
+                value={form.hora_fin}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+            />
 
             <input
                 type="number"

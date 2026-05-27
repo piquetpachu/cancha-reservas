@@ -1,26 +1,66 @@
-import Navbar from '../components/Navbar'
+
 import { useEffect, useState } from 'react'
+
 import { supabase } from '../supabaseClient'
+
 import { getUser } from '../services/authService'
+
 import { useNavigate } from 'react-router-dom'
+
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
+import Badge from '../components/ui/Badge'
+
+
+import ProfileTabs from '../components/profile/ProfileTabs'
+import ProfileReservations from '../components/profile/ProfileReservations'
+import ProfileTournaments from '../components/profile/ProfileTournaments'
 
 export default function Profile() {
 
   const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [solicitud, setSolicitud] = useState(null)
-  const [loading, setLoading] = useState(true)
 
-  // ✏️ EDICIÓN
-  const [editando, setEditando] = useState(false)
-  const [nombreEdit, setNombreEdit] = useState('')
-  const [telefonoEdit, setTelefonoEdit] = useState('')
+  const [profile, setProfile] =
+    useState(null)
+
+  const [solicitud, setSolicitud] =
+    useState(null)
+
+  const [loading, setLoading] =
+    useState(true)
+
+  const [activeTab, setActiveTab] =
+    useState('profile')
+
+  // EDIT
+  const [editando, setEditando] =
+    useState(false)
+
+  const [nombreEdit, setNombreEdit] =
+    useState('')
+
+  const [
+    telefonoEdit,
+    setTelefonoEdit
+  ] = useState('')
+
+  const [dniEdit, setDniEdit] =
+    useState('')
+
+  const [
+    fechaNacimientoEdit,
+    setFechaNacimientoEdit
+  ] = useState('')
 
   const navigate = useNavigate()
 
   useEffect(() => {
+
     async function loadProfile() {
+
       try {
+
         const u = await getUser()
 
         if (!u) {
@@ -30,146 +70,230 @@ export default function Profile() {
 
         setUser(u)
 
-        // 👤 PERFIL
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', u.id)
-          .single()
+        // PROFILE
+        const { data: profileData } =
+          await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', u.id)
+            .single()
 
         let finalProfile = profileData
 
         if (!profileData) {
-          const { data: newProfile } = await supabase
+
+          const {
+            data: newProfile
+          } = await supabase
             .from('profiles')
             .insert({
               id: u.id,
               nombre: '',
               telefono: '',
-              email: u.email, 
+              email: u.email,
               rol: 'cliente'
             })
             .select()
             .single()
 
           finalProfile = newProfile
+
         }
 
         setProfile(finalProfile)
 
-        // 🏟️ SOLICITUD
-        const { data: solicitudData } = await supabase
+        // SOLICITUD
+        const {
+          data: solicitudData
+        } = await supabase
           .from('solicitudes_dueno')
           .select('*')
           .eq('user_id', u.id)
 
-        if (solicitudData && solicitudData.length > 0) {
+        if (
+          solicitudData &&
+          solicitudData.length > 0
+        ) {
           setSolicitud(solicitudData[0])
         }
 
       } catch (err) {
+
         console.error(err)
+
       } finally {
+
         setLoading(false)
+
       }
+
     }
 
     loadProfile()
+
   }, [])
 
-  // 📸 SUBIR AVATAR
+  // SUBIR AVATAR
   async function handleUpload(e) {
+
     const file = e.target.files[0]
+
     if (!file) return
 
-    const filePath = `${user.id}-${Date.now()}`
+    const filePath =
+      `${user.id}-${Date.now()}`
 
-    const { error } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file)
+    const { error } =
+      await supabase.storage
+        .from('avatars')
+        .upload(filePath, file)
 
     if (error) {
       alert(error.message)
       return
     }
 
-    const { data } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath)
+    const { data } =
+      supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath)
 
     await supabase
       .from('profiles')
-      .update({ avatar_url: data.publicUrl })
+      .update({
+        avatar_url:
+          data.publicUrl
+      })
       .eq('id', user.id)
 
     setProfile(prev => ({
       ...prev,
-      avatar_url: data.publicUrl
+      avatar_url:
+        data.publicUrl
     }))
+
   }
 
-  // ✏️ EMPEZAR EDICIÓN
+  // EDITAR
   function empezarEdicion() {
-    setNombreEdit(profile?.nombre || '')
-    setTelefonoEdit(profile?.telefono || '')
+
+    setNombreEdit(
+      profile?.nombre || ''
+    )
+
+    setTelefonoEdit(
+      profile?.telefono || ''
+    )
+
+    setDniEdit(
+      profile?.dni || ''
+    )
+
+    setFechaNacimientoEdit(
+      profile?.fecha_nacimiento || ''
+    )
+
     setEditando(true)
+
   }
 
-  // 💾 GUARDAR CAMBIOS
+  // GUARDAR
   async function guardarCambios() {
-    if (telefonoEdit.length < 8) {
-  alert('Ingresá un teléfono válido')
-  return
-}
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        nombre: nombreEdit,
-        telefono: telefonoEdit
-      })
-      .eq('id', user.id)
+
+    if (
+      telefonoEdit.length < 8
+    ) {
+
+      alert(
+        'Ingresá un teléfono válido'
+      )
+
+      return
+
+    }
+
+    const { error } =
+      await supabase
+        .from('profiles')
+        .update({
+          nombre: nombreEdit,
+          telefono: telefonoEdit,
+          dni: dniEdit,
+          fecha_nacimiento:
+            fechaNacimientoEdit
+        })
+        .eq('id', user.id)
 
     if (error) {
-      alert('Error al guardar cambios')
+
+      alert(
+        'Error al guardar cambios'
+      )
+
       return
+
     }
 
     setProfile(prev => ({
       ...prev,
       nombre: nombreEdit,
-      telefono: telefonoEdit
+      telefono: telefonoEdit,
+      dni: dniEdit,
+      fecha_nacimiento:
+        fechaNacimientoEdit
     }))
 
     setEditando(false)
 
     alert('Perfil actualizado')
+
   }
 
-  // 🏟️ SOLICITAR SER DUEÑO
+  // SOLICITUD
   async function handleSolicitud() {
 
-    const { data: existente } = await supabase
+    const {
+      data: existente
+    } = await supabase
       .from('solicitudes_dueno')
       .select('*')
       .eq('user_id', user.id)
 
-    const solicitud = existente?.[0]
+    const solicitud =
+      existente?.[0]
 
-    // 🚫 bloquear si ya hay pendiente
-    if (solicitud && solicitud.estado === 'pendiente') {
-      alert('Ya tenés una solicitud pendiente')
+    if (
+      solicitud &&
+      solicitud.estado ===
+        'pendiente'
+    ) {
+
+      alert(
+        'Ya tenés una solicitud pendiente'
+      )
+
       return
+
     }
 
-    // 🔁 reenviar si fue rechazada
-    if (solicitud && solicitud.estado === 'rechazado') {
+    if (
+      solicitud &&
+      solicitud.estado ===
+        'rechazado'
+    ) {
 
       await supabase
-        .from('solicitudes_dueno')
-        .update({ estado: 'pendiente' })
+        .from(
+          'solicitudes_dueno'
+        )
+        .update({
+          estado: 'pendiente'
+        })
         .eq('id', solicitud.id)
 
-      alert('Solicitud reenviada')
+      alert(
+        'Solicitud reenviada'
+      )
 
       setSolicitud({
         ...solicitud,
@@ -177,243 +301,564 @@ export default function Profile() {
       })
 
       return
+
     }
 
-    // 🆕 crear nueva
-    const { error } = await supabase
-      .from('solicitudes_dueno')
-      .insert({
-        user_id: user.id,
-        estado: 'pendiente'
-      })
+    const { error } =
+      await supabase
+        .from(
+          'solicitudes_dueno'
+        )
+        .insert({
+          user_id: user.id,
+          estado: 'pendiente'
+        })
 
     if (error) {
-      alert('Error al enviar solicitud')
+
+      alert(
+        'Error al enviar solicitud'
+      )
+
     } else {
 
-      alert('Solicitud enviada')
+      alert(
+        'Solicitud enviada'
+      )
 
       setSolicitud({
         estado: 'pendiente'
       })
+
     }
+
   }
 
-  if (loading) return <p>Cargando perfil...</p>
+  const tabs = [
+    {
+      id: 'profile',
+      label: '👤 Perfil'
+    },
+    {
+      id: 'reservas',
+      label: '📅 Reservas'
+    },
+    {
+      id: 'torneos',
+      label: '🏆 Torneos'
+    }
+  ]
+
+  if (loading) {
+
+    return (
+      <div className="
+        min-h-screen
+        bg-[#0B1020]
+        text-white
+        p-6
+      ">
+        Cargando perfil...
+      </div>
+    )
+
+  }
 
   return (
     <>
-      <Navbar />
 
-      <div style={{ padding: '20px' }}>
 
-        <h1>Perfil</h1>
+      <div className="
+        min-h-screen
+        bg-[#0B1020]
+        text-white
+        p-6
+      ">
 
-        <p><strong>Email:</strong> {user.email}</p>
+        <div className="
+          max-w-5xl
+          mx-auto
+          space-y-8
+        ">
 
-        {/* ✏️ MODO EDICIÓN */}
-        {editando ? (
-          <>
-            <div>
-              <label>Nombre</label>
-              <br />
+          {/* HEADER */}
+          <Card>
 
-              <input
-                type="text"
-                value={nombreEdit}
-                onChange={(e) => setNombreEdit(e.target.value)}
-              />
+            <div className="
+              flex
+              flex-col
+              md:flex-row
+              gap-8
+              items-center
+            ">
+
+              <div className="
+                flex-shrink-0
+              ">
+
+                <img
+                  src={
+                    profile?.avatar_url ||
+                    'https://placehold.co/200'
+                  }
+                  alt="avatar"
+                  className="
+                    w-40
+                    h-40
+                    rounded-full
+                    object-cover
+                    border-4
+                    border-blue-500
+                  "
+                />
+
+              </div>
+
+              <div className="
+                flex-1
+                space-y-4
+              ">
+
+                <div className="
+                  flex
+                  items-center
+                  gap-3
+                  flex-wrap
+                ">
+
+                  <h1 className="
+                    text-4xl
+                    font-bold
+                  ">
+                    {
+                      profile?.nombre ||
+                      'Sin nombre'
+                    }
+                  </h1>
+
+                  <Badge variant="success">
+                    {profile?.rol}
+                  </Badge>
+
+                </div>
+
+                <p className="
+                  text-gray-400
+                ">
+                  {user?.email}
+                </p>
+
+                <div className="
+                  flex
+                  flex-wrap
+                  gap-3
+                ">
+
+                  <label>
+
+                    <input
+                      type="file"
+                      hidden
+                      onChange={
+                        handleUpload
+                      }
+                    />
+
+                    <Button
+                      variant="secondary"
+                    >
+                      Cambiar avatar
+                    </Button>
+
+                  </label>
+
+                  {
+                    !editando && (
+                      <Button
+                        onClick={
+                          empezarEdicion
+                        }
+                      >
+                        Editar perfil
+                      </Button>
+                    )
+                  }
+
+                </div>
+
+              </div>
+
             </div>
 
-            <br />
+          </Card>
 
-            <div>
-              <label>Teléfono</label>
-              <br />
-
-              <input
-  type="tel"
-  value={telefonoEdit}
-  maxLength={15}
-  placeholder="Ej: 3794123456"
-  onChange={(e) => {
-
-    // 🔥 solo números
-    const soloNumeros = e.target.value.replace(/\D/g, '')
-
-    setTelefonoEdit(soloNumeros)
-  }}
-/>
-            </div>
-
-            <br />
-
-            <button onClick={guardarCambios}>
-              Guardar cambios
-            </button>
-
-            <button
-              onClick={() => setEditando(false)}
-              style={{ marginLeft: '10px' }}
-            >
-              Cancelar
-            </button>
-          </>
-        ) : (
-          <>
-            <p>
-              <strong>Nombre:</strong>{' '}
-              {profile?.nombre || 'Sin nombre'}
-            </p>
-
-            <p>
-              <strong>Teléfono:</strong>{' '}
-              {profile?.telefono || 'Sin teléfono'}
-            </p>
-
-            <button onClick={empezarEdicion}>
-              Editar perfil
-            </button>
-          </>
-        )}
-
-        <br /><br />
-
-        <p><strong>Rol:</strong> {profile?.rol}</p>
-
-        {profile?.avatar_url && (
-          <img
-            src={profile.avatar_url}
-            alt="avatar"
-            width="150"
-            style={{
-              borderRadius: '50%',
-              objectFit: 'cover'
-            }}
+          {/* TABS */}
+          <ProfileTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
           />
-        )}
 
-        <br /><br />
+          {/* PERFIL */}
+          {
+            activeTab ===
+              'profile' && (
 
-        <input type="file" onChange={handleUpload} />
-
-        <br /><br />
-
-        {/* 🏟️ SOLICITUD */}
-
-        {profile?.rol === 'cliente' && (
-          <>
-            {(!solicitud || solicitud.estado === 'rechazado') && (
-              <button onClick={handleSolicitud}>
-                {solicitud?.estado === 'rechazado'
-                  ? 'Volver a solicitar'
-                  : 'Solicitar ser dueño'}
-              </button>
-            )}
-
-            {solicitud?.estado === 'pendiente' && (
               <>
-                <button disabled>
-                  Solicitud enviada
-                </button>
 
-                <p>Solicitud pendiente ⏳</p>
+                {/* DATOS */}
+                <Card>
+
+                  <h2 className="
+                    text-2xl
+                    font-bold
+                    mb-6
+                  ">
+                    Información personal
+                  </h2>
+
+                  {
+                    editando ? (
+
+                      <div className="
+                        grid
+                        md:grid-cols-2
+                        gap-5
+                      ">
+
+                        <div>
+
+                          <label className="
+                            text-sm
+                            text-gray-400
+                          ">
+                            Nombre
+                          </label>
+
+                          <Input
+                            type="text"
+                            value={nombreEdit}
+                            onChange={(e) =>
+                              setNombreEdit(
+                                e.target.value
+                              )
+                            }
+                          />
+
+                        </div>
+
+                        <div>
+
+                          <label className="
+                            text-sm
+                            text-gray-400
+                          ">
+                            Teléfono
+                          </label>
+
+                          <Input
+                            type="tel"
+                            value={
+                              telefonoEdit
+                            }
+                            maxLength={15}
+                            onChange={(e) => {
+
+                              const soloNumeros =
+                                e.target.value.replace(
+                                  /\D/g,
+                                  ''
+                                )
+
+                              setTelefonoEdit(
+                                soloNumeros
+                              )
+
+                            }}
+                          />
+
+                        </div>
+
+                        <div>
+
+                          <label className="
+                            text-sm
+                            text-gray-400
+                          ">
+                            DNI
+                          </label>
+
+                          <Input
+                            type="text"
+                            value={dniEdit}
+                            maxLength={10}
+                            onChange={(e) => {
+
+                              const soloNumeros =
+                                e.target.value.replace(
+                                  /\D/g,
+                                  ''
+                                )
+
+                              setDniEdit(
+                                soloNumeros
+                              )
+
+                            }}
+                          />
+
+                        </div>
+
+                        <div>
+
+                          <label className="
+                            text-sm
+                            text-gray-400
+                          ">
+                            Fecha nacimiento
+                          </label>
+
+                          <Input
+                            type="date"
+                            value={
+                              fechaNacimientoEdit
+                            }
+                            onChange={(e) =>
+                              setFechaNacimientoEdit(
+                                e.target.value
+                              )
+                            }
+                          />
+
+                        </div>
+
+                        <div className="
+                          md:col-span-2
+                          flex
+                          gap-3
+                          pt-4
+                        ">
+
+                          <Button
+                            onClick={
+                              guardarCambios
+                            }
+                          >
+                            Guardar cambios
+                          </Button>
+
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              setEditando(false)
+                            }
+                          >
+                            Cancelar
+                          </Button>
+
+                        </div>
+
+                      </div>
+
+                    ) : (
+
+                      <div className="
+                        grid
+                        md:grid-cols-2
+                        gap-6
+                      ">
+
+                        <div>
+
+                          <p className="
+                            text-gray-400
+                            text-sm
+                          ">
+                            Nombre
+                          </p>
+
+                          <h3 className="
+                            text-xl
+                            font-bold
+                            mt-2
+                          ">
+                            {
+                              profile?.nombre ||
+                              'Sin nombre'
+                            }
+                          </h3>
+
+                        </div>
+
+                        <div>
+
+                          <p className="
+                            text-gray-400
+                            text-sm
+                          ">
+                            Teléfono
+                          </p>
+
+                          <h3 className="
+                            text-xl
+                            font-bold
+                            mt-2
+                          ">
+                            {
+                              profile?.telefono ||
+                              'Sin teléfono'
+                            }
+                          </h3>
+
+                        </div>
+
+                        <div>
+
+                          <p className="
+                            text-gray-400
+                            text-sm
+                          ">
+                            DNI
+                          </p>
+
+                          <h3 className="
+                            text-xl
+                            font-bold
+                            mt-2
+                          ">
+                            {
+                              profile?.dni ||
+                              'Sin DNI'
+                            }
+                          </h3>
+
+                        </div>
+
+                        <div>
+
+                          <p className="
+                            text-gray-400
+                            text-sm
+                          ">
+                            Fecha nacimiento
+                          </p>
+
+                          <h3 className="
+                            text-xl
+                            font-bold
+                            mt-2
+                          ">
+                            {
+                              profile?.fecha_nacimiento ||
+                              'Sin fecha'
+                            }
+                          </h3>
+
+                        </div>
+
+                      </div>
+
+                    )
+                  }
+
+                </Card>
+
+                {/* SOLICITUD */}
+                {
+                  profile?.rol ===
+                    'cliente' && (
+
+                    <Card>
+
+                      <h2 className="
+                        text-2xl
+                        font-bold
+                        mb-5
+                      ">
+                        Solicitud de dueño
+                      </h2>
+
+                      {
+                        (
+                          !solicitud ||
+                          solicitud.estado ===
+                            'rechazado'
+                        ) && (
+
+                          <Button
+                            onClick={
+                              handleSolicitud
+                            }
+                          >
+                            {
+                              solicitud?.estado ===
+                              'rechazado'
+                                ? 'Volver a solicitar'
+                                : 'Solicitar ser dueño'
+                            }
+                          </Button>
+
+                        )
+                      }
+
+                      {
+                        solicitud?.estado ===
+                          'pendiente' && (
+
+                          <div className="
+                            flex
+                            items-center
+                            gap-3
+                          ">
+
+                            <Button disabled>
+                              Solicitud enviada
+                            </Button>
+
+                            <Badge variant="warning">
+                              Pendiente
+                            </Badge>
+
+                          </div>
+
+                        )
+                      }
+
+                    </Card>
+
+                  )
+                }
+
               </>
-            )}
 
-            {solicitud?.estado === 'rechazado' && (
-              <p>Solicitud rechazada ❌</p>
-            )}
-          </>
-        )}
+            )
+          }
 
-        {profile?.rol === 'dueno' && (
-          <p>Ya sos dueño 🏟️</p>
-        )}
+          {/* RESERVAS */}
+          {
+            activeTab ===
+              'reservas' && (
+              <ProfileReservations
+                userId={user.id}
+              />
+            )
+          }
 
-        <hr />
-
-        <h2>Mis reservas</h2>
-
-        <div style={{ marginTop: 20 }}>
-
-          {[
-            {
-              id: 1,
-              cancha: 'Cancha 5 - Sintético',
-              fecha: '2026-05-10',
-              hora: '18:00',
-              precio: '$5000',
-              estado: 'confirmada'
-            },
-            {
-              id: 2,
-              cancha: 'Cancha 2 - Fútbol 7',
-              fecha: '2026-05-12',
-              hora: '20:00',
-              precio: '$7000',
-              estado: 'pendiente'
-            },
-            {
-              id: 3,
-              cancha: 'Cancha 1 - Techada',
-              fecha: '2026-05-01',
-              hora: '16:00',
-              precio: '$6000',
-              estado: 'cancelada'
-            }
-          ].map(reserva => (
-            <div
-              key={reserva.id}
-              style={{
-                border: '1px solid #ccc',
-                borderRadius: '10px',
-                padding: '15px',
-                marginBottom: '15px'
-              }}
-            >
-              <h3>{reserva.cancha}</h3>
-
-              <p>
-                <strong>Fecha:</strong> {reserva.fecha}
-              </p>
-
-              <p>
-                <strong>Hora:</strong> {reserva.hora}
-              </p>
-
-              <p>
-                <strong>Precio:</strong> {reserva.precio}
-              </p>
-
-              <p>
-                <strong>Estado:</strong>{' '}
-
-                <span
-                  style={{
-                    color:
-                      reserva.estado === 'confirmada'
-                        ? 'green'
-                        : reserva.estado === 'pendiente'
-                        ? 'orange'
-                        : 'red'
-                  }}
-                >
-                  {reserva.estado}
-                </span>
-              </p>
-
-              {reserva.estado === 'pendiente' && (
-                <button>
-                  Cancelar reserva
-                </button>
-              )}
-            </div>
-          ))}
+          {/* TORNEOS */}
+          {
+  activeTab ===
+    'torneos' && (
+    <ProfileTournaments
+      userId={user.id}
+    />
+  )
+}
 
         </div>
 
       </div>
+
     </>
   )
+
 }

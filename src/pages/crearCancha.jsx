@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import Navbar from "../components/Navbar";
 
 function CrearCancha() {
 
@@ -143,7 +142,6 @@ function CrearCancha() {
 
     return (
         <>
-            <Navbar />
 
             <div
                 style={{

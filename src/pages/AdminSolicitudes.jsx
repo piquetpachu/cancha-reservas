@@ -1,4 +1,3 @@
-import Navbar from '../components/Navbar'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
@@ -99,7 +98,6 @@ export default function AdminSolicitudes() {
 
   return (
     <div style={{ padding: 20 }}>
-      <Navbar />
       <h1>Panel Admin - Solicitudes</h1>
 
       {/* 🆕 BOTONES FILTRO + PRO */}

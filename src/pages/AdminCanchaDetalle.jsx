@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from '../components/Navbar'
 import { supabase } from "../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -244,7 +243,6 @@ export default function AdminCanchaDetalle() {
                 boxSizing: "border-box"
             }}
         >
-            <Navbar />
 
             {/* BOTON */}
 

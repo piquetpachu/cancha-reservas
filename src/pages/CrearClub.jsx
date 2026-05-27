@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
-import Navbar from "../components/Navbar";
 
 function CrearClub() {
 
@@ -99,7 +98,6 @@ function CrearClub() {
 
     return (
         <>
-            <Navbar />
 
             <div style={{ padding: "20px" }}>
 

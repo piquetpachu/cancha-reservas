@@ -59,7 +59,7 @@ export default function TournamentBracket({
     const rondas = agruparPorRonda()
 
     return (
-        <div className="mt-14 overflow-x-auto">
+        <div className="mt-14 w-full overflow-x-auto pb-4">
             <h2 className="text-3xl font-bold mb-8">
                 Bracket del torneo
             </h2>

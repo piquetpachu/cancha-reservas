@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import Navbar from '../components/Navbar'
 
 export default function AdminBloqueos() {
 
@@ -241,7 +240,6 @@ export default function AdminBloqueos() {
                 boxSizing: "border-box"
             }}
         >
-            <Navbar />
 
             <h1
                 style={{

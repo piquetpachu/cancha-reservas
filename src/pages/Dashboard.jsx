@@ -1,4 +1,3 @@
-import Navbar from '../components/Navbar'
 import ClubList from "../pages/ClubList";
 import { useEffect, useState } from 'react'
 import { getUser, logout } from '../services/authService'
@@ -53,7 +52,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <Navbar />
       <h1>🏟️ Dashboard</h1>
 
       {user ? (

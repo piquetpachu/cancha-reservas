@@ -45,13 +45,13 @@ export default function Navbar() {
 
   }, [])
 
+  
   async function handleLogout() {
 
     await logout()
 
     navigate('/login')
   }
-
   return (
 
     <nav
@@ -97,6 +97,12 @@ export default function Navbar() {
                 onClick={() => navigate('/crear-club')}
               >
                 Crear Club
+              </button>
+              
+              <button
+                onClick={() => navigate('/torneos')}
+              >
+                Torneos
               </button>
 
               <button
