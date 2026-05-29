@@ -1,9 +1,13 @@
-
 import { useEffect, useState } from 'react'
 
 import { supabase } from '../supabaseClient'
 
 import { getUser } from '../services/authService'
+
+import {
+  obtenerReservasUsuario,
+  cancelarReserva
+} from '../services/reservaService'
 
 import { useNavigate } from 'react-router-dom'
 
@@ -12,9 +16,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Badge from '../components/ui/Badge'
 
-
 import ProfileTabs from '../components/profile/ProfileTabs'
-import ProfileReservations from '../components/profile/ProfileReservations'
 import ProfileTournaments from '../components/profile/ProfileTournaments'
 
 export default function Profile() {
@@ -32,6 +34,9 @@ export default function Profile() {
 
   const [activeTab, setActiveTab] =
     useState('profile')
+
+  const [reservas, setReservas] =
+    useState([])
 
   // EDIT
   const [editando, setEditando] =
@@ -64,21 +69,26 @@ export default function Profile() {
         const u = await getUser()
 
         if (!u) {
+
           navigate('/login')
+
           return
+
         }
 
         setUser(u)
 
         // PROFILE
-        const { data: profileData } =
-          await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', u.id)
-            .single()
+        const {
+          data: profileData
+        } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', u.id)
+          .single()
 
-        let finalProfile = profileData
+        let finalProfile =
+          profileData
 
         if (!profileData) {
 
@@ -96,11 +106,22 @@ export default function Profile() {
             .select()
             .single()
 
-          finalProfile = newProfile
+          finalProfile =
+            newProfile
 
         }
 
         setProfile(finalProfile)
+
+        // RESERVAS
+        const reservasData =
+          await obtenerReservasUsuario(
+            u.id
+          )
+
+        setReservas(
+          reservasData || []
+        )
 
         // SOLICITUD
         const {
@@ -114,7 +135,11 @@ export default function Profile() {
           solicitudData &&
           solicitudData.length > 0
         ) {
-          setSolicitud(solicitudData[0])
+
+          setSolicitud(
+            solicitudData[0]
+          )
+
         }
 
       } catch (err) {
@@ -149,8 +174,11 @@ export default function Profile() {
         .upload(filePath, file)
 
     if (error) {
+
       alert(error.message)
+
       return
+
     }
 
     const { data } =
@@ -246,6 +274,52 @@ export default function Profile() {
     setEditando(false)
 
     alert('Perfil actualizado')
+
+  }
+
+  // CANCELAR RESERVA
+  async function handleCancelarReserva(
+    reservaId
+  ) {
+
+    const ok = confirm(
+      '¿Cancelar reserva?'
+    )
+
+    if (!ok) return
+
+    try {
+
+      await cancelarReserva(
+        reservaId
+      )
+
+      setReservas(prev =>
+        prev.map(reserva => {
+
+          if (
+            reserva.id === reservaId
+          ) {
+
+            return {
+              ...reserva,
+              estado: 'cancelada'
+            }
+
+          }
+
+          return reserva
+
+        })
+      )
+
+    } catch (error) {
+
+      console.error(error)
+
+      alert(error.message)
+
+    }
 
   }
 
@@ -365,500 +439,513 @@ export default function Profile() {
   }
 
   return (
-    <>
 
+    <div className="
+      min-h-screen
+      bg-[#0B1020]
+      text-white
+      p-6
+    ">
 
       <div className="
-        min-h-screen
-        bg-[#0B1020]
-        text-white
-        p-6
+        max-w-5xl
+        mx-auto
+        space-y-8
       ">
 
-        <div className="
-          max-w-5xl
-          mx-auto
-          space-y-8
-        ">
+        {/* HEADER */}
+        <Card>
 
-          {/* HEADER */}
-          <Card>
+          <div className="
+            flex
+            flex-col
+            md:flex-row
+            gap-8
+            items-center
+          ">
 
             <div className="
-              flex
-              flex-col
-              md:flex-row
-              gap-8
-              items-center
+              flex-shrink-0
+            ">
+
+              <img
+                src={
+                  profile?.avatar_url ||
+                  'https://placehold.co/200'
+                }
+                alt="avatar"
+                className="
+                  w-40
+                  h-40
+                  rounded-full
+                  object-cover
+                  border-4
+                  border-blue-500
+                "
+              />
+
+            </div>
+
+            <div className="
+              flex-1
+              space-y-4
             ">
 
               <div className="
-                flex-shrink-0
+                flex
+                items-center
+                gap-3
+                flex-wrap
               ">
 
-                <img
-                  src={
-                    profile?.avatar_url ||
-                    'https://placehold.co/200'
+                <h1 className="
+                  text-4xl
+                  font-bold
+                ">
+                  {
+                    profile?.nombre ||
+                    'Sin nombre'
                   }
-                  alt="avatar"
-                  className="
-                    w-40
-                    h-40
-                    rounded-full
-                    object-cover
-                    border-4
-                    border-blue-500
-                  "
-                />
+                </h1>
+
+                <Badge variant="success">
+                  {profile?.rol}
+                </Badge>
 
               </div>
 
+              <p className="
+                text-gray-400
+              ">
+                {user?.email}
+              </p>
+
               <div className="
-                flex-1
-                space-y-4
+                flex
+                flex-wrap
+                gap-3
               ">
 
-                <div className="
-                  flex
-                  items-center
-                  gap-3
-                  flex-wrap
-                ">
+                <label>
 
-                  <h1 className="
-                    text-4xl
-                    font-bold
-                  ">
-                    {
-                      profile?.nombre ||
-                      'Sin nombre'
+                  <input
+                    type="file"
+                    hidden
+                    onChange={
+                      handleUpload
                     }
-                  </h1>
+                  />
 
-                  <Badge variant="success">
-                    {profile?.rol}
-                  </Badge>
+                  <Button
+                    variant="secondary"
+                  >
+                    Cambiar avatar
+                  </Button>
 
-                </div>
+                </label>
 
-                <p className="
-                  text-gray-400
-                ">
-                  {user?.email}
-                </p>
-
-                <div className="
-                  flex
-                  flex-wrap
-                  gap-3
-                ">
-
-                  <label>
-
-                    <input
-                      type="file"
-                      hidden
-                      onChange={
-                        handleUpload
-                      }
-                    />
-
+                {
+                  !editando && (
                     <Button
-                      variant="secondary"
+                      onClick={
+                        empezarEdicion
+                      }
                     >
-                      Cambiar avatar
+                      Editar perfil
                     </Button>
-
-                  </label>
-
-                  {
-                    !editando && (
-                      <Button
-                        onClick={
-                          empezarEdicion
-                        }
-                      >
-                        Editar perfil
-                      </Button>
-                    )
-                  }
-
-                </div>
+                  )
+                }
 
               </div>
 
             </div>
 
-          </Card>
+          </div>
 
-          {/* TABS */}
-          <ProfileTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+        </Card>
 
-          {/* PERFIL */}
-          {
-            activeTab ===
-              'profile' && (
+        {/* TABS */}
+        <ProfileTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
 
-              <>
+        {/* PERFIL */}
+        {
+          activeTab ===
+            'profile' && (
 
-                {/* DATOS */}
-                <Card>
+            <>
 
-                  <h2 className="
-                    text-2xl
-                    font-bold
-                    mb-6
-                  ">
-                    Información personal
-                  </h2>
+              <Card>
 
-                  {
-                    editando ? (
+                <h2 className="
+                  text-2xl
+                  font-bold
+                  mb-6
+                ">
+                  Información personal
+                </h2>
 
-                      <div className="
-                        grid
-                        md:grid-cols-2
-                        gap-5
-                      ">
-
-                        <div>
-
-                          <label className="
-                            text-sm
-                            text-gray-400
-                          ">
-                            Nombre
-                          </label>
-
-                          <Input
-                            type="text"
-                            value={nombreEdit}
-                            onChange={(e) =>
-                              setNombreEdit(
-                                e.target.value
-                              )
-                            }
-                          />
-
-                        </div>
-
-                        <div>
-
-                          <label className="
-                            text-sm
-                            text-gray-400
-                          ">
-                            Teléfono
-                          </label>
-
-                          <Input
-                            type="tel"
-                            value={
-                              telefonoEdit
-                            }
-                            maxLength={15}
-                            onChange={(e) => {
-
-                              const soloNumeros =
-                                e.target.value.replace(
-                                  /\D/g,
-                                  ''
-                                )
-
-                              setTelefonoEdit(
-                                soloNumeros
-                              )
-
-                            }}
-                          />
-
-                        </div>
-
-                        <div>
-
-                          <label className="
-                            text-sm
-                            text-gray-400
-                          ">
-                            DNI
-                          </label>
-
-                          <Input
-                            type="text"
-                            value={dniEdit}
-                            maxLength={10}
-                            onChange={(e) => {
-
-                              const soloNumeros =
-                                e.target.value.replace(
-                                  /\D/g,
-                                  ''
-                                )
-
-                              setDniEdit(
-                                soloNumeros
-                              )
-
-                            }}
-                          />
-
-                        </div>
-
-                        <div>
-
-                          <label className="
-                            text-sm
-                            text-gray-400
-                          ">
-                            Fecha nacimiento
-                          </label>
-
-                          <Input
-                            type="date"
-                            value={
-                              fechaNacimientoEdit
-                            }
-                            onChange={(e) =>
-                              setFechaNacimientoEdit(
-                                e.target.value
-                              )
-                            }
-                          />
-
-                        </div>
-
-                        <div className="
-                          md:col-span-2
-                          flex
-                          gap-3
-                          pt-4
-                        ">
-
-                          <Button
-                            onClick={
-                              guardarCambios
-                            }
-                          >
-                            Guardar cambios
-                          </Button>
-
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              setEditando(false)
-                            }
-                          >
-                            Cancelar
-                          </Button>
-
-                        </div>
-
-                      </div>
-
-                    ) : (
-
-                      <div className="
-                        grid
-                        md:grid-cols-2
-                        gap-6
-                      ">
-
-                        <div>
-
-                          <p className="
-                            text-gray-400
-                            text-sm
-                          ">
-                            Nombre
-                          </p>
-
-                          <h3 className="
-                            text-xl
-                            font-bold
-                            mt-2
-                          ">
-                            {
-                              profile?.nombre ||
-                              'Sin nombre'
-                            }
-                          </h3>
-
-                        </div>
-
-                        <div>
-
-                          <p className="
-                            text-gray-400
-                            text-sm
-                          ">
-                            Teléfono
-                          </p>
-
-                          <h3 className="
-                            text-xl
-                            font-bold
-                            mt-2
-                          ">
-                            {
-                              profile?.telefono ||
-                              'Sin teléfono'
-                            }
-                          </h3>
-
-                        </div>
-
-                        <div>
-
-                          <p className="
-                            text-gray-400
-                            text-sm
-                          ">
-                            DNI
-                          </p>
-
-                          <h3 className="
-                            text-xl
-                            font-bold
-                            mt-2
-                          ">
-                            {
-                              profile?.dni ||
-                              'Sin DNI'
-                            }
-                          </h3>
-
-                        </div>
-
-                        <div>
-
-                          <p className="
-                            text-gray-400
-                            text-sm
-                          ">
-                            Fecha nacimiento
-                          </p>
-
-                          <h3 className="
-                            text-xl
-                            font-bold
-                            mt-2
-                          ">
-                            {
-                              profile?.fecha_nacimiento ||
-                              'Sin fecha'
-                            }
-                          </h3>
-
-                        </div>
-
-                      </div>
-
-                    )
-                  }
-
-                </Card>
-
-                {/* SOLICITUD */}
                 {
-                  profile?.rol ===
-                    'cliente' && (
+                  editando ? (
 
-                    <Card>
+                    <div className="
+                      grid
+                      md:grid-cols-2
+                      gap-5
+                    ">
 
-                      <h2 className="
-                        text-2xl
-                        font-bold
-                        mb-5
+                      <div>
+
+                        <label className="
+                          text-sm
+                          text-gray-400
+                        ">
+                          Nombre
+                        </label>
+
+                        <Input
+                          type="text"
+                          value={nombreEdit}
+                          onChange={(e) =>
+                            setNombreEdit(
+                              e.target.value
+                            )
+                          }
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <label className="
+                          text-sm
+                          text-gray-400
+                        ">
+                          Teléfono
+                        </label>
+
+                        <Input
+                          type="tel"
+                          value={
+                            telefonoEdit
+                          }
+                          maxLength={15}
+                          onChange={(e) => {
+
+                            const soloNumeros =
+                              e.target.value.replace(
+                                /\D/g,
+                                ''
+                              )
+
+                            setTelefonoEdit(
+                              soloNumeros
+                            )
+
+                          }}
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <label className="
+                          text-sm
+                          text-gray-400
+                        ">
+                          DNI
+                        </label>
+
+                        <Input
+                          type="text"
+                          value={dniEdit}
+                          maxLength={10}
+                          onChange={(e) => {
+
+                            const soloNumeros =
+                              e.target.value.replace(
+                                /\D/g,
+                                ''
+                              )
+
+                            setDniEdit(
+                              soloNumeros
+                            )
+
+                          }}
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <label className="
+                          text-sm
+                          text-gray-400
+                        ">
+                          Fecha nacimiento
+                        </label>
+
+                        <Input
+                          type="date"
+                          value={
+                            fechaNacimientoEdit
+                          }
+                          onChange={(e) =>
+                            setFechaNacimientoEdit(
+                              e.target.value
+                            )
+                          }
+                        />
+
+                      </div>
+
+                      <div className="
+                        md:col-span-2
+                        flex
+                        gap-3
+                        pt-4
                       ">
-                        Solicitud de dueño
-                      </h2>
 
-                      {
-                        (
-                          !solicitud ||
-                          solicitud.estado ===
-                            'rechazado'
-                        ) && (
+                        <Button
+                          onClick={
+                            guardarCambios
+                          }
+                        >
+                          Guardar cambios
+                        </Button>
 
-                          <Button
-                            onClick={
-                              handleSolicitud
-                            }
-                          >
-                            {
-                              solicitud?.estado ===
-                              'rechazado'
-                                ? 'Volver a solicitar'
-                                : 'Solicitar ser dueño'
-                            }
-                          </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() =>
+                            setEditando(false)
+                          }
+                        >
+                          Cancelar
+                        </Button>
 
-                        )
-                      }
+                      </div>
 
-                      {
-                        solicitud?.estado ===
-                          'pendiente' && (
+                    </div>
 
-                          <div className="
-                            flex
-                            items-center
-                            gap-3
-                          ">
+                  ) : (
 
-                            <Button disabled>
-                              Solicitud enviada
-                            </Button>
+                    <div className="
+                      grid
+                      md:grid-cols-2
+                      gap-6
+                    ">
 
-                            <Badge variant="warning">
-                              Pendiente
-                            </Badge>
+                      <div>
 
-                          </div>
+                        <p className="
+                          text-gray-400
+                          text-sm
+                        ">
+                          Nombre
+                        </p>
 
-                        )
-                      }
+                        <h3 className="
+                          text-xl
+                          font-bold
+                          mt-2
+                        ">
+                          {
+                            profile?.nombre ||
+                            'Sin nombre'
+                          }
+                        </h3>
 
-                    </Card>
+                      </div>
+
+                      <div>
+
+                        <p className="
+                          text-gray-400
+                          text-sm
+                        ">
+                          Teléfono
+                        </p>
+
+                        <h3 className="
+                          text-xl
+                          font-bold
+                          mt-2
+                        ">
+                          {
+                            profile?.telefono ||
+                            'Sin teléfono'
+                          }
+                        </h3>
+
+                      </div>
+
+                    </div>
 
                   )
                 }
 
-              </>
+              </Card>
 
-            )
-          }
+            </>
 
-          {/* RESERVAS */}
-          {
-            activeTab ===
-              'reservas' && (
-              <ProfileReservations
-                userId={user.id}
-              />
-            )
-          }
+          )
+        }
 
-          {/* TORNEOS */}
-          {
-  activeTab ===
-    'torneos' && (
-    <ProfileTournaments
-      userId={user.id}
-    />
-  )
-}
+        {/* RESERVAS */}
+        {
+          activeTab ===
+            'reservas' && (
 
-        </div>
+            <div className="space-y-4">
+
+              {
+                reservas.map(reserva => (
+
+                  <Card
+                    key={reserva.id}
+                  >
+
+                    <div className="
+                      flex
+                      flex-col
+                      md:flex-row
+                      gap-5
+                      md:items-center
+                    ">
+
+                      <img
+                        src={
+                          reserva.canchas?.foto ||
+                          'https://placehold.co/200'
+                        }
+                        alt="cancha"
+                        className="
+                          w-full
+                          md:w-36
+                          h-36
+                          rounded-2xl
+                          object-cover
+                        "
+                      />
+
+                      <div className="flex-1">
+
+                        <h2 className="
+                          text-2xl
+                          font-bold
+                        ">
+                          {
+                            reserva.canchas
+                              ?.nombre
+                          }
+                        </h2>
+
+                        <p className="
+                          text-gray-400
+                          mt-1
+                        ">
+                          {
+                            reserva.canchas
+                              ?.clubs
+                              ?.nombre
+                          }
+                        </p>
+
+                        <div className="
+                          flex
+                          flex-wrap
+                          gap-4
+                          mt-4
+                          text-sm
+                          text-gray-300
+                        ">
+
+                          <p>
+                            📅 {reserva.fecha}
+                          </p>
+
+                          <p>
+                            ⏰ {
+                              reserva.hora_inicio
+                            }
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      <div className="
+                        flex
+                        flex-col
+                        gap-4
+                        items-start
+                        md:items-end
+                      ">
+
+                        <Badge
+                          variant={
+                            reserva.estado ===
+                            'confirmada'
+                              ? 'success'
+                              : reserva.estado ===
+                                'pendiente'
+                              ? 'warning'
+                              : 'danger'
+                          }
+                        >
+                          {reserva.estado}
+                        </Badge>
+
+                        {
+                          reserva.estado !==
+                          'cancelada' && (
+
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                handleCancelarReserva(
+                                  reserva.id
+                                )
+                              }
+                            >
+                              Cancelar reserva
+                            </Button>
+
+                          )
+                        }
+
+                      </div>
+
+                    </div>
+
+                  </Card>
+
+                ))
+              }
+
+            </div>
+
+          )
+        }
+
+        {/* TORNEOS */}
+        {
+          activeTab ===
+            'torneos' && (
+            <ProfileTournaments
+              userId={user.id}
+            />
+          )
+        }
 
       </div>
 
-    </>
+    </div>
+
   )
 
 }

@@ -1,112 +1,226 @@
 import { useEffect, useState } from 'react'
 
-import { obtenerParticipantes } from '../../services/inscripcionService'
+import { obtenerParticipantes }
+from '../../services/inscripcionService'
 
 export default function TournamentParticipants({
     torneoId
 }) {
-    const [participantes, setParticipantes] =
-        useState([])
+
+    const [
+        participantes,
+        setParticipantes
+    ] = useState([])
+
+    const [loading, setLoading] =
+        useState(true)
 
     useEffect(() => {
+
         cargarParticipantes()
+
     }, [])
 
     async function cargarParticipantes() {
+
         try {
+
             const data =
                 await obtenerParticipantes(
                     torneoId
                 )
 
-            setParticipantes(data)
+            setParticipantes(
+                data || []
+            )
+
         } catch (error) {
+
             console.error(error)
+
+        } finally {
+
+            setLoading(false)
+
         }
+
+    }
+
+    if (loading) {
+
+        return (
+            <div className="
+                flex
+                justify-center
+                py-10
+            ">
+                <p className="text-gray-400">
+                    Cargando participantes...
+                </p>
+            </div>
+        )
+
     }
 
     return (
-        <div>
+        <div className="space-y-6">
 
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">
-                    Participantes
-                </h2>
+            {/* HEADER */}
 
-                <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-                    {participantes.length} jugadores
-                </span>
+            <div className="
+                flex
+                items-center
+                justify-between
+                flex-wrap
+                gap-4
+            ">
+
+                <div>
+
+                    <h2 className="
+                        text-2xl
+                        font-bold
+                        text-white
+                    ">
+                        Participantes
+                    </h2>
+
+                    <p className="
+                        text-gray-400
+                        mt-1
+                    ">
+                        Jugadores inscriptos
+                    </p>
+
+                </div>
+
+                <div className="
+                    px-4
+                    py-2
+                    rounded-xl
+                    bg-blue-500/10
+                    border
+                    border-blue-500/20
+                    text-blue-400
+                    font-semibold
+                ">
+
+                    {participantes.length}
+                    {' '}
+                    participantes
+
+                </div>
+
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            {/* CONTENEDOR */}
 
-                {
-                    participantes.map(
-                        (participante) => (
-                            <div
-                                key={participante.id}
-                                className="
-                                    flex items-center gap-3
-                                    bg-gray-50
-                                    border
-                                    rounded-full
-                                    px-4 py-2
-                                    hover:shadow
-                                    transition
-                                "
-                            >
+            <div className="
+                bg-[#111827]
+                border
+                border-gray-800
+                rounded-3xl
+                p-6
+            ">
 
-                                <img
-                                    src={
-                                        participante
-                                            .profiles
-                                            ?.avatar_url ||
-                                        'https://placehold.co/40'
-                                    }
-                                    alt="avatar"
-                                    className="
-                                        w-8 h-8
-                                        rounded-full
-                                        object-cover
-                                    "
-                                />
+                <div className="
+                    flex
+                    flex-wrap
+                    gap-6
+                ">
 
-                                <div>
-                                    <p className="font-medium text-sm">
-                                        {
-                                            participante
-                                                .profiles
-                                                ?.nombre
+                    {
+                        participantes.map(
+                            (participante) => {
+
+                                const profile =
+                                    participante.profiles
+
+                                return (
+
+                                    <div
+                                        key={
+                                            participante.id
                                         }
-                                    </p>
-                                </div>
+                                        className="
+                                            flex
+                                            flex-col
+                                            items-center
+                                            gap-2
+                                            w-[85px]
+                                            group
+                                        "
+                                    >
 
-                                <span
-                                    className={`
-                                        text-xs px-2 py-1 rounded-full
-                                        ${
-                                            participante.estado ===
-                                            'aprobada'
-                                                ? 'bg-green-100 text-green-700'
-                                                : participante.estado ===
-                                                  'rechazada'
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-yellow-100 text-yellow-700'
-                                        }
-                                    `}
-                                >
-                                    {
-                                        participante.estado
-                                    }
-                                </span>
+                                        {/* FOTO */}
 
-                            </div>
+                                        <div className="
+                                            relative
+                                        ">
+
+                                            <img
+                                                src={
+                                                    profile?.avatar_url ||
+                                                    'https://placehold.co/80'
+                                                }
+                                                alt="avatar"
+                                                className="
+                                                    w-14
+                                                    h-14
+                                                    rounded-full
+                                                    object-cover
+                                                    border-2
+                                                    border-[#1F2937]
+                                                    transition
+                                                    group-hover:border-blue-500
+                                                    group-hover:scale-105
+                                                "
+                                            />
+
+                                            <div className="
+                                                absolute
+                                                bottom-0
+                                                right-0
+                                                w-3
+                                                h-3
+                                                rounded-full
+                                                bg-green-400
+                                                border-2
+                                                border-[#111827]
+                                            " />
+
+                                        </div>
+
+                                        {/* NOMBRE */}
+
+                                        <p className="
+                                            text-xs
+                                            text-center
+                                            text-gray-300
+                                            truncate
+                                            w-full
+                                        ">
+
+                                            {
+                                                profile?.nombre ||
+                                                'Usuario'
+                                            }
+
+                                        </p>
+
+                                    </div>
+
+                                )
+
+                            }
                         )
-                    )
-                }
+                    }
+
+                </div>
 
             </div>
 
         </div>
     )
+
 }
