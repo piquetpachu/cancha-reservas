@@ -108,6 +108,11 @@ export default function Navbar() {
           </svg>
           Perfil
         </button>
+        <button
+  onClick={() => navigate('/torneos')}
+>
+  Torneos
+</button>
 
         {/* DUEÑO / ADMIN BOTONES EXTRA */}
         {(rol === "dueno" || rol === "dueño" || rol === "admin") && (

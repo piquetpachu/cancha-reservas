@@ -38,6 +38,11 @@ import BloqueosHorarios from "./pages/BloqueosHorarios";
 import ReservasDueno from "./pages/ReservasDueno";
 import DuenoRoute from "./components/DuenoRoute";
 
+//TORNEOS
+import Torneos from './pages/Torneos'
+import CrearTorneo from './pages/CrearTorneo'
+import TorneoDetalle from './pages/torneos/TorneoDetalle'
+
 import './App.css'
 
 function App() {
@@ -128,7 +133,10 @@ function App() {
         <Route path="/admin/bloqueos" element={<AdminBloqueos />} />
 
         <Route path="/admin/estadisticas" element={<AdminRoute><AdminEstadisticas /></AdminRoute>} />
-
+        {/* TORNEOS */}
+        <Route path="/torneos"element={<Torneos />}/>
+        <Route path="/dashboard/torneos/nuevo"element={<CrearTorneo />}/>
+        <Route path="/torneos/:id"element={<TorneoDetalle />}/>
       </Routes>
 
     </BrowserRouter>

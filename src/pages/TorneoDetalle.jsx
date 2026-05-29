@@ -1,0 +1,1 @@
+import TournamentJoinButton from '../../components/TournamentJoinButton'

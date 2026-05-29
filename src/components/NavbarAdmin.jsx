@@ -81,7 +81,11 @@ export default function NavbarAdmin() {
                     px-4
                 "
             >
-
+        <button
+  onClick={() => navigate('/torneos')}
+>
+  Torneos
+</button>
                 <div
                     className="
                         flex
