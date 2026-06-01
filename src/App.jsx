@@ -42,6 +42,7 @@ import DuenoRoute from "./components/DuenoRoute";
 import Torneos from './pages/Torneos'
 import CrearTorneo from './pages/CrearTorneo'
 import TorneoDetalle from './pages/torneos/TorneoDetalle'
+import EditarTorneo from './pages/torneos/EditarTorneo'
 
 import './App.css'
 
@@ -137,6 +138,7 @@ function App() {
         <Route path="/torneos"element={<Torneos />}/>
         <Route path="/dashboard/torneos/nuevo"element={<CrearTorneo />}/>
         <Route path="/torneos/:id"element={<TorneoDetalle />}/>
+        <Route path="/torneos/:id/editar"element={<EditarTorneo />}/>
       </Routes>
 
     </BrowserRouter>

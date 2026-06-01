@@ -15,6 +15,8 @@ export default function Profile() {
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [dni, setDni] = useState('')
+const [fechaNacimiento, setFechaNacimiento] = useState('')
 
   const navigate = useNavigate()
 
@@ -58,9 +60,11 @@ export default function Profile() {
           finalProfile = newProfile
         }
 
-        setProfile(finalProfile)
-        setNombre(finalProfile.nombre || '')
-        setTelefono(finalProfile.telefono || '')
+      setProfile(finalProfile)
+      setNombre(finalProfile.nombre || '')
+      setTelefono(finalProfile.telefono || '')
+      setDni(finalProfile.dni || '')
+      setFechaNacimiento(finalProfile.fecha_nacimiento || '')
 
         const { data: solicitudData } = await supabase
           .from('solicitudes_dueno')
@@ -123,7 +127,8 @@ export default function Profile() {
       .from('profiles')
       .update({
         nombre,
-        telefono
+        telefono,dni,
+        fecha_nacimiento: fechaNacimiento
       })
       .eq('id', user.id)
 
@@ -137,7 +142,9 @@ export default function Profile() {
     setProfile(prev => ({
       ...prev,
       nombre,
-      telefono
+      telefono,
+      dni,
+      fecha_nacimiento: fechaNacimiento
     }))
 
     setEditando(false)
@@ -257,12 +264,54 @@ export default function Profile() {
                   onChange={(e) => setTelefono(e.target.value)}
                   className="w-full mt-1 bg-zinc-700 rounded-lg p-2 outline-none"
                 />
+                
               ) : (
                 <p className="font-semibold">
                   {profile?.telefono || 'Sin teléfono'}
                 </p>
               )}
             </div>
+            {/* DNI */}
+<div className="bg-zinc-800 p-3 rounded-xl">
+  <p className="text-xs text-zinc-400">DNI</p>
+
+  {editando ? (
+    <input
+      value={dni}
+      onChange={(e) =>
+        setDni(e.target.value.replace(/\D/g, ''))
+      }
+      maxLength={8}
+      className="w-full mt-1 bg-zinc-700 rounded-lg p-2 outline-none"
+      placeholder="Ej: 40123456"
+    />
+  ) : (
+    <p className="font-semibold">
+      {profile?.dni || 'Sin DNI'}
+    </p>
+  )}
+</div>
+{/* FECHA DE NACIMIENTO */}
+<div className="bg-zinc-800 p-3 rounded-xl">
+  <p className="text-xs text-zinc-400">
+    Fecha de nacimiento
+  </p>
+
+  {editando ? (
+    <input
+      type="date"
+      value={fechaNacimiento}
+      onChange={(e) =>
+        setFechaNacimiento(e.target.value)
+      }
+      className="w-full mt-1 bg-zinc-700 rounded-lg p-2 outline-none"
+    />
+  ) : (
+    <p className="font-semibold">
+      {profile?.fecha_nacimiento || 'Sin fecha'}
+    </p>
+  )}
+</div>
 
             {/* ROL */}
             <div className="bg-zinc-800 p-3 rounded-xl">
