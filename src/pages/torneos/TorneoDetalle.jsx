@@ -11,6 +11,7 @@ import { supabase } from '../../supabaseClient'
 import TournamentJoinButton from '../../components/TournamentJoinButton'
 import TournamentParticipants from '../../components/TournamentParticipants'
 import GenerateBracketButton from '../../components/GenerateBracketButton'
+import TournamentTeamRegistration from '../../components/TournamentTeamRegistration'
 import TournamentTabs
 from '../../components/TournamentTabs'
 
@@ -171,13 +172,14 @@ const canManage =
   (
     user.id === torneo.creador_id
   )
+  console.log(torneo)
   return (
-
+    
     <div className="
-      min-h-screen
-      bg-zinc-950
-      text-white
-      pb-24
+    min-h-screen
+    bg-zinc-950
+    text-white
+    pb-24
     ">
 
       {/* HERO */}
@@ -264,9 +266,20 @@ const canManage =
   flex-wrap
 ">
 
-  <TournamentJoinButton
-    torneo={torneo}
-  />
+{
+  torneo.tipo_participacion ===
+  'equipo'
+    ? (
+        <TournamentTeamRegistration
+          torneo={torneo}
+        />
+      )
+    : (
+        <TournamentJoinButton
+          torneo={torneo}
+        />
+      )
+}
 
   {
     canManage && (
@@ -405,7 +418,54 @@ const canManage =
                 </h3>
 
               </div>
+<div className="
+  bg-zinc-800
+  rounded-2xl
+  p-4
+">
 
+  <p className="
+    text-zinc-400
+    text-sm
+  ">
+    Modalidad
+  </p>
+
+  <h3 className="
+    text-lg
+    font-bold
+    mt-2
+  ">
+    {
+      torneo.tipo_participacion
+    }
+  </h3>
+
+</div>
+<div className="
+  bg-zinc-800
+  rounded-2xl
+  p-4
+">
+
+  <p className="
+    text-zinc-400
+    text-sm
+  ">
+    Integrantes
+  </p>
+
+  <h3 className="
+    text-lg
+    font-bold
+    mt-2
+  ">
+    {
+      torneo.cantidad_integrantes
+    }
+  </h3>
+
+</div>
               <div className="
                 bg-zinc-800
                 rounded-2xl

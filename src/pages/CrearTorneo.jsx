@@ -57,6 +57,11 @@ export default function CrearTorneo() {
   const [imagen, setImagen] =
     useState(null)
 
+  const [
+  tipoParticipacion,
+  setTipoParticipacion
+] = useState('individual')
+
   useEffect(() => {
     loadData()
   }, [])
@@ -145,12 +150,16 @@ export default function CrearTorneo() {
           cupo_maximo:
             cupoMaximo,
 
+          tipo_participacion:
+            tipoParticipacion,
+
           club_id: clubId,
 
           creador_id:
             user.id,
 
           imagen_url
+
 
         })
 
@@ -161,7 +170,10 @@ export default function CrearTorneo() {
     } catch (error) {
 
       console.error(error)
-
+console.log(
+  'Tipo seleccionado:',
+  tipoParticipacion
+)
       alert(error.message)
 
     } finally {
@@ -175,11 +187,11 @@ export default function CrearTorneo() {
   if (loading) {
 
     return (
-
+      
       <div className="
-        min-h-screen
-        bg-zinc-950
-        text-white
+      min-h-screen
+      bg-zinc-950
+      text-white
       ">
 
         <Navbar />
@@ -190,18 +202,19 @@ export default function CrearTorneo() {
 
       </div>
 
-    )
+)
 
-  }
+}
 
-  return (
-
-    <div className="
-      min-h-screen
-      bg-zinc-950
-      text-white
-      pb-24
-    ">
+return (
+  
+  <div className="
+  min-h-screen
+  bg-zinc-950
+  text-white
+  pb-24
+  ">
+      
 
       <Navbar />
 
@@ -299,6 +312,34 @@ export default function CrearTorneo() {
               />
 
             </div>
+            {/* MODALIDAD */}
+<div>
+
+  <label className="
+    text-sm
+    text-zinc-400
+  ">
+    Modalidad
+  </label>
+
+<select
+  value={tipoParticipacion}
+  onChange={(e) =>
+    setTipoParticipacion(
+      e.target.value
+    )
+  }
+>
+  <option value="individual">
+    Individual
+  </option>
+
+  <option value="equipo">
+    Equipo
+  </option>
+</select>
+
+</div>
 
             {/* CLUB */}
             <div>

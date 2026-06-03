@@ -22,7 +22,7 @@ export default function AdminParticipantesTorneo({
         .from('inscripciones_torneo')
         .select(`
           *,
-          profile:user_id (
+          profile:usuario_id (
             nombre,
             avatar_url
           )

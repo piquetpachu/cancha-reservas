@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { getUser } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
+import InvitacionesEquipo from '../components/InvitacionesEquipo'
 
 export default function Profile() {
 
@@ -354,7 +355,7 @@ const [fechaNacimiento, setFechaNacimiento] = useState('')
           </div>
 
         </div>
-
+<InvitacionesEquipo />
         {/* SOLICITUD */}
         {profile?.rol === 'cliente' && (
 
