@@ -94,3 +94,82 @@ export async function obtenerClubesDueno(
   return data
 
 }
+// TORNEOS POR DEPORTE
+export async function obtenerTorneosPorDeporte(
+  deporte
+) {
+
+  const { data, error } =
+    await supabase
+      .from('torneos')
+      .select('*')
+      .eq('deporte', deporte)
+      .order('created_at', {
+        ascending: false
+      })
+
+  if (error) throw error
+
+  return data
+
+}
+export async function obtenerMisEquipos(
+  userId
+) {
+
+  const {
+    data: integrantes,
+    error
+  } = await supabase
+    .from('equipo_integrantes')
+    .select(`
+      *,
+      equipos_torneo (*)
+    `)
+    .eq(
+      'usuario_id',
+      userId
+    )
+
+  if (error)
+    throw error
+
+  return integrantes
+
+}
+export async function obtenerEquipoDetalle(
+  equipoId
+) {
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from('equipos_torneo')
+    .select(`
+      *,
+      equipo_integrantes (
+        *,
+        profiles (
+          id,
+          nombre,
+          avatar_url
+        )
+      ),
+      invitaciones_equipo (
+        *,
+        profiles (
+          id,
+          nombre
+        )
+      )
+    `)
+    .eq('id', equipoId)
+    .single()
+
+  if (error)
+    throw error
+
+  return data
+
+}

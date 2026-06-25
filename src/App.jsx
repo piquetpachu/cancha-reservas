@@ -39,13 +39,32 @@ import ReservasDueno from "./pages/ReservasDueno";
 import DuenoRoute from "./components/DuenoRoute";
 
 //TORNEOS
-import Torneos from './pages/Torneos'
-import CrearTorneo from './pages/CrearTorneo'
+// import Torneos from './pages/Torneos'
+import CrearTorneo from './pages/torneos/CreateTournament'
 import TorneoDetalle from './pages/torneos/TorneoDetalle'
 import EditarTorneo from './pages/torneos/EditarTorneo'
+import TournamentsHome from './pages/TournamentsHome'
+import PadelHome from './pages/PadelHome'
 
+//FUTBOL
+import FutbolRanking from './pages/futbol/FutbolRanking'
+import FutbolTorneos from './pages/futbol/FutbolTorneos'
+import FutbolEquipos from './pages/futbol/FutbolEquipos'
+import MisEquipos from './pages/futbol/MisEquipos'
+import FutbolHome from './pages/futbol/FutbolHome'
+
+import MisInvitaciones
+from './pages/futbol/MisInvitaciones'
+import CreateFootballTournament
+from './pages/futbol/CreateFootballTournament'
+
+
+
+import CreatePadelTournament
+from './pages/padel/CreatePadelTournament'
 import './App.css'
-
+import EquipoDetalle
+from './pages/futbol/EquipoDetalle'
 function App() {
 
   const [rol, setRol] = useState(null);
@@ -135,11 +154,62 @@ function App() {
 
         <Route path="/admin/estadisticas" element={<AdminRoute><AdminEstadisticas /></AdminRoute>} />
         {/* TORNEOS */}
-        <Route path="/torneos"element={<Torneos />}/>
+        <Route path="/torneos"element={<TournamentsHome/>} />
         <Route path="/dashboard/torneos/nuevo"element={<CrearTorneo />}/>
         <Route path="/torneos/:id"element={<TorneoDetalle />}/>
         <Route path="/torneos/:id/editar"element={<EditarTorneo />}/>
+        
+<Route
+  path="/torneos/futbol/invitaciones"
+  element={<MisInvitaciones />}
+/>
+        <Route
+          path="/torneos/padel"
+          element={<PadelHome />}
+        />
+        {/* FUTBOL */}
+        <Route
+  path="/torneos/futbol/ranking"
+  element={<FutbolRanking />}
+/>
+
+<Route
+  path="/torneos/futbol/torneos"
+  element={<FutbolTorneos />}
+/>
+
+<Route
+  path="/torneos/futbol/equipos"
+  element={<FutbolEquipos />}
+/>
+
+<Route
+  path="/torneos/futbol/mis-equipos"
+  element={<MisEquipos />}
+/>
+<Route
+  path="/torneos/futbol"
+  element={<FutbolHome />}
+/>
+<Route
+  path="/torneos/futbol/nuevo"
+  element={
+    <CreateFootballTournament />
+  }
+/>
+
+<Route
+  path="/torneos/padel/nuevo"
+  element={
+    <CreatePadelTournament />
+  }
+/>
+<Route
+  path="/torneos/futbol/equipo/:id"
+  element={<EquipoDetalle />}
+/>
       </Routes>
+
 
     </BrowserRouter>
   );
